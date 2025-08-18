@@ -37,6 +37,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "deploymentProtection": false
+  }
 }
