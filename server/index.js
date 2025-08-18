@@ -6,8 +6,18 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 require('dotenv').config();
 
-const { initializeDatabase } = require('./config/database');
-const WordPressService = require('./services/wordpressService-sqlite');
+// Conditionally import database modules for local development
+let initializeDatabase = null;
+let WordPressService = null;
+
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+  try {
+    initializeDatabase = require('./config/database').initializeDatabase;
+    WordPressService = require('./services/wordpressService-sqlite');
+  } catch (error) {
+    console.warn('Database modules not available in serverless environment');
+  }
+}
 
 // Import routes
 const authRoutes = require('./routes/auth-simple'); // Use simplified version for SQLite compatibility
@@ -20,8 +30,11 @@ const uploadsRoutes = require('./routes/uploads');
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// Initialize WordPress service
-const wpService = new WordPressService();
+// Initialize WordPress service (only for local development)
+let wpService = null;
+if (WordPressService) {
+  wpService = new WordPressService();
+}
 
 // Middleware
 app.use(helmet());
@@ -145,8 +158,10 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Create admin user if it doesn't exist
+// Create admin user if it doesn't exist (local development only)
 const createAdminUser = async () => {
+  if (!initializeDatabase) return; // Skip if no database available
+  
   try {
     const bcrypt = require('bcryptjs');
     const { pool } = require('./config/database');

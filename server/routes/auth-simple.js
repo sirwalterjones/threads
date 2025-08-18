@@ -1,10 +1,19 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const validator = require('validator');
 const router = express.Router();
+
+// Conditionally import database only for local development
+let pool = null;
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+  try {
+    pool = require('../config/database').pool;
+  } catch (error) {
+    console.warn('Database not available in serverless environment');
+  }
+}
 
 // Register new user (admin only)
 router.post('/register', 
