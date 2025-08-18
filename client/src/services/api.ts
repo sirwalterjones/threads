@@ -1,0 +1,224 @@
+import axios, { AxiosResponse } from 'axios';
+import { 
+  User, 
+  Post, 
+  Category, 
+  PostsResponse, 
+  SearchFilters, 
+  DashboardStats,
+  AuditLogEntry,
+  PostFormData,
+  CategoryFormData,
+  UserFormData
+} from '../types';
+
+export const API_BASE_URL = '/api';
+
+class ApiService {
+  private token: string | null = null;
+
+  constructor() {
+    this.token = localStorage.getItem('token');
+    this.setupInterceptors();
+  }
+
+  private setupInterceptors() {
+    // Request interceptor to add auth token
+    axios.interceptors.request.use(
+      (config) => {
+        if (this.token) {
+          config.headers.Authorization = `Bearer ${this.token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Response interceptor to handle auth errors
+    axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          this.clearToken();
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  setToken(token: string) {
+    this.token = token;
+    localStorage.setItem('token', token);
+  }
+
+  clearToken() {
+    this.token = null;
+    localStorage.removeItem('token');
+  }
+
+  // Authentication
+  async login(username: string, password: string): Promise<{ user: User; token: string }> {
+    const response: AxiosResponse<{ user: User; token: string }> = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      { username, password }
+    );
+    return response.data;
+  }
+
+  async register(userData: UserFormData): Promise<{ user: User }> {
+    const response: AxiosResponse<{ user: User }> = await axios.post(
+      `${API_BASE_URL}/auth/register`,
+      userData
+    );
+    return response.data;
+  }
+
+  async getProfile(): Promise<User> {
+    const response: AxiosResponse<User> = await axios.get(`${API_BASE_URL}/auth/profile`);
+    return response.data;
+  }
+
+  async updateProfile(data: { email?: string; currentPassword?: string; newPassword?: string }): Promise<{ user: User }> {
+    const response: AxiosResponse<{ user: User }> = await axios.put(
+      `${API_BASE_URL}/auth/profile`,
+      data
+    );
+    return response.data;
+  }
+
+  async getUsers(): Promise<User[]> {
+    const response: AxiosResponse<User[]> = await axios.get(`${API_BASE_URL}/auth/users`);
+    return response.data;
+  }
+
+  async updateUser(id: number, data: { role?: string; isActive?: boolean }): Promise<{ user: User }> {
+    const response: AxiosResponse<{ user: User }> = await axios.put(
+      `${API_BASE_URL}/auth/users/${id}`,
+      data
+    );
+    return response.data;
+  }
+
+  // Posts
+  async getPosts(filters: SearchFilters & { page?: number; limit?: number }): Promise<PostsResponse> {
+    const params = new URLSearchParams();
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const response: AxiosResponse<PostsResponse> = await axios.get(
+      `${API_BASE_URL}/posts?${params.toString()}`
+    );
+    return response.data;
+  }
+
+  async getPost(id: number): Promise<Post> {
+    const response: AxiosResponse<Post> = await axios.get(`${API_BASE_URL}/posts/${id}`);
+    return response.data;
+  }
+
+  async createPost(postData: PostFormData): Promise<Post> {
+    const response: AxiosResponse<Post> = await axios.post(`${API_BASE_URL}/posts`, postData);
+    return response.data;
+  }
+
+  async uploadFile(formData: FormData): Promise<{ url: string; path: string; mimeType: string }> {
+    const response = await axios.post(`${API_BASE_URL}/uploads`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
+  async updatePost(id: number, postData: Partial<PostFormData>): Promise<Post> {
+    const response: AxiosResponse<Post> = await axios.put(`${API_BASE_URL}/posts/${id}`, postData);
+    return response.data;
+  }
+
+  async deletePost(id: number): Promise<void> {
+    await axios.delete(`${API_BASE_URL}/posts/${id}`);
+  }
+
+  // Categories
+  async getCategories(): Promise<Category[]> {
+    const response: AxiosResponse<Category[]> = await axios.get(`${API_BASE_URL}/categories`);
+    return response.data;
+  }
+
+  async getCategory(id: number): Promise<Category> {
+    const response: AxiosResponse<Category> = await axios.get(`${API_BASE_URL}/categories/${id}`);
+    return response.data;
+  }
+
+  async createCategory(categoryData: CategoryFormData): Promise<Category> {
+    const response: AxiosResponse<Category> = await axios.post(`${API_BASE_URL}/categories`, categoryData);
+    return response.data;
+  }
+
+  async updateCategory(id: number, categoryData: Partial<CategoryFormData>): Promise<Category> {
+    const response: AxiosResponse<Category> = await axios.put(`${API_BASE_URL}/categories/${id}`, categoryData);
+    return response.data;
+  }
+
+  async deleteCategory(id: number): Promise<void> {
+    await axios.delete(`${API_BASE_URL}/categories/${id}`);
+  }
+
+  async updateCategoryCounts(): Promise<{ totalPosts: number }> {
+    const response = await axios.post(`${API_BASE_URL}/categories/update-counts`);
+    return response.data;
+  }
+
+  // Admin functions
+  async getDashboardStats(): Promise<DashboardStats> {
+    const response: AxiosResponse<DashboardStats> = await axios.get(`${API_BASE_URL}/admin/dashboard`);
+    return response.data;
+  }
+
+  async ingestWordPressData(): Promise<{ result: any }> {
+    const response = await axios.post(`${API_BASE_URL}/admin/ingest-wordpress`);
+    return response.data;
+  }
+
+  async purgeExpiredData(): Promise<{ purgedCount: number }> {
+    const response = await axios.post(`${API_BASE_URL}/admin/purge-expired`);
+    return response.data;
+  }
+
+  async getAuditLog(filters: {
+    page?: number;
+    limit?: number;
+    userId?: number;
+    action?: string;
+    tableName?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<{ auditEntries: AuditLogEntry[]; pagination: any }> {
+    const params = new URLSearchParams();
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const response = await axios.get(`${API_BASE_URL}/admin/audit-log?${params.toString()}`);
+    return response.data;
+  }
+
+  async getSystemHealth(): Promise<any> {
+    const response = await axios.get(`${API_BASE_URL}/admin/health`);
+    return response.data;
+  }
+
+  async performMaintenance(action: string): Promise<any> {
+    const response = await axios.post(`${API_BASE_URL}/admin/maintenance`, { action });
+    return response.data;
+  }
+}
+
+const apiService = new ApiService();
+export default apiService;
