@@ -6,35 +6,23 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 require('dotenv').config();
 
-// Conditionally import database modules for local development
-let initializeDatabase = null;
-let WordPressService = null;
-
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
-  try {
-    initializeDatabase = require('./config/database').initializeDatabase;
-    WordPressService = require('./services/wordpressService-sqlite');
-  } catch (error) {
-    console.warn('Database modules not available in serverless environment');
-  }
-}
+// Import database modules (PostgreSQL for production, SQLite for local)
+const { initializeDatabase } = require('./config/database');
+const WordPressService = require('./services/wordpressService');
 
 // Import routes
-const authRoutes = require('./routes/auth-simple'); // Use simplified version for SQLite compatibility
-const postsRoutes = require('./routes/posts-simple'); // Use simplified version for SQLite compatibility
+const authRoutes = require('./routes/auth'); // Use full PostgreSQL version
+const postsRoutes = require('./routes/posts'); // Use full PostgreSQL version
 const categoriesRoutes = require('./routes/categories');
 const mediaRoutes = require('./routes/media');
-const adminRoutes = require('./routes/admin-simple'); // Use simplified version for SQLite compatibility
+const adminRoutes = require('./routes/admin'); // Use full PostgreSQL version
 const uploadsRoutes = require('./routes/uploads');
 
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// Initialize WordPress service (only for local development)
-let wpService = null;
-if (WordPressService) {
-  wpService = new WordPressService();
-}
+// Initialize WordPress service
+const wpService = new WordPressService();
 
 // Middleware
 app.use(helmet());
@@ -158,10 +146,8 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Create admin user if it doesn't exist (local development only)
+// Create admin user if it doesn't exist
 const createAdminUser = async () => {
-  if (!initializeDatabase) return; // Skip if no database available
-  
   try {
     const bcrypt = require('bcryptjs');
     const { pool } = require('./config/database');
@@ -199,17 +185,12 @@ const createAdminUser = async () => {
 // Start server
 const startServer = async () => {
   try {
-    // Skip database initialization in serverless environment
-    if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
-      // Initialize database for local development
-      await initializeDatabase();
-      console.log('Database initialized successfully');
+    // Initialize database
+    await initializeDatabase();
+    console.log('Database initialized successfully');
 
-      // Create admin user if needed
-      await createAdminUser();
-    } else {
-      console.log('Skipping database initialization in serverless environment');
-    }
+    // Create admin user if needed
+    await createAdminUser();
 
     // Start the server (only in local development)
     if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {

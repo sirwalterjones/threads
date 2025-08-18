@@ -1,19 +1,10 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const validator = require('validator');
 const router = express.Router();
-
-// Conditionally import database only for local development
-let pool = null;
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
-  try {
-    pool = require('../config/database').pool;
-  } catch (error) {
-    console.warn('Database not available in serverless environment');
-  }
-}
 
 // Register new user (admin only)
 router.post('/register', 
@@ -91,37 +82,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // For serverless environment, check hardcoded admin credentials first
-    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-      if (username === 'admin' && password === 'admin123456') {
-        const token = jwt.sign(
-          { 
-            userId: 1, 
-            username: 'admin', 
-            role: 'admin' 
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: '24h' }
-        );
-
-        return res.json({
-          success: true,
-          token,
-          user: {
-            id: 1,
-            username: 'admin',
-            email: 'admin@threads.local',
-            role: 'admin'
-          }
-        });
-      } else {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-    }
-
-    // For local development, use database
+    // Find user in database
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = ?',
+      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
       [username]
     );
 
