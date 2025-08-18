@@ -2,13 +2,21 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 require('dotenv').config();
 
-const dbPath = path.join(__dirname, '../../data/threads_intel.db');
-
-// Ensure data directory exists
-const fs = require('fs');
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// Use in-memory database for Vercel serverless environment
+// or temporary directory for local development
+let dbPath;
+if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+  // Use in-memory database for Vercel
+  dbPath = ':memory:';
+  console.log('Using in-memory SQLite database for serverless environment');
+} else {
+  // Use file-based database for local development
+  dbPath = path.join(__dirname, '../../data/threads_intel.db');
+  const fs = require('fs');
+  const dataDir = path.dirname(dbPath);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
 }
 
 // Create database connection
@@ -16,7 +24,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    console.log('Connected to SQLite database');
+    console.log(`Connected to SQLite database: ${dbPath === ':memory:' ? 'in-memory' : dbPath}`);
   }
 });
 
