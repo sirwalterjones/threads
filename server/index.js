@@ -184,22 +184,33 @@ const createAdminUser = async () => {
 // Start server
 const startServer = async () => {
   try {
-    // Initialize database
-    await initializeDatabase();
-    console.log('Database initialized successfully');
+    // Skip database initialization in serverless environment
+    if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+      // Initialize database for local development
+      await initializeDatabase();
+      console.log('Database initialized successfully');
 
-    // Create admin user if needed
-    await createAdminUser();
+      // Create admin user if needed
+      await createAdminUser();
+    } else {
+      console.log('Skipping database initialization in serverless environment');
+    }
 
-    // Start the server
-    app.listen(PORT, () => {
-      console.log(`Threads Intel API server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`WordPress API: ${process.env.WORDPRESS_API_URL}`);
-    });
+    // Start the server (only in local development)
+    if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+      app.listen(PORT, () => {
+        console.log(`Threads Intel API server running on port ${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`WordPress API: ${process.env.WORDPRESS_API_URL}`);
+      });
+    } else {
+      console.log('App ready for serverless environment');
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 };
 
