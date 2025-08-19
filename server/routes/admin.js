@@ -72,6 +72,32 @@ router.get('/dashboard',
   }
 );
 
+// Test WordPress connection
+router.get('/test-wordpress', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  async (req, res) => {
+    try {
+      console.log('Testing WordPress connection...');
+      const response = await wpService.http.get('/posts', { params: { per_page: 1 } });
+      
+      res.json({
+        success: true,
+        message: 'WordPress API connection successful',
+        samplePost: response.data[0] || null,
+        totalPosts: response.headers['x-wp-total'] || 'unknown'
+      });
+    } catch (error) {
+      console.error('WordPress connection test failed:', error);
+      res.status(500).json({ 
+        error: 'WordPress connection failed',
+        details: error.message,
+        url: wpService.baseUrl
+      });
+    }
+  }
+);
+
 // Trigger WordPress data ingestion
 router.post('/ingest-wordpress', 
   authenticateToken, 
@@ -80,6 +106,8 @@ router.post('/ingest-wordpress',
   async (req, res) => {
     try {
       console.log('Starting WordPress ingestion...');
+      console.log('WordPress API URL:', wpService.baseUrl);
+      
       const result = await wpService.performFullIngestion();
       
       res.json({
