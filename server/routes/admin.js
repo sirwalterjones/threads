@@ -72,6 +72,93 @@ router.get('/dashboard',
   }
 );
 
+// Manual data insertion for testing
+router.post('/insert-sample-data', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  async (req, res) => {
+    try {
+      console.log('Inserting sample data...');
+      
+      // Sample categories
+      const categories = [
+        {wp_category_id: 2325, name: "25-0102-21-05", slug: "25-0102-21-05", parent_id: null, post_count: 1},
+        {wp_category_id: 1121, name: "Intel Quick Updates", slug: "intel-quick-updates", parent_id: null, post_count: 3},
+        {wp_category_id: 61, name: "2019", slug: "2019", parent_id: null, post_count: 50}
+      ];
+      
+      // Insert categories
+      for (const cat of categories) {
+        await pool.query(`
+          INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
+          VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT (wp_category_id) DO UPDATE SET
+            name = EXCLUDED.name,
+            slug = EXCLUDED.slug,
+            post_count = EXCLUDED.post_count
+        `, [cat.wp_category_id, cat.name, cat.slug, cat.parent_id, cat.post_count]);
+      }
+      
+      // Sample posts
+      const posts = [
+        {
+          wp_post_id: 160026,
+          title: "Dan Worrell", 
+          excerpt: "CHEROKEE MULTI-AGENCY NARCOTICS SQUAD CASE FILE CASE # 25-0102-21-05",
+          wp_published_date: "2025-08-18T15:12:36",
+          author_name: "Admin",
+          category_id: 1, // Will be mapped to category with wp_category_id 2325
+          status: "publish"
+        },
+        {
+          wp_post_id: 159977,
+          title: "Canton 202503672 Theft",
+          excerpt: "Date: 08/18/2025 Time: 09:09:36 Analyst: Fanny Silberberg On August 13, 2025, Detective Porter...",
+          wp_published_date: "2025-08-18T09:28:07", 
+          author_name: "Admin",
+          category_id: 2, // Will be mapped to Intel Quick Updates
+          status: "publish"
+        },
+        {
+          wp_post_id: 159969,
+          title: "25M1178 Jermade WILLIAMS",
+          excerpt: "Date: 08/18/2025 Time: 08:06:47 Analyst: Stephanie Hardison Charges: FTA (M)",
+          wp_published_date: "2025-08-18T08:19:31",
+          author_name: "Admin", 
+          category_id: 2,
+          status: "publish"
+        }
+      ];
+      
+      // Insert posts
+      for (const post of posts) {
+        await pool.query(`
+          INSERT INTO posts (wp_post_id, title, excerpt, wp_published_date, author_name, category_id, status, ingested_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+          ON CONFLICT (wp_post_id) DO UPDATE SET
+            title = EXCLUDED.title,
+            excerpt = EXCLUDED.excerpt,
+            wp_published_date = EXCLUDED.wp_published_date
+        `, [post.wp_post_id, post.title, post.excerpt, post.wp_published_date, post.author_name, post.category_id, post.status]);
+      }
+      
+      res.json({
+        success: true,
+        message: 'Sample data inserted successfully',
+        categoriesInserted: categories.length,
+        postsInserted: posts.length
+      });
+      
+    } catch (error) {
+      console.error('Sample data insertion failed:', error);
+      res.status(500).json({ 
+        error: 'Sample data insertion failed',
+        details: error.message
+      });
+    }
+  }
+);
+
 // Test WordPress connection
 router.get('/test-wordpress', 
   authenticateToken, 
