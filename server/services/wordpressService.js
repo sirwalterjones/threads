@@ -5,6 +5,13 @@ class WordPressService {
   constructor() {
     this.baseUrl = process.env.WORDPRESS_API_URL;
     this.retentionDays = process.env.DEFAULT_RETENTION_DAYS || 365;
+    
+    console.log('WordPress service config:', {
+      baseUrl: this.baseUrl,
+      hasApiUrl: !!process.env.WORDPRESS_API_URL,
+      hasUsername: !!process.env.WORDPRESS_USERNAME,
+      hasPassword: !!process.env.WORDPRESS_PASSWORD
+    });
     this.http = axios.create({
       baseURL: this.baseUrl,
       timeout: parseInt(process.env.WP_TIMEOUT_MS || '15000'),
@@ -12,8 +19,7 @@ class WordPressService {
         'User-Agent': process.env.WORDPRESS_USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Referer': this.baseUrl
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
 
