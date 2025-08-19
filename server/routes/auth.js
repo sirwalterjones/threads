@@ -6,6 +6,50 @@ const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const validator = require('validator');
 const router = express.Router();
 
+// Debug endpoint to check database connection
+router.get('/debug', async (req, res) => {
+  try {
+    console.log('Debug endpoint hit');
+    console.log('Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      hasDbHost: !!process.env.DB_HOST,
+      hasDbPassword: !!process.env.DB_PASSWORD,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      poolAvailable: !!pool
+    });
+    
+    if (!pool) {
+      return res.status(500).json({ error: 'Database pool not available' });
+    }
+    
+    const result = await pool.query('SELECT NOW() as current_time');
+    console.log('Database query successful:', result.rows[0]);
+    
+    // Check if users table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'users'
+      );
+    `);
+    
+    res.json({
+      success: true,
+      database_time: result.rows[0].current_time,
+      users_table_exists: tableCheck.rows[0].exists,
+      environment: process.env.NODE_ENV
+    });
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    res.status(500).json({ 
+      error: 'Debug failed', 
+      message: error.message,
+      stack: error.stack 
+    });
+  }
+});
+
 // Register new user (admin only)
 router.post('/register', 
   authenticateToken, 
