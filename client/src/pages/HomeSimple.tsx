@@ -41,7 +41,7 @@ import {
   HelpOutline
 } from '@mui/icons-material';
 import { Post, Category, SearchFilters } from '../types';
-import apiService from '../services/api';
+import apiService, { API_BASE_URL } from '../services/api';
 import { format } from 'date-fns';
 import PostDetailModal from '../components/PostDetailModal';
 
@@ -567,9 +567,18 @@ const HomeSimple: React.FC = () => {
                       {post.featured_media_url && (
                         <Box sx={{ mb: 2 }}>
                           <img 
-                            src={post.featured_media_url} 
+                            src={`${API_BASE_URL}/media?url=${encodeURIComponent(post.featured_media_url)}&t=${encodeURIComponent(localStorage.getItem('token') || '')}`}
                             alt="Featured media"
                             style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                            onError={(e) => {
+                              // Fallback to direct URL if proxy fails
+                              const target = e.target as HTMLImageElement;
+                              if (!target.src.includes('https://cmansrms.us')) {
+                                target.src = post.featured_media_url.startsWith('http') 
+                                  ? post.featured_media_url 
+                                  : `https://cmansrms.us${post.featured_media_url}`;
+                              }
+                            }}
                           />
                         </Box>
                       )}
