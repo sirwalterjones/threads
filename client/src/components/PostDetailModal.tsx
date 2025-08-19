@@ -259,13 +259,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         absoluteUrl = `${remoteBase}/${original}`;
                       }
                       
-                      // For cmansrms.us, use direct URLs since it's a public WordPress site
-                      if (absoluteUrl.includes('cmansrms.us')) {
+                      // For cmansrms.us images, use direct URLs; for PDFs use proxy due to 403 errors
+                      if (absoluteUrl.includes('cmansrms.us') && !absoluteUrl.toLowerCase().includes('.pdf')) {
                         return `src=\"${absoluteUrl}\" data-raw-url=\"${absoluteUrl}\"`;
                       } else {
                         const encoded = encodeURIComponent(absoluteUrl);
                         return `src=\"${API_BASE_URL}/media?url=${encoded}&t=${token}\" data-raw-url=\"${absoluteUrl}\" onerror=\"this.onerror=null; this.src='${absoluteUrl}'; console.log('Media proxy failed for: ${absoluteUrl}');\"`;
-                      };
+                      }
                     } catch (error) { 
                       console.error('Error processing image src:', error, url);
                       return m; 

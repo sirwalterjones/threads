@@ -5,7 +5,8 @@ import {
   DialogContent,
   IconButton,
   Typography,
-  Box
+  Box,
+  Button
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { API_BASE_URL } from '../services/api';
@@ -41,8 +42,8 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
   const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
   const remoteUrl = absoluteUrl;
   
-  // For cmansrms.us, use direct URLs since it's a public WordPress site
-  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us');
+  // For cmansrms.us images, use direct URLs; for PDFs use proxy due to 403 errors
+  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us') && !absoluteUrl.toLowerCase().includes('.pdf');
   const finalUrl = shouldUseDirectUrl ? absoluteUrl : proxyUrl;
 
   const mime = attachment.mime_type || '';
@@ -73,11 +74,23 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           />
         )}
         {isPdf && (
-          <Box sx={{ height: '80vh' }}>
-            <object data={finalUrl} type="application/pdf" width="100%" height="100%">
-              <embed src={finalUrl} type="application/pdf" width="100%" height="100%" />
-              <Typography variant="body2">Unable to preview PDF. <a href={remoteUrl} target="_blank" rel="noreferrer">Open in new tab</a></Typography>
-            </object>
+          <Box sx={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+            <Typography variant="h6">PDF Document</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              PDF files from this source cannot be embedded directly due to security restrictions.
+            </Typography>
+            <Button 
+              variant="contained" 
+              href={finalUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              sx={{ mt: 2 }}
+            >
+              Open PDF in New Tab
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              {attachment.title || 'PDF Document'}
+            </Typography>
           </Box>
         )}
         {isVideo && (
