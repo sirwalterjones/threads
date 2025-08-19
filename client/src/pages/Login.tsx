@@ -65,7 +65,7 @@ const Login: React.FC = () => {
               gutterBottom
               sx={{ 
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
+                background: 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',

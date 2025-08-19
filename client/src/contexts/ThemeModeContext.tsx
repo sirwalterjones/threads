@@ -28,9 +28,9 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       mode,
       // Modern blue-based palette inspired by the screenshot
       primary: { 
-        main: mode === 'light' ? '#4F46E5' : '#6366F1', // Indigo blue
-        light: mode === 'light' ? '#6366F1' : '#818CF8',
-        dark: mode === 'light' ? '#3730A3' : '#4338CA'
+        main: mode === 'light' ? '#1E88E5' : '#42A5F5', // True blue
+        light: mode === 'light' ? '#42A5F5' : '#64B5F6',
+        dark: mode === 'light' ? '#1565C0' : '#1976D2'
       },
       secondary: { 
         main: mode === 'light' ? '#64748B' : '#94A3B8', // Slate
@@ -131,18 +131,18 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           },
           containedPrimary: {
             background: mode === 'light' 
-              ? 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)'
-              : 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)',
+              ? 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)'
+              : 'linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%)',
             boxShadow: mode === 'light'
-              ? '0 4px 14px 0 rgba(79, 70, 229, 0.39)'
-              : '0 4px 14px 0 rgba(99, 102, 241, 0.39)',
+              ? '0 4px 14px 0 rgba(30, 136, 229, 0.39)'
+              : '0 4px 14px 0 rgba(66, 165, 245, 0.39)',
             '&:hover': {
               background: mode === 'light'
-                ? 'linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)'
-                : 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+                ? 'linear-gradient(135deg, #1565C0 0%, #1E88E5 100%)'
+                : 'linear-gradient(135deg, #1976D2 0%, #42A5F5 100%)',
               boxShadow: mode === 'light'
-                ? '0 6px 20px 0 rgba(79, 70, 229, 0.49)'
-                : '0 6px 20px 0 rgba(99, 102, 241, 0.49)'
+                ? '0 6px 20px 0 rgba(30, 136, 229, 0.49)'
+                : '0 6px 20px 0 rgba(66, 165, 245, 0.49)'
             }
           }
         } 
@@ -160,7 +160,7 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 borderColor: mode === 'light' ? '#CBD5E1' : '#475569'
               },
               '&.Mui-focused fieldset': {
-                borderColor: mode === 'light' ? '#4F46E5' : '#6366F1'
+                borderColor: mode === 'light' ? '#1E88E5' : '#42A5F5'
               }
             }
           }
