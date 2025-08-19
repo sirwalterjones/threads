@@ -232,7 +232,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
               <Box
                 sx={{
                   lineHeight: 1.8,
-                  '& img': { maxWidth: '100%', borderRadius: 1 },
+                  '& img': { 
+                    maxWidth: '100%', 
+                    borderRadius: 1,
+                    '&:not([src])': { display: 'none' }
+                  },
                   '& p': { margin: '0 0 12px' },
                   '& h1, & h2, & h3': { marginTop: '16px' }
                 }}
@@ -244,10 +248,23 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                   // Proxy media sources (img/video/audio) but keep links pointing to remote host
                   let rewritten = raw.replace(/src=["']([^"'>]+)["']/gi, (m, url) => {
                     try {
-                      const original = String(url);
-                      const encoded = encodeURIComponent(original);
-                      return `src=\"${API_BASE_URL}/media?url=${encoded}&t=${token}\" data-raw-url=\"${original}\"`;
-                    } catch { return m; }
+                      const original = String(url).trim();
+                      if (!original) return m;
+                      
+                      // Handle relative URLs
+                      let absoluteUrl = original;
+                      if (original.startsWith('/')) {
+                        absoluteUrl = `${remoteBase}${original}`;
+                      } else if (!original.startsWith('http')) {
+                        absoluteUrl = `${remoteBase}/${original}`;
+                      }
+                      
+                      const encoded = encodeURIComponent(absoluteUrl);
+                      return `src=\"${API_BASE_URL}/media?url=${encoded}&t=${token}\" data-raw-url=\"${absoluteUrl}\" onerror=\"this.onerror=null; this.src='${absoluteUrl}'; console.log('Media proxy failed for: ${absoluteUrl}');\"`;
+                    } catch (error) { 
+                      console.error('Error processing image src:', error, url);
+                      return m; 
+                    }
                   });
                   rewritten = rewritten.replace(/href=["']([^"'>]+)["']/gi, (m, url) => {
                     try {
