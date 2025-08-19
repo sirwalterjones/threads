@@ -75,21 +75,26 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
         )}
         {isPdf && (
           <Box sx={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            <Typography variant="h6">PDF Document</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-              PDF files from this source cannot be embedded directly due to security restrictions.
+            <Typography variant="h6">📄 PDF Document</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
+              This PDF cannot be viewed in the modal due to browser security restrictions. 
+              Click the button below to open it in a new tab.
             </Typography>
             <Button 
               variant="contained" 
               href={finalUrl} 
               target="_blank" 
               rel="noopener noreferrer"
+              size="large"
               sx={{ mt: 2 }}
             >
-              Open PDF in New Tab
+              📄 Open PDF in New Tab
             </Button>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
               {attachment.title || 'PDF Document'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, opacity: 0.7 }}>
+              The PDF will open through a secure proxy to bypass access restrictions.
             </Typography>
           </Box>
         )}
