@@ -79,6 +79,24 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Get Vercel IP address
+app.get('/api/my-ip', async (req, res) => {
+  try {
+    const axios = require('axios');
+    const response = await axios.get('https://api.ipify.org?format=json', { timeout: 5000 });
+    res.json({
+      vercelIP: response.data.ip,
+      headers: req.headers,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Failed to get IP',
+      details: error.message 
+    });
+  }
+});
+
 // Serve client build if present
 const clientBuildPath = path.join(__dirname, '../client/build');
 app.use(express.static(clientBuildPath));
