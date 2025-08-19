@@ -118,7 +118,14 @@ router.get('/', async (req, res) => {
           const headers = {};
           if (req.headers.range) headers['Range'] = req.headers.range;
           if (uOrigin) {
-            headers['Referer'] = process.env.WORDPRESS_REFERER || uOrigin;
+            // Only set Referer if it's a valid URL to avoid header errors
+            const refererUrl = process.env.WORDPRESS_REFERER || uOrigin;
+            try {
+              new URL(refererUrl); // Validate URL
+              headers['Referer'] = refererUrl;
+            } catch (e) {
+              console.warn('Invalid Referer URL, skipping:', refererUrl);
+            }
             headers['Origin'] = uOrigin;
           }
           // Prefer inline rendering in some upstreams
