@@ -135,8 +135,13 @@ router.get('/', async (req, res) => {
           const resp = await client.get(u, { headers });
           return { resp, usedUrl: u };
         } catch (e) {
+          console.error(`Media proxy error for ${u}:`, {
+            status: e?.response?.status,
+            statusText: e?.response?.statusText,
+            message: e.message,
+            code: e.code
+          });
           if (e?.response?.status && e.response.status !== 404) {
-            console.error(`Media proxy upstream error ${e.response.status} for ${u}`);
             throw e; // non-404 errors propagate
           }
           // else, try next candidate

@@ -259,8 +259,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         absoluteUrl = `${remoteBase}/${original}`;
                       }
                       
-                      const encoded = encodeURIComponent(absoluteUrl);
-                      return `src=\"${API_BASE_URL}/media?url=${encoded}&t=${token}\" data-raw-url=\"${absoluteUrl}\" onerror=\"this.onerror=null; this.src='${absoluteUrl}'; console.log('Media proxy failed for: ${absoluteUrl}');\"`;
+                      // For cmansrms.us, use direct URLs since it's a public WordPress site
+                      if (absoluteUrl.includes('cmansrms.us')) {
+                        return `src=\"${absoluteUrl}\" data-raw-url=\"${absoluteUrl}\"`;
+                      } else {
+                        const encoded = encodeURIComponent(absoluteUrl);
+                        return `src=\"${API_BASE_URL}/media?url=${encoded}&t=${token}\" data-raw-url=\"${absoluteUrl}\" onerror=\"this.onerror=null; this.src='${absoluteUrl}'; console.log('Media proxy failed for: ${absoluteUrl}');\"`;
+                      };
                     } catch (error) { 
                       console.error('Error processing image src:', error, url);
                       return m; 
@@ -309,7 +314,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                       Featured Image:
                     </Typography>
                     <img
-                      src={`${API_BASE_URL}/media?url=${encodeURIComponent(post.featured_media_url)}&t=${encodeURIComponent(localStorage.getItem('token') || '')}`}
+                      src={post.featured_media_url.startsWith('http') 
+                        ? post.featured_media_url 
+                        : `https://cmansrms.us${post.featured_media_url}`}
                       alt="Featured media"
                       style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px' }}
                     />
@@ -349,7 +356,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                           return (
                             <a key={index} onClick={(e)=>{e.preventDefault(); openViewer(att);}} href={remoteUrl} rel="noopener noreferrer" style={{ textDecoration: 'none', cursor: 'zoom-in' }}>
                               <img
-                                src={`${API_BASE_URL}/media?url=${encodeURIComponent(url)}&t=${encodeURIComponent(localStorage.getItem('token') || '')}`}
+                                src={remoteUrl}
                                 alt={att.title || `Image ${index + 1}`}
                                 style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, border: '1px solid #e0e0e0' }}
                               />
@@ -369,7 +376,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         if (isVideo) {
                           return (
                             <video key={index} controls style={{ width: '100%', height: 100, borderRadius: 4, border: '1px solid #e0e0e0' }} onClick={(e)=>{e.preventDefault(); openViewer(att);}}>
-                              <source src={`${API_BASE_URL}/media?url=${encodeURIComponent(url)}&t=${encodeURIComponent(localStorage.getItem('token') || '')}`} />
+                              <source src={remoteUrl} />
                             </video>
                           );
                         }
@@ -377,7 +384,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         if (isAudio) {
                           return (
                             <audio key={index} controls style={{ width: '100%' }} onClick={(e)=>{e.preventDefault(); openViewer(att);}}>
-                              <source src={`${API_BASE_URL}/media?url=${encodeURIComponent(url)}&t=${encodeURIComponent(localStorage.getItem('token') || '')}`} />
+                              <source src={remoteUrl} />
                             </audio>
                           );
                         }

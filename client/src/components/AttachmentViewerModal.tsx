@@ -40,6 +40,10 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
   const tokenQuery = authToken ? `&t=${encodeURIComponent(authToken)}` : '';
   const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
   const remoteUrl = absoluteUrl;
+  
+  // For cmansrms.us, use direct URLs since it's a public WordPress site
+  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us');
+  const finalUrl = shouldUseDirectUrl ? absoluteUrl : proxyUrl;
 
   const mime = attachment.mime_type || '';
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(rawUrl) || mime.startsWith('image/');
@@ -58,44 +62,34 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
       <DialogContent dividers>
         {isImage && (
           <img
-            src={proxyUrl}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = remoteUrl; }}
+            src={finalUrl}
+            onError={(e) => { 
+              if (!shouldUseDirectUrl) {
+                (e.currentTarget as HTMLImageElement).src = remoteUrl; 
+              }
+            }}
             alt={attachment.title || 'Attachment image'}
             style={{ width: '100%', height: 'auto', objectFit: 'contain', borderRadius: 4 }}
           />
         )}
         {isPdf && (
           <Box sx={{ height: '80vh' }}>
-            <object data={proxyUrl} type="application/pdf" width="100%" height="100%">
-              <embed src={proxyUrl} type="application/pdf" width="100%" height="100%" />
+            <object data={finalUrl} type="application/pdf" width="100%" height="100%">
+              <embed src={finalUrl} type="application/pdf" width="100%" height="100%" />
               <Typography variant="body2">Unable to preview PDF. <a href={remoteUrl} target="_blank" rel="noreferrer">Open in new tab</a></Typography>
             </object>
           </Box>
         )}
         {isVideo && (
-          <video controls style={{ width: '100%' }} onError={(e) => {
-            const video = e.currentTarget as HTMLVideoElement;
-            const source = video.querySelector('source');
-            if (source && !source.src.includes('https://cmansrms.us')) {
-              source.src = remoteUrl;
-              video.load();
-            }
-          }}>
-            <source src={proxyUrl} />
-            <source src={remoteUrl} />
+          <video controls style={{ width: '100%' }}>
+            <source src={finalUrl} />
+            {!shouldUseDirectUrl && <source src={remoteUrl} />}
           </video>
         )}
         {isAudio && (
-          <audio controls style={{ width: '100%' }} onError={(e) => {
-            const audio = e.currentTarget as HTMLAudioElement;
-            const source = audio.querySelector('source');
-            if (source && !source.src.includes('https://cmansrms.us')) {
-              source.src = remoteUrl;
-              audio.load();
-            }
-          }}>
-            <source src={proxyUrl} />
-            <source src={remoteUrl} />
+          <audio controls style={{ width: '100%' }}>
+            <source src={finalUrl} />
+            {!shouldUseDirectUrl && <source src={remoteUrl} />}
           </audio>
         )}
         {!isImage && !isPdf && !isVideo && !isAudio && (
