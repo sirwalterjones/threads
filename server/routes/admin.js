@@ -116,25 +116,73 @@ router.post('/insert-batch-data',
             ? categoryMap[post.categories[0]] || null
             : null;
             
+          // Handle featured media
+          const featuredMediaId = post.featured_media || null;
+          const featuredMediaUrl = post.featured_media_url || null;
+          
+          // Handle author information
+          const authorName = post.author_name || 'Unknown Author';
+          const wpAuthorId = post.author || null;
+          
+          // Handle metadata and attachments
+          const metadata = {
+            wp_categories: post.categories || [],
+            wp_tags: post.tags || [],
+            wp_slug: post.slug || '',
+            wp_link: post.link || '',
+            wp_guid: post.guid?.rendered || '',
+            wp_type: post.type || 'post',
+            wp_format: post.format || 'standard',
+            wp_meta: post.meta || {},
+            featured_media: featuredMediaId,
+            attachments: post.attachments || []
+          };
+          
+          // Handle content properly - WordPress API sends content as object with .rendered property
+          let postContent = '';
+          if (typeof post.content === 'string') {
+            postContent = post.content;
+          } else if (post.content && typeof post.content === 'object') {
+            postContent = post.content.rendered || post.content.raw || '';
+          }
+          
+          console.log(`Processing post ${post.id}: content type = ${typeof post.content}, length = ${postContent.length}`);
+          
           await pool.query(`
-            INSERT INTO posts (wp_post_id, title, content, excerpt, wp_published_date, wp_modified_date, author_name, category_id, status, ingested_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+            INSERT INTO posts (
+              wp_post_id, title, content, excerpt, slug, wp_published_date, wp_modified_date, 
+              wp_author_id, author_name, category_id, status, featured_media_id, featured_media_url,
+              metadata, ingested_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
             ON CONFLICT (wp_post_id) DO UPDATE SET
               title = EXCLUDED.title,
               content = EXCLUDED.content,
               excerpt = EXCLUDED.excerpt,
+              slug = EXCLUDED.slug,
               wp_published_date = EXCLUDED.wp_published_date,
-              wp_modified_date = EXCLUDED.wp_modified_date
+              wp_modified_date = EXCLUDED.wp_modified_date,
+              wp_author_id = EXCLUDED.wp_author_id,
+              author_name = EXCLUDED.author_name,
+              category_id = EXCLUDED.category_id,
+              featured_media_id = EXCLUDED.featured_media_id,
+              featured_media_url = EXCLUDED.featured_media_url,
+              metadata = EXCLUDED.metadata
           `, [
             post.id, 
-            post.title?.rendered || post.title,
-            post.content?.rendered || '',
-            post.excerpt?.rendered || post.excerpt || '',
+            typeof post.title === 'string' ? post.title : (post.title?.rendered || ''),
+            postContent,
+            typeof post.excerpt === 'string' ? post.excerpt : (post.excerpt?.rendered || ''),
+            post.slug || '',
             post.date,
             post.modified,
-            'Admin', // We'll map author later
+            wpAuthorId,
+            authorName,
             categoryId,
-            post.status
+            post.status,
+            featuredMediaId,
+            featuredMediaUrl,
+            JSON.stringify(metadata)
           ]);
           postsInserted++;
         }
@@ -470,6 +518,180 @@ router.get('/health',
   }
 );
 
+// Migrate WordPress categories to live system
+router.post('/migrate-categories', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('migrate_wordpress_categories'),
+  async (req, res) => {
+    try {
+      const { categories } = req.body;
+      
+      if (!categories || !Array.isArray(categories)) {
+        return res.status(400).json({ error: 'Categories array required' });
+      }
+      
+      console.log(`Starting migration of ${categories.length} WordPress categories...`);
+      
+      // Clear existing category assignments first, then categories
+      await pool.query('UPDATE posts SET category_id = NULL');
+      await pool.query('DELETE FROM categories');
+      console.log('Cleared existing categories and assignments');
+      
+      // Create Intel Quick Updates default category first
+      await pool.query(`
+        INSERT INTO categories (name, slug, parent_id, post_count, wp_category_id)
+        VALUES ('Intel Quick Updates', 'intel-quick-updates', NULL, 0, NULL)
+      `);
+      
+      // Create category mapping for parent relationships
+      const categoryMap = new Map(); // wp_id -> local_id
+      let createdCount = 0;
+      let parentRelationships = [];
+      
+      // First pass: Create all categories without parent relationships
+      for (const cat of categories) {
+        const result = await pool.query(`
+          INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
+          VALUES ($1, $2, $3, NULL, $4)
+          RETURNING id
+        `, [cat.wp_category_id, cat.name, cat.slug, cat.post_count || 0]);
+        
+        categoryMap.set(cat.wp_category_id, result.rows[0].id);
+        
+        // Store parent relationships to process later
+        if (cat.parent_wp_id && cat.parent_wp_id !== 0) {
+          parentRelationships.push({
+            childId: result.rows[0].id,
+            parentWpId: cat.parent_wp_id
+          });
+        }
+        
+        createdCount++;
+      }
+      
+      // Second pass: Update parent relationships
+      let hierarchyCount = 0;
+      for (const rel of parentRelationships) {
+        const parentLocalId = categoryMap.get(rel.parentWpId);
+        if (parentLocalId) {
+          await pool.query(
+            'UPDATE categories SET parent_id = $1 WHERE id = $2',
+            [parentLocalId, rel.childId]
+          );
+          hierarchyCount++;
+        }
+      }
+      
+      console.log(`Created ${createdCount} categories with ${hierarchyCount} parent-child relationships`);
+      
+      res.json({
+        success: true,
+        message: 'WordPress categories migrated successfully',
+        categoriesCreated: createdCount,
+        hierarchyRelationships: hierarchyCount,
+        totalCategories: createdCount + 1 // +1 for Intel Quick Updates
+      });
+      
+    } catch (error) {
+      console.error('Category migration failed:', error);
+      res.status(500).json({ 
+        error: 'Category migration failed',
+        details: error.message
+      });
+    }
+  }
+);
+
+// Assign posts to WordPress categories based on content
+router.post('/assign-posts-categories', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('assign_posts_to_categories'),
+  async (req, res) => {
+    try {
+      console.log('Starting post-to-category assignment process...');
+      
+      // Get default category ID
+      const defaultResult = await pool.query(
+        "SELECT id FROM categories WHERE slug = 'intel-quick-updates'"
+      );
+      const defaultCategoryId = defaultResult.rows[0].id;
+      
+      // First, assign all posts to default category
+      await pool.query('UPDATE posts SET category_id = $1', [defaultCategoryId]);
+      console.log('All posts assigned to Intel Quick Updates');
+      
+      // Get all categories with their slugs
+      const categoriesResult = await pool.query(
+        'SELECT id, slug FROM categories WHERE slug != $1',
+        ['intel-quick-updates']
+      );
+      
+      let assignmentCount = 0;
+      const assignments = [];
+      
+      // Assign posts to specific categories based on content matching
+      for (const category of categoriesResult.rows) {
+        const result = await pool.query(`
+          UPDATE posts 
+          SET category_id = $1 
+          WHERE content LIKE $2
+          RETURNING id
+        `, [category.id, `%/category/${category.slug}/%`]);
+        
+        if (result.rowCount > 0) {
+          assignmentCount += result.rowCount;
+          assignments.push({
+            categorySlug: category.slug,
+            postsAssigned: result.rowCount
+          });
+          
+          if (result.rowCount > 0) {
+            console.log(`Assigned ${result.rowCount} posts to category: ${category.slug}`);
+          }
+        }
+      }
+      
+      // Update post counts for all categories
+      await pool.query(`
+        UPDATE categories 
+        SET post_count = (
+          SELECT COUNT(*) 
+          FROM posts 
+          WHERE posts.category_id = categories.id
+        )
+      `);
+      
+      // Remove empty categories (except Intel Quick Updates)
+      const emptyResult = await pool.query(`
+        DELETE FROM categories 
+        WHERE post_count = 0 AND slug != 'intel-quick-updates'
+        RETURNING slug
+      `);
+      
+      console.log(`Assignment complete: ${assignmentCount} posts assigned to specific categories`);
+      console.log(`Removed ${emptyResult.rowCount} empty categories`);
+      
+      res.json({
+        success: true,
+        message: 'Post assignments completed successfully',
+        totalAssignments: assignmentCount,
+        categoriesWithPosts: assignments.length,
+        emptyCategoriesRemoved: emptyResult.rowCount,
+        topAssignments: assignments.sort((a, b) => b.postsAssigned - a.postsAssigned).slice(0, 10)
+      });
+      
+    } catch (error) {
+      console.error('Post assignment failed:', error);
+      res.status(500).json({ 
+        error: 'Post assignment failed',
+        details: error.message
+      });
+    }
+  }
+);
+
 // Database maintenance
 router.post('/maintenance', 
   authenticateToken, 
@@ -508,6 +730,106 @@ router.post('/maintenance',
             [cutoffDate]
           );
           results.audit_cleanup = `${cleanupResult.rowCount} records removed`;
+          break;
+          
+        case 'add_media_columns':
+          // Add featured media columns to posts table if they don't exist
+          try {
+            await pool.query(`
+              ALTER TABLE posts 
+              ADD COLUMN IF NOT EXISTS featured_media_id INTEGER,
+              ADD COLUMN IF NOT EXISTS featured_media_url TEXT,
+              ADD COLUMN IF NOT EXISTS attachments TEXT
+            `);
+            results.schema_update = 'Added featured media columns to posts table';
+          } catch (schemaError) {
+            results.schema_error = schemaError.message;
+          }
+          break;
+
+        case 'fix_category_assignments':
+          // Fix category assignments using WordPress metadata
+          try {
+            console.log('Starting category assignment fix using WordPress metadata...');
+            
+            // Get mapping of WordPress category IDs to local category IDs
+            const categoryMappingResult = await pool.query(`
+              SELECT id, wp_category_id 
+              FROM categories 
+              WHERE wp_category_id IS NOT NULL
+            `);
+            
+            const categoryMap = {};
+            categoryMappingResult.rows.forEach(row => {
+              categoryMap[row.wp_category_id] = row.id;
+            });
+            
+            console.log(`Found ${Object.keys(categoryMap).length} WordPress categories to map`);
+            
+            // Get all posts with their metadata
+            const postsResult = await pool.query(`
+              SELECT id, metadata 
+              FROM posts 
+              WHERE metadata IS NOT NULL
+            `);
+            
+            let assignmentCount = 0;
+            const assignments = {};
+            
+            // Process each post
+            for (const post of postsResult.rows) {
+              try {
+                const metadata = typeof post.metadata === 'string' 
+                  ? JSON.parse(post.metadata) 
+                  : post.metadata;
+                
+                if (metadata.wp_categories && metadata.wp_categories.length > 0) {
+                  // Use the first WordPress category ID
+                  const wpCategoryId = metadata.wp_categories[0];
+                  const localCategoryId = categoryMap[wpCategoryId];
+                  
+                  if (localCategoryId) {
+                    // Update the post's category
+                    await pool.query(
+                      'UPDATE posts SET category_id = $1 WHERE id = $2',
+                      [localCategoryId, post.id]
+                    );
+                    
+                    assignmentCount++;
+                    assignments[wpCategoryId] = (assignments[wpCategoryId] || 0) + 1;
+                  }
+                }
+              } catch (parseError) {
+                console.log(`Skipping post ${post.id}: metadata parse error`);
+              }
+            }
+            
+            // Update post counts for all categories
+            await pool.query(`
+              UPDATE categories 
+              SET post_count = (
+                SELECT COUNT(*) 
+                FROM posts 
+                WHERE posts.category_id = categories.id
+              )
+            `);
+            
+            results.category_fix = {
+              postsProcessed: postsResult.rows.length,
+              postsReassigned: assignmentCount,
+              categoriesUsed: Object.keys(assignments).length,
+              topAssignments: Object.entries(assignments)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([wpId, count]) => ({ wpCategoryId: wpId, postsAssigned: count }))
+            };
+            
+            console.log(`Category assignment fix complete: ${assignmentCount} posts reassigned`);
+            
+          } catch (fixError) {
+            results.category_fix_error = fixError.message;
+            console.error('Category assignment fix failed:', fixError);
+          }
           break;
 
         default:

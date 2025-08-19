@@ -573,7 +573,7 @@ const HomeSimple: React.FC = () => {
                             onError={(e) => {
                               // Fallback to direct URL if proxy fails
                               const target = e.target as HTMLImageElement;
-                              if (!target.src.includes('https://cmansrms.us')) {
+                              if (!target.src.includes('https://cmansrms.us') && post.featured_media_url) {
                                 target.src = post.featured_media_url.startsWith('http') 
                                   ? post.featured_media_url 
                                   : `https://cmansrms.us${post.featured_media_url}`;
