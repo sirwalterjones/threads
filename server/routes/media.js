@@ -115,7 +115,15 @@ router.get('/', async (req, res) => {
         tried.add(u);
         try {
           const uOrigin = (() => { try { return new URL(u).origin; } catch { return (process.env.WORDPRESS_SITE_URL ? new URL(process.env.WORDPRESS_SITE_URL).origin : undefined); } })();
-          const headers = {};
+          const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+          };
+          
           if (req.headers.range) headers['Range'] = req.headers.range;
           if (uOrigin) {
             // Only set Referer if it's a valid URL to avoid header errors
@@ -130,7 +138,10 @@ router.get('/', async (req, res) => {
           }
           // Prefer inline rendering in some upstreams
           const lower = (new URL(u)).pathname.toLowerCase();
-          if (lower.endsWith('.pdf')) headers['Accept'] = 'application/pdf,*/*';
+          if (lower.endsWith('.pdf')) {
+            headers['Accept'] = 'application/pdf,*/*';
+            headers['Cache-Control'] = 'no-cache';
+          }
           if (/(\.jpg|\.jpeg|\.png|\.gif|\.webp)$/i.test(lower)) headers['Accept'] = 'image/*,*/*';
           const resp = await client.get(u, { headers });
           return { resp, usedUrl: u };
@@ -194,6 +205,15 @@ router.get('/', async (req, res) => {
       res.set('Cache-Control', upstream.headers['cache-control']);
     } else {
       res.set('Cache-Control', 'public, max-age=3600');
+    }
+
+    // Add headers to allow iframe embedding for PDFs
+    res.set('X-Frame-Options', 'SAMEORIGIN');
+    res.set('Content-Security-Policy', "frame-ancestors 'self'");
+    
+    // For PDFs, ensure they can be embedded
+    if (contentType && contentType.includes('pdf')) {
+      res.set('X-Content-Type-Options', 'nosniff');
     }
 
     res.status(upstream.status || 200);

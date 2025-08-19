@@ -74,28 +74,42 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           />
         )}
         {isPdf && (
-          <Box sx={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            <Typography variant="h6">📄 PDF Document</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
-              This PDF cannot be viewed in the modal due to browser security restrictions. 
-              Click the button below to open it in a new tab.
-            </Typography>
-            <Button 
-              variant="contained" 
-              href={finalUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              size="large"
-              sx={{ mt: 2 }}
+          <Box sx={{ height: '80vh', width: '100%', position: 'relative' }}>
+            <iframe
+              src={finalUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 'none', borderRadius: 4 }}
+              title={attachment.title || 'PDF Document'}
+              onError={(e) => {
+                console.error('PDF iframe failed to load:', e);
+              }}
+            />
+            <Box 
+              sx={{ 
+                position: 'absolute', 
+                bottom: 16, 
+                right: 16,
+                display: 'flex',
+                gap: 1
+              }}
             >
-              📄 Open PDF in New Tab
-            </Button>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-              {attachment.title || 'PDF Document'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, opacity: 0.7 }}>
-              The PDF will open through a secure proxy to bypass access restrictions.
-            </Typography>
+              <Button 
+                variant="contained" 
+                size="small"
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = finalUrl;
+                  link.target = '_blank';
+                  link.rel = 'noopener noreferrer';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+              >
+                Open in New Tab
+              </Button>
+            </Box>
           </Box>
         )}
         {isVideo && (
