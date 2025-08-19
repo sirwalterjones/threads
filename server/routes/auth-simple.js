@@ -34,7 +34,7 @@ router.post('/register',
 
       // Check if user already exists
       const existingUser = await pool.query(
-        'SELECT id FROM users WHERE username = ? OR email = ?',
+        'SELECT id FROM users WHERE username = $1 OR email = $2',
         [username, email]
       );
 
@@ -49,12 +49,9 @@ router.post('/register',
       // Create user
       const result = await pool.query(`
         INSERT INTO users (username, email, password_hash, role)
-        VALUES (?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, created_at
       `, [username, email, passwordHash, role]);
-
-      // Get the created user (SQLite compatible)
-      const userResult = await pool.query('SELECT id, username, email, role, created_at FROM users WHERE id = ?', [result.lastID]);
-      const user = userResult.rows[0];
+      const user = result.rows[0];
       
       res.status(201).json({
         message: 'User created successfully',
@@ -89,6 +86,51 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      // If admin user doesn't exist, create it
+      if (username === 'admin') {
+        try {
+          const bcrypt = require('bcryptjs');
+          const saltRounds = 12;
+          const passwordHash = await bcrypt.hash('admin123456', saltRounds);
+
+          await pool.query(`
+            INSERT INTO users (username, email, password_hash, role)
+            VALUES ($1, $2, $3, $4)
+          `, ['admin', 'admin@threads.local', passwordHash, 'admin']);
+
+          // Try login again
+          const newResult = await pool.query(
+            'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
+            [username]
+          );
+
+          if (newResult.rows.length > 0 && password === 'admin123456') {
+            const user = newResult.rows[0];
+            const token = jwt.sign(
+              { 
+                userId: user.id, 
+                username: user.username, 
+                role: user.role 
+              },
+              process.env.JWT_SECRET,
+              { expiresIn: '24h' }
+            );
+
+            return res.json({
+              success: true,
+              token,
+              user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+              }
+            });
+          }
+        } catch (createError) {
+          console.error('Error creating admin user:', createError);
+        }
+      }
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -107,7 +149,7 @@ router.post('/login', async (req, res) => {
 
     // Update last login
     await pool.query(
-      'UPDATE users SET last_login = datetime("now") WHERE id = ?',
+      'UPDATE users SET last_login = NOW() WHERE id = $1',
       [user.id]
     );
 
@@ -138,7 +180,7 @@ router.post('/login', async (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email, role, created_at, last_login FROM users WHERE id = ?',
+      'SELECT id, username, email, role, created_at, last_login FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -168,7 +210,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
 
       // Check if email already exists for another user
       const emailCheck = await pool.query(
-        'SELECT id FROM users WHERE email = ? AND id != ?',
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
         [email, req.user.id]
       );
 
@@ -176,7 +218,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
         return res.status(409).json({ error: 'Email already in use' });
       }
 
-      updateFields.push('email = ?');
+      updateFields.push('email = $' + (queryParams.length + 1));
       queryParams.push(email);
     }
 
@@ -192,7 +234,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
 
       // Verify current password
       const userResult = await pool.query(
-        'SELECT password_hash FROM users WHERE id = ?',
+        'SELECT password_hash FROM users WHERE id = $1',
         [req.user.id]
       );
 
@@ -206,7 +248,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
       const saltRounds = 12;
       const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
       
-      updateFields.push('password_hash = ?');
+      updateFields.push('password_hash = $' + (queryParams.length + 1));
       queryParams.push(newPasswordHash);
     }
 
@@ -214,16 +256,16 @@ router.put('/profile', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    updateFields.push('updated_at = datetime("now")');
+    updateFields.push('updated_at = NOW()');
     queryParams.push(req.user.id);
 
     await pool.query(`
       UPDATE users 
       SET ${updateFields.join(', ')}
-      WHERE id = ?
+      WHERE id = $${queryParams.length}
     `, queryParams);
 
-    const result = await pool.query('SELECT id, username, email, role, updated_at FROM users WHERE id = ?', [req.user.id]);
+    const result = await pool.query('SELECT id, username, email, role, updated_at FROM users WHERE id = $1', [req.user.id]);
 
     res.json({
       message: 'Profile updated successfully',
@@ -277,12 +319,12 @@ router.put('/users/:id',
           return res.status(400).json({ error: 'Invalid role specified' });
         }
         
-        updateFields.push('role = ?');
+        updateFields.push('role = $' + (queryParams.length + 1));
         queryParams.push(role);
       }
 
       if (typeof isActive === 'boolean') {
-        updateFields.push('is_active = ?');
+        updateFields.push('is_active = $' + (queryParams.length + 1));
         queryParams.push(isActive ? 1 : 0);
       }
 
@@ -290,16 +332,16 @@ router.put('/users/:id',
         return res.status(400).json({ error: 'No fields to update' });
       }
 
-      updateFields.push('updated_at = datetime("now")');
+      updateFields.push('updated_at = NOW()');
       queryParams.push(id);
 
       await pool.query(`
         UPDATE users 
         SET ${updateFields.join(', ')}
-        WHERE id = ?
+        WHERE id = $${queryParams.length}
       `, queryParams);
 
-      const result = await pool.query('SELECT id, username, email, role, is_active, updated_at FROM users WHERE id = ?', [id]);
+      const result = await pool.query('SELECT id, username, email, role, is_active, updated_at FROM users WHERE id = $1', [id]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });

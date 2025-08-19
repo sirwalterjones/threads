@@ -158,7 +158,7 @@ const createAdminUser = async () => {
 
     // Check if admin user exists
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE username = ? OR email = ?',
+      'SELECT id FROM users WHERE username = $1 OR email = $2',
       [username, email]
     );
 
@@ -169,7 +169,7 @@ const createAdminUser = async () => {
 
       await pool.query(`
         INSERT INTO users (username, email, password_hash, role)
-        VALUES (?, ?, ?, 'admin')
+        VALUES ($1, $2, $3, 'admin')
       `, [username, email, passwordHash]);
 
       console.log('✅ Admin user created successfully!');

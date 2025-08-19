@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-// Use SQLite for local development, PostgreSQL for production
-const USE_SQLITE = process.env.NODE_ENV !== 'production' || !process.env.DB_PASSWORD;
+// Use PostgreSQL for production (Vercel), SQLite for local development only
+const USE_SQLITE = process.env.NODE_ENV !== 'production' && !process.env.DB_PASSWORD && !process.env.VERCEL;
 
 let pool, initializeDatabase;
 
