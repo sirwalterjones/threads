@@ -66,6 +66,15 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'API is working',
+    env: process.env.NODE_ENV,
+    timestamp: new Date()
+  });
+});
+
 // Serve client build if present
 const clientBuildPath = path.join(__dirname, '../client/build');
 app.use(express.static(clientBuildPath));
@@ -185,12 +194,29 @@ const createAdminUser = async () => {
 // Start server
 const startServer = async () => {
   try {
-    // Initialize database
-    await initializeDatabase();
-    console.log('Database initialized successfully');
+    console.log('Starting server initialization...');
+    console.log('Environment variables check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasJwtSecret: !!process.env.JWT_SECRET,
+      hasDbPassword: !!process.env.DB_PASSWORD,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      isVercel: !!process.env.VERCEL
+    });
 
-    // Create admin user if needed
-    await createAdminUser();
+    // Initialize database
+    try {
+      console.log('Initializing database...');
+      await initializeDatabase();
+      console.log('Database initialized successfully');
+
+      // Create admin user if needed
+      console.log('Creating admin user...');
+      await createAdminUser();
+      console.log('Admin user creation completed');
+    } catch (dbError) {
+      console.error('Database initialization failed:', dbError);
+      // Don't crash the entire app, just log the error
+    }
 
     // Start the server (only in local development)
     if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
