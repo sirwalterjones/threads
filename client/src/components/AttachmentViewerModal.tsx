@@ -26,12 +26,20 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
   if (!attachment) return null;
 
   const rawUrl = attachment.url;
-  const relativeOrAbsolute = rawUrl.startsWith('/') ? rawUrl : rawUrl;
   const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
-  const remoteUrl = relativeOrAbsolute.startsWith('http') ? relativeOrAbsolute : `${remoteBase}${relativeOrAbsolute}`;
+  
+  // Handle relative URLs by making them absolute
+  let absoluteUrl = rawUrl;
+  if (rawUrl.startsWith('/')) {
+    absoluteUrl = `${remoteBase}${rawUrl}`;
+  } else if (!rawUrl.startsWith('http')) {
+    absoluteUrl = `${remoteBase}/${rawUrl}`;
+  }
+  
   const authToken = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
   const tokenQuery = authToken ? `&t=${encodeURIComponent(authToken)}` : '';
-  const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(relativeOrAbsolute)}${tokenQuery}`;
+  const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
+  const remoteUrl = absoluteUrl;
 
   const mime = attachment.mime_type || '';
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(rawUrl) || mime.startsWith('image/');
@@ -65,13 +73,29 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           </Box>
         )}
         {isVideo && (
-          <video controls style={{ width: '100%' }}>
+          <video controls style={{ width: '100%' }} onError={(e) => {
+            const video = e.currentTarget as HTMLVideoElement;
+            const source = video.querySelector('source');
+            if (source && !source.src.includes('https://cmansrms.us')) {
+              source.src = remoteUrl;
+              video.load();
+            }
+          }}>
             <source src={proxyUrl} />
+            <source src={remoteUrl} />
           </video>
         )}
         {isAudio && (
-          <audio controls style={{ width: '100%' }}>
+          <audio controls style={{ width: '100%' }} onError={(e) => {
+            const audio = e.currentTarget as HTMLAudioElement;
+            const source = audio.querySelector('source');
+            if (source && !source.src.includes('https://cmansrms.us')) {
+              source.src = remoteUrl;
+              audio.load();
+            }
+          }}>
             <source src={proxyUrl} />
+            <source src={remoteUrl} />
           </audio>
         )}
         {!isImage && !isPdf && !isVideo && !isAudio && (
