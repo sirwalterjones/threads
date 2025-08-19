@@ -71,6 +71,10 @@ app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'API is working',
     env: process.env.NODE_ENV,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    hasDbPassword: !!process.env.DB_PASSWORD,
+    isVercel: !!process.env.VERCEL,
     timestamp: new Date()
   });
 });

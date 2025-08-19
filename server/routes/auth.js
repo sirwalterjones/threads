@@ -125,6 +125,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
+    // Debug logging
+    console.log('Login attempt:', {
+      username: username,
+      hasPool: !!pool,
+      nodeEnv: process.env.NODE_ENV,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasDbPassword: !!process.env.DB_PASSWORD
+    });
+
     // Find user
     const result = await pool.query(
       'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
