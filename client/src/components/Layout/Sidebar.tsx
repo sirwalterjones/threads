@@ -1,30 +1,30 @@
 import React from 'react';
 import {
-  Drawer,
+  Box,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
-  Box,
-  Typography
+  Typography,
+  Divider
 } from '@mui/material';
 import {
-  Home,
-  Search,
-  Add,
-  Category,
-  People,
-  Dashboard,
-  History,
-  CloudSync,
-  Delete
+  Dashboard as DashboardIcon,
+  Search as SearchIcon,
+  Add as AddIcon,
+  Category as CategoryIcon,
+  People as PeopleIcon,
+  Settings as SettingsIcon,
+  TableChart as TableIcon,
+  Person as PersonIcon,
+  Login as LoginIcon,
+  AppRegistration as RegisterIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 280;
 
 interface SidebarProps {
   open: boolean;
@@ -36,26 +36,26 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems = [
-    { text: 'Home', icon: <Home />, path: '/', roles: ['view', 'edit', 'admin'] },
-    { text: 'Search Posts', icon: <Search />, path: '/search', roles: ['view', 'edit', 'admin'] },
-    { text: 'Categories', icon: <Category />, path: '/categories', roles: ['view', 'edit', 'admin'] },
+  const adminPages = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
+    { text: 'Search Posts', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
+    { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] },
+    { text: 'Tables', icon: <TableIcon />, path: '/tables', roles: ['admin'] }
   ];
 
-  const editMenuItems = [
-    { text: 'My Threads', icon: <Add />, path: '/my-threads', roles: ['edit', 'admin'] },
-    { text: 'Add Post', icon: <Add />, path: '#new', roles: ['edit', 'admin'] },
+  const authPages = [
+    { text: 'Login', icon: <LoginIcon />, path: '/login', roles: ['view', 'edit', 'admin'] },
+    { text: 'Register', icon: <RegisterIcon />, path: '/register', roles: ['admin'] }
   ];
 
-  const adminMenuItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: ['admin'] },
-    { text: 'User Management', icon: <People />, path: '/users', roles: ['admin'] },
-    { text: 'Audit Log', icon: <History />, path: '/audit', roles: ['admin'] },
-    { text: 'Data Sync', icon: <CloudSync />, path: '/sync', roles: ['admin'] },
-    { text: 'Data Purge', icon: <Delete />, path: '/purge', roles: ['admin'] },
+  const contentPages = [
+    { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
+    { text: 'Add Post', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
+    { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] }
   ];
 
-  const handleItemClick = (path: string) => {
+  const handleNavigation = (path: string) => {
     if (path === '#new') {
       const evt = new CustomEvent('open-new-post-modal');
       window.dispatchEvent(evt);
@@ -69,116 +69,140 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     return user && roles.includes(user.role);
   };
 
-  const isItemActive = (path: string) => {
-    return location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/' || location.pathname === '/home';
+    }
+    return location.pathname.startsWith(path);
   };
 
-  const renderMenuItems = (items: typeof menuItems, title?: string) => (
-    <>
-      {title && (
-        <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="overline" color="text.secondary" fontWeight="bold">
-            {title}
-          </Typography>
-        </Box>
-      )}
-      <List>
+  const renderNavSection = (title: string, items: any[], color = '#9CA3AF') => (
+    <Box sx={{ mb: 2 }}>
+      <Typography
+        variant="caption"
+        sx={{
+          px: 3,
+          py: 1,
+          color: color,
+          fontWeight: 600,
+          fontSize: '0.75rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          display: 'block'
+        }}
+      >
+        {title}
+      </Typography>
+      <List sx={{ py: 0 }}>
         {items
           .filter(item => isItemAllowed(item.roles))
           .map((item) => (
-            <ListItem key={item.path} disablePadding>
+            <ListItem key={item.text} disablePadding>
               <ListItemButton
-                onClick={() => handleItemClick(item.path)}
-                selected={isItemActive(item.path)}
+                onClick={() => handleNavigation(item.path)}
                 sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.main',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark',
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: 'white',
-                    },
-                  },
+                  mx: 2,
+                  borderRadius: 2,
+                  mb: 0.5,
+                  backgroundColor: isActive(item.path) ? '#3B82F6' : 'transparent',
+                  color: isActive(item.path) ? 'white' : '#D1D5DB',
+                  '&:hover': {
+                    backgroundColor: isActive(item.path) ? '#2563EB' : '#374151'
+                  }
                 }}
               >
-                <ListItemIcon sx={{ color: isItemActive(item.path) ? 'white' : 'inherit' }}>
+                <ListItemIcon
+                  sx={{
+                    color: isActive(item.path) ? 'white' : '#9CA3AF',
+                    minWidth: 40
+                  }}
+                >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontSize: '0.875rem',
+                    fontWeight: isActive(item.path) ? 600 : 500
+                  }}
+                />
               </ListItemButton>
             </ListItem>
           ))}
       </List>
-    </>
+    </Box>
   );
 
   return (
-    <Drawer
-      variant="temporary"
-      anchor="left"
-      open={open}
-      onClose={onClose}
+    <Box
       sx={{
         width: DRAWER_WIDTH,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: DRAWER_WIDTH,
-          boxSizing: 'border-box',
-        },
+        height: '100vh',
+        backgroundColor: '#1F2937', // Dark gray background like in the screenshot
+        color: 'white',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 1200,
+        overflow: 'auto',
+        transform: { xs: open ? 'translateX(0)' : 'translateX(-100%)', md: 'translateX(0)' },
+        transition: 'transform 0.3s ease-in-out',
+        borderRight: '1px solid #374151'
       }}
     >
-      <Box sx={{ overflow: 'auto', height: '100%', bgcolor: 'background.paper' }}>
-        {/* Logo/Brand Section */}
-        <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
-          <Typography variant="h6" fontWeight="bold">
-            Threads
-          </Typography>
-          <Typography variant="caption">
-            Clean, modern intelligence
-          </Typography>
-        </Box>
+      {/* Header */}
+      <Box sx={{ p: 3, borderBottom: '1px solid #374151' }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            color: 'white',
+            fontSize: '1.125rem',
+            letterSpacing: '0.5px'
+          }}
+        >
+          THREADS
+        </Typography>
+      </Box>
 
-        {/* Main Navigation */}
-        {renderMenuItems(menuItems)}
-
-        {/* Edit/Content Management */}
+      {/* Navigation */}
+      <Box sx={{ py: 2 }}>
+        {renderNavSection('ADMIN LAYOUT PAGES', adminPages)}
+        
         {user && ['edit', 'admin'].includes(user.role) && (
           <>
-            <Divider />
-            {renderMenuItems(editMenuItems, 'Content Management')}
+            <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
+            {renderNavSection('CONTENT MANAGEMENT', contentPages)}
           </>
         )}
-
-        {/* Admin Functions */}
-        {user && user.role === 'admin' && (
-          <>
-            <Divider />
-            {renderMenuItems(adminMenuItems, 'Administration')}
-          </>
-        )}
-
-        {/* User Info at Bottom */}
-        {user && (
-          <>
-            <Box sx={{ flexGrow: 1 }} />
-            <Divider />
-            <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
-              <Typography variant="body2" color="text.secondary">
-                Logged in as:
-              </Typography>
-              <Typography variant="body2" fontWeight="bold">
-                {user.username}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Role: {user.role.toUpperCase()}
-              </Typography>
-            </Box>
-          </>
-        )}
+        
+        <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
+        {renderNavSection('AUTH LAYOUT PAGES', authPages)}
       </Box>
-    </Drawer>
+
+      {/* User Info at Bottom */}
+      {user && (
+        <Box sx={{ 
+          position: 'absolute', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          p: 3, 
+          borderTop: '1px solid #374151',
+          backgroundColor: '#111827'
+        }}>
+          <Typography variant="body2" sx={{ color: '#9CA3AF', fontSize: '0.75rem' }}>
+            Logged in as:
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>
+            {user.username}
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#6B7280', fontSize: '0.7rem' }}>
+            Role: {user.role.toUpperCase()}
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
 };
 

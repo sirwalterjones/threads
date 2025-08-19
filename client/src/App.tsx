@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout/Layout';
 import Login from './pages/Login';
 import Home from './pages/HomeSimple';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './components/Dashboard/Dashboard';
 import CategoriesManage from './pages/CategoriesManage';
 import UsersManage from './pages/UsersManage';
 import AuditLog from './pages/AuditLog';
@@ -76,18 +76,18 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <Routes>
-                <Route path="/" element={<Home />} />
-                {/* Add more routes here as we build them */}
+                <Route path="/" element={<Dashboard />} />
                 <Route path="/search" element={<Home />} />
                 <Route path="/my-threads" element={<Home />} />
                 <Route path="/categories" element={<CategoriesManage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<UsersManage />} />
                 <Route path="/audit" element={<AuditLog />} />
                 <Route path="/tools" element={<SystemTools />} />
                 <Route path="/sync" element={<SystemTools />} />
                 <Route path="/purge" element={<SystemTools />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<SystemTools />} />
+                <Route path="/tables" element={<Home />} />
               </Routes>
             </Layout>
           </ProtectedRoute>
