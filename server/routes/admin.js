@@ -72,6 +72,91 @@ router.get('/dashboard',
   }
 );
 
+// Batch data insertion endpoint
+router.post('/insert-batch-data', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  async (req, res) => {
+    try {
+      const { categories, posts } = req.body;
+      
+      if (!categories && !posts) {
+        return res.status(400).json({ error: 'Categories or posts data required' });
+      }
+      
+      let categoriesInserted = 0;
+      let postsInserted = 0;
+      
+      // Insert categories if provided
+      if (categories && categories.length > 0) {
+        for (const cat of categories) {
+          await pool.query(`
+            INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (wp_category_id) DO UPDATE SET
+              name = EXCLUDED.name,
+              slug = EXCLUDED.slug,
+              post_count = EXCLUDED.post_count
+          `, [cat.id, cat.name, cat.slug, cat.parent || null, cat.count || 0]);
+          categoriesInserted++;
+        }
+      }
+      
+      // Insert posts if provided
+      if (posts && posts.length > 0) {
+        // Get category mapping
+        const categoryMap = {};
+        const categoryResult = await pool.query('SELECT id, wp_category_id FROM categories');
+        categoryResult.rows.forEach(row => {
+          categoryMap[row.wp_category_id] = row.id;
+        });
+        
+        for (const post of posts) {
+          const categoryId = post.categories && post.categories.length > 0 
+            ? categoryMap[post.categories[0]] || null
+            : null;
+            
+          await pool.query(`
+            INSERT INTO posts (wp_post_id, title, content, excerpt, wp_published_date, wp_modified_date, author_name, category_id, status, ingested_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+            ON CONFLICT (wp_post_id) DO UPDATE SET
+              title = EXCLUDED.title,
+              content = EXCLUDED.content,
+              excerpt = EXCLUDED.excerpt,
+              wp_published_date = EXCLUDED.wp_published_date,
+              wp_modified_date = EXCLUDED.wp_modified_date
+          `, [
+            post.id, 
+            post.title?.rendered || post.title,
+            post.content?.rendered || '',
+            post.excerpt?.rendered || post.excerpt || '',
+            post.date,
+            post.modified,
+            'Admin', // We'll map author later
+            categoryId,
+            post.status
+          ]);
+          postsInserted++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: 'Batch data inserted successfully',
+        categoriesInserted,
+        postsInserted
+      });
+      
+    } catch (error) {
+      console.error('Batch data insertion failed:', error);
+      res.status(500).json({ 
+        error: 'Batch data insertion failed',
+        details: error.message
+      });
+    }
+  }
+);
+
 // Manual data insertion for testing
 router.post('/insert-sample-data', 
   authenticateToken, 
