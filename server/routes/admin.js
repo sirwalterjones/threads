@@ -748,9 +748,9 @@ router.post('/maintenance',
           break;
 
         case 'fix_category_assignments':
-          // Fix category assignments using WordPress metadata
+          // Fix category assignments using WordPress metadata - simple direct mapping
           try {
-            console.log('Starting category assignment fix using WordPress metadata...');
+            console.log('Starting simple WordPress category assignment...');
             
             // Get mapping of WordPress category IDs to local category IDs
             const categoryMappingResult = await pool.query(`
@@ -764,47 +764,60 @@ router.post('/maintenance',
               categoryMap[row.wp_category_id] = row.id;
             });
             
-            console.log(`Found ${Object.keys(categoryMap).length} WordPress categories to map`);
+            console.log(`Found ${Object.keys(categoryMap).length} WordPress->Local category mappings`);
             
-            // Get all posts with their metadata
+            // Get all posts with their WordPress category metadata  
             const postsResult = await pool.query(`
               SELECT id, metadata 
               FROM posts 
-              WHERE metadata IS NOT NULL
+              WHERE metadata IS NOT NULL AND metadata::text LIKE '%wp_categories%'
             `);
+            
+            console.log(`Processing ${postsResult.rows.length} posts with WordPress category data...`);
             
             let assignmentCount = 0;
             const assignments = {};
             
-            // Process each post
-            for (const post of postsResult.rows) {
-              try {
-                const metadata = typeof post.metadata === 'string' 
-                  ? JSON.parse(post.metadata) 
-                  : post.metadata;
-                
-                if (metadata.wp_categories && metadata.wp_categories.length > 0) {
-                  // Use the first WordPress category ID
-                  const wpCategoryId = metadata.wp_categories[0];
-                  const localCategoryId = categoryMap[wpCategoryId];
+            // Process posts in batches to avoid timeouts
+            const batchSize = 100;
+            for (let i = 0; i < postsResult.rows.length; i += batchSize) {
+              const batch = postsResult.rows.slice(i, i + batchSize);
+              
+              for (const post of batch) {
+                try {
+                  const metadata = typeof post.metadata === 'string' 
+                    ? JSON.parse(post.metadata) 
+                    : post.metadata;
                   
-                  if (localCategoryId) {
-                    // Update the post's category
-                    await pool.query(
-                      'UPDATE posts SET category_id = $1 WHERE id = $2',
-                      [localCategoryId, post.id]
-                    );
+                  if (metadata.wp_categories && Array.isArray(metadata.wp_categories) && metadata.wp_categories.length > 0) {
+                    // Use the first WordPress category ID (primary category)
+                    const wpCategoryId = metadata.wp_categories[0];
+                    const localCategoryId = categoryMap[wpCategoryId];
                     
-                    assignmentCount++;
-                    assignments[wpCategoryId] = (assignments[wpCategoryId] || 0) + 1;
+                    if (localCategoryId) {
+                      // Update the post's category to match WordPress assignment
+                      await pool.query(
+                        'UPDATE posts SET category_id = $1 WHERE id = $2',
+                        [localCategoryId, post.id]
+                      );
+                      
+                      assignmentCount++;
+                      assignments[wpCategoryId] = (assignments[wpCategoryId] || 0) + 1;
+                    }
                   }
+                } catch (parseError) {
+                  // Skip posts with invalid metadata
                 }
-              } catch (parseError) {
-                console.log(`Skipping post ${post.id}: metadata parse error`);
+              }
+              
+              // Log progress
+              if ((i + batchSize) % 1000 === 0) {
+                console.log(`Processed ${Math.min(i + batchSize, postsResult.rows.length)} posts...`);
               }
             }
             
-            // Update post counts for all categories
+            // Update post counts for all categories  
+            console.log('Updating category post counts...');
             await pool.query(`
               UPDATE categories 
               SET post_count = (
@@ -820,11 +833,11 @@ router.post('/maintenance',
               categoriesUsed: Object.keys(assignments).length,
               topAssignments: Object.entries(assignments)
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 10)
+                .slice(0, 15)
                 .map(([wpId, count]) => ({ wpCategoryId: wpId, postsAssigned: count }))
             };
             
-            console.log(`Category assignment fix complete: ${assignmentCount} posts reassigned`);
+            console.log(`WordPress category assignment complete: ${assignmentCount} posts properly assigned`);
             
           } catch (fixError) {
             results.category_fix_error = fixError.message;
