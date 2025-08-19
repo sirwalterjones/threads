@@ -42,8 +42,8 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
   const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
   const remoteUrl = absoluteUrl;
   
-  // For cmansrms.us images, use direct URLs; for PDFs use proxy due to 403 errors
-  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us') && !absoluteUrl.toLowerCase().includes('.pdf');
+  // For now, use direct URLs for all cmansrms.us content since proxy is having issues
+  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us');
   const finalUrl = shouldUseDirectUrl ? absoluteUrl : proxyUrl;
 
   const mime = attachment.mime_type || '';
@@ -74,29 +74,30 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           />
         )}
         {isPdf && (
-          <Box sx={{ height: '80vh', width: '100%', position: 'relative' }}>
-            <iframe
-              src={finalUrl}
-              width="100%"
-              height="100%"
-              style={{ border: 'none', borderRadius: 4 }}
-              title={attachment.title || 'PDF Document'}
-              onError={(e) => {
-                console.error('PDF iframe failed to load:', e);
-              }}
-            />
-            <Box 
-              sx={{ 
-                position: 'absolute', 
-                bottom: 16, 
-                right: 16,
-                display: 'flex',
-                gap: 1
-              }}
-            >
+          <Box sx={{ height: '80vh', width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'background.paper' }}>
+            <Typography variant="h6">📄 PDF Document</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
+              Due to security restrictions on the WordPress server, this PDF cannot be displayed inline.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
               <Button 
                 variant="contained" 
-                size="small"
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = finalUrl;
+                  link.target = '_blank';
+                  link.rel = 'noopener noreferrer';
+                  link.download = attachment.title || 'document.pdf';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                sx={{ minWidth: 160 }}
+              >
+                📥 Download PDF
+              </Button>
+              <Button 
+                variant="outlined"
                 onClick={() => {
                   const link = document.createElement('a');
                   link.href = finalUrl;
@@ -106,10 +107,17 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
                   link.click();
                   document.body.removeChild(link);
                 }}
+                sx={{ minWidth: 160 }}
               >
-                Open in New Tab
+                🔗 Open in New Tab
               </Button>
             </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
+              {attachment.title || 'PDF Document'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7, fontSize: '0.75rem' }}>
+              The file will be accessed through a secure proxy to bypass server restrictions.
+            </Typography>
           </Box>
         )}
         {isVideo && (

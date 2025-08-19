@@ -150,7 +150,9 @@ router.get('/', async (req, res) => {
             status: e?.response?.status,
             statusText: e?.response?.statusText,
             message: e.message,
-            code: e.code
+            code: e.code,
+            data: e?.response?.data?.toString?.()?.substring(0, 200),
+            headers: e?.response?.headers
           });
           if (e?.response?.status && e.response.status !== 404) {
             throw e; // non-404 errors propagate
