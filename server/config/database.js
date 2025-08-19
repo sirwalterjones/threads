@@ -14,13 +14,26 @@ if (USE_SQLITE) {
   console.log('Using PostgreSQL for production');
   const { Pool } = require('pg');
   
-  pool = new Pool({
+  // Try DATABASE_URL first, then individual env vars
+  const connectionConfig = process.env.DATABASE_URL ? {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  } : {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || 'threads_intel',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  };
+
+  pool = new Pool(connectionConfig);
+  
+  console.log('PostgreSQL connection config:', {
+    usingDatabaseUrl: !!process.env.DATABASE_URL,
+    hasHost: !!process.env.DB_HOST,
+    hasPassword: !!process.env.DB_PASSWORD,
+    nodeEnv: process.env.NODE_ENV
   });
 
   initializeDatabase = async () => {
