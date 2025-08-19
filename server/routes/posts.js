@@ -81,9 +81,8 @@ router.get('/',
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.excerpt, p.author_name,
-          p.wp_published_date, p.ingested_at, p.retention_date,
+          p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           c.name as category_name, c.slug as category_slug,
-          p.featured_media_id, p.featured_media_url, p.attachments,
           ${search ? "ts_rank(search_vector, plainto_tsquery('english', $1)) as rank," : ''}
           p.metadata
         FROM posts p
@@ -107,7 +106,15 @@ router.get('/',
       });
     } catch (error) {
       console.error('Error fetching posts:', error);
-      res.status(500).json({ error: 'Failed to fetch posts' });
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        queryParams: queryParams
+      });
+      res.status(500).json({ 
+        error: 'Failed to fetch posts',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 );
