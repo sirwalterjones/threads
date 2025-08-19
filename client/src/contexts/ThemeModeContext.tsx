@@ -26,39 +26,168 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const theme = useMemo(() => createTheme({
     palette: {
       mode,
-      // Apple-like grayscale palette
-      primary: { main: mode === 'light' ? '#0A84FF' : '#5AC8F5' },
-      secondary: { main: mode === 'light' ? '#636366' : '#8E8E93' },
+      // Modern blue-based palette inspired by the screenshot
+      primary: { 
+        main: mode === 'light' ? '#4F46E5' : '#6366F1', // Indigo blue
+        light: mode === 'light' ? '#6366F1' : '#818CF8',
+        dark: mode === 'light' ? '#3730A3' : '#4338CA'
+      },
+      secondary: { 
+        main: mode === 'light' ? '#64748B' : '#94A3B8', // Slate
+        light: mode === 'light' ? '#94A3B8' : '#CBD5E1',
+        dark: mode === 'light' ? '#475569' : '#64748B'
+      },
       text: {
-        primary: mode === 'light' ? '#1C1C1E' : '#F2F2F7',
-        secondary: mode === 'light' ? '#3A3A3C' : '#C7C7CC'
+        primary: mode === 'light' ? '#0F172A' : '#F8FAFC',
+        secondary: mode === 'light' ? '#475569' : '#CBD5E1'
       },
       background: {
-        default: mode === 'light' ? '#F2F2F7' : '#000000',
-        paper: mode === 'light' ? '#FFFFFF' : '#1C1C1E'
+        default: mode === 'light' ? '#F8FAFC' : '#0F172A', // Deep dark blue for dark mode
+        paper: mode === 'light' ? '#FFFFFF' : '#1E293B' // Slate for cards/papers
       },
-      divider: mode === 'light' ? '#E5E5EA' : '#2C2C2E'
+      divider: mode === 'light' ? '#E2E8F0' : '#334155',
+      // Custom colors for the modern look
+      info: { main: mode === 'light' ? '#0EA5E9' : '#38BDF8' }, // Sky blue
+      success: { main: mode === 'light' ? '#10B981' : '#34D399' }, // Emerald
+      warning: { main: mode === 'light' ? '#F59E0B' : '#FBBF24' }, // Amber
+      error: { main: mode === 'light' ? '#EF4444' : '#F87171' } // Red
     },
-    shape: { borderRadius: 12 },
+    shape: { borderRadius: 16 }, // More rounded corners
     typography: {
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-      h5: { fontWeight: 600 },
-      body1: { lineHeight: 1.7 }
+      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      h1: { fontWeight: 800, fontSize: '2.5rem', letterSpacing: '-0.025em' },
+      h2: { fontWeight: 700, fontSize: '2rem', letterSpacing: '-0.025em' },
+      h3: { fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.025em' },
+      h4: { fontWeight: 600, fontSize: '1.25rem', letterSpacing: '-0.025em' },
+      h5: { fontWeight: 600, fontSize: '1.125rem' },
+      h6: { fontWeight: 600, fontSize: '1rem' },
+      body1: { lineHeight: 1.75, fontSize: '1rem' },
+      body2: { lineHeight: 1.6, fontSize: '0.875rem' },
+      button: { fontWeight: 500, textTransform: 'none' }
     },
     components: {
-      MuiAppBar: { styleOverrides: { 
-        colorPrimary: { 
-          backgroundColor: mode === 'light' ? '#FFFFFF' : '#1C1C1E', 
-          color: mode === 'light' ? '#1C1C1E' : '#F2F2F7', 
-          boxShadow: 'none',
-          borderBottom: `1px solid ${mode === 'light' ? '#E5E5EA' : '#2C2C2E'}`
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            background: mode === 'light' 
+              ? 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)'
+              : 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
+            minHeight: '100vh'
+          }
+        }
+      },
+      MuiAppBar: { 
+        styleOverrides: { 
+          colorPrimary: { 
+            backgroundColor: mode === 'light' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(30, 41, 59, 0.8)', 
+            backdropFilter: 'blur(12px)',
+            borderBottom: `1px solid ${mode === 'light' ? '#E2E8F0' : '#334155'}`,
+            boxShadow: mode === 'light' 
+              ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' 
+              : '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)'
+          } 
         } 
-      } },
-      MuiToolbar: { styleOverrides: { root: { minHeight: 64 } } },
-      MuiIconButton: { styleOverrides: { root: { color: mode === 'light' ? '#1C1C1E' : '#F2F2F7' } } },
-      MuiPaper: { styleOverrides: { elevation1: { boxShadow: mode === 'light' ? '0 1px 3px rgba(0,0,0,0.06)' : '0 1px 3px rgba(0,0,0,0.5)' } } },
-      MuiCard: { styleOverrides: { root: { boxShadow: mode === 'light' ? '0 1px 3px rgba(0,0,0,0.06)' : '0 1px 3px rgba(0,0,0,0.5)' } } },
-      MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 10 } } }
+      },
+      MuiToolbar: { styleOverrides: { root: { minHeight: 72 } } },
+      MuiPaper: { 
+        styleOverrides: { 
+          root: {
+            backgroundImage: 'none',
+            backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E293B',
+            border: `1px solid ${mode === 'light' ? '#E2E8F0' : '#334155'}`
+          },
+          elevation1: { 
+            boxShadow: mode === 'light' 
+              ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' 
+              : '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)' 
+          },
+          elevation3: {
+            boxShadow: mode === 'light'
+              ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+              : '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)'
+          }
+        } 
+      },
+      MuiCard: { 
+        styleOverrides: { 
+          root: { 
+            backgroundImage: 'none',
+            backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E293B',
+            border: `1px solid ${mode === 'light' ? '#E2E8F0' : '#334155'}`,
+            boxShadow: mode === 'light' 
+              ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' 
+              : '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)' 
+          } 
+        } 
+      },
+      MuiButton: { 
+        styleOverrides: { 
+          root: { 
+            textTransform: 'none', 
+            borderRadius: 12,
+            fontWeight: 500,
+            fontSize: '0.875rem',
+            padding: '0.625rem 1.25rem'
+          },
+          containedPrimary: {
+            background: mode === 'light' 
+              ? 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)'
+              : 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)',
+            boxShadow: mode === 'light'
+              ? '0 4px 14px 0 rgba(79, 70, 229, 0.39)'
+              : '0 4px 14px 0 rgba(99, 102, 241, 0.39)',
+            '&:hover': {
+              background: mode === 'light'
+                ? 'linear-gradient(135deg, #3730A3 0%, #4F46E5 100%)'
+                : 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+              boxShadow: mode === 'light'
+                ? '0 6px 20px 0 rgba(79, 70, 229, 0.49)'
+                : '0 6px 20px 0 rgba(99, 102, 241, 0.49)'
+            }
+          }
+        } 
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 12,
+              backgroundColor: mode === 'light' ? '#F8FAFC' : '#0F172A',
+              '& fieldset': {
+                borderColor: mode === 'light' ? '#E2E8F0' : '#334155'
+              },
+              '&:hover fieldset': {
+                borderColor: mode === 'light' ? '#CBD5E1' : '#475569'
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: mode === 'light' ? '#4F46E5' : '#6366F1'
+              }
+            }
+          }
+        }
+      },
+      MuiIconButton: { 
+        styleOverrides: { 
+          root: { 
+            borderRadius: 12,
+            padding: '0.75rem',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              backgroundColor: mode === 'light' ? '#F1F5F9' : '#334155',
+              transform: 'scale(1.05)'
+            }
+          } 
+        } 
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 20,
+            fontSize: '0.75rem',
+            fontWeight: 500
+          }
+        }
+      }
     }
   }), [mode]);
 

@@ -36,27 +36,63 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper elevation={3} sx={{ padding: 4, width: '100%' }}>
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Typography component="h1" variant="h4" gutterBottom>
-              Threads Intel
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'background.default',
+        px: 2
+      }}
+    >
+      <Container component="main" maxWidth="sm">
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            padding: { xs: 3, sm: 5 }, 
+            width: '100%',
+            borderRadius: 3,
+            backdropFilter: 'blur(12px)',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Typography 
+              component="h1" 
+              variant="h3" 
+              gutterBottom
+              sx={{ 
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 1
+              }}
+            >
+              Threads
             </Typography>
-            <Typography variant="subtitle1" color="textSecondary">
-              Intelligence Management System
+            <Typography 
+              variant="h6" 
+              color="text.secondary"
+              sx={{ fontWeight: 400 }}
+            >
+              Connect. Share. Discover.
             </Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'error.light'
+              }}
+            >
               {error}
             </Alert>
           )}
@@ -74,6 +110,7 @@ const Login: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
+              sx={{ mb: 2.5 }}
             />
             <TextField
               margin="normal"
@@ -87,26 +124,34 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
+              sx={{ mb: 3 }}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              size="large"
+              sx={{ 
+                mt: 1, 
+                mb: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600
+              }}
               disabled={loading || !username || !password}
             >
-              {loading ? <CircularProgress size={24} /> : 'Sign In'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
             </Button>
           </Box>
 
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="textSecondary">
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
               Access is restricted to authorized personnel only.
             </Typography>
           </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 
