@@ -111,6 +111,20 @@ if (USE_SQLITE) {
         FOR EACH ROW EXECUTE FUNCTION update_search_vector();
       `);
 
+      // Files table for storing uploads in database
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS files (
+          id SERIAL PRIMARY KEY,
+          filename VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          file_size INTEGER NOT NULL,
+          file_data BYTEA NOT NULL,
+          uploaded_by INTEGER REFERENCES users(id),
+          uploaded_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
       // Audit log table
       await pool.query(`
         CREATE TABLE IF NOT EXISTS audit_log (

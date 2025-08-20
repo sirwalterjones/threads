@@ -1,27 +1,13 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { pool } = require('../config/database');
 
 const router = express.Router();
 
-const uploadsRoot = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsRoot)) {
-  fs.mkdirSync(uploadsRoot, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsRoot);
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext).replace(/[^a-z0-9-_]+/gi, '_');
-    cb(null, `${base}_${unique}${ext}`);
-  }
-});
+// Use memory storage since we'll store in database
+const storage = multer.memoryStorage();
 
 const allowedMime = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
@@ -40,14 +26,7 @@ const upload = multer({
 });
 
 router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res) => {
-  // Check if we're on Vercel (serverless) - file uploads won't work
-  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    return res.status(400).json({ 
-      error: 'File uploads are not supported in the current deployment. Cloud storage integration needed.' 
-    });
-  }
-
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       console.error('Multer error:', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
@@ -61,22 +40,46 @@ router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res)
         return res.status(400).json({ error: 'No file uploaded' });
       }
       
-      console.log('File uploaded successfully:', {
-        filename: req.file.filename,
+      console.log('Processing file upload:', {
         originalname: req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype
       });
       
-      const publicPath = `/uploads/${req.file.filename}`;
+      // Generate a unique filename
+      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = path.extname(req.file.originalname);
+      const base = path.basename(req.file.originalname, ext).replace(/[^a-z0-9-_]+/gi, '_');
+      const filename = `${base}_${unique}${ext}`;
+      
+      // Store file in database
+      const result = await pool.query(`
+        INSERT INTO files (filename, original_name, mime_type, file_size, file_data, uploaded_by)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, filename, original_name, mime_type, file_size, uploaded_at
+      `, [
+        filename,
+        req.file.originalname,
+        req.file.mimetype,
+        req.file.size,
+        req.file.buffer,
+        req.user.id
+      ]);
+      
+      const fileRecord = result.rows[0];
+      console.log('File stored in database:', fileRecord);
+      
+      // Return file info with URL that points to our file serving endpoint
+      const publicPath = `/api/files/${fileRecord.id}`;
       const url = `${req.protocol}://${req.get('host')}${publicPath}`;
       
       return res.status(201).json({
+        id: fileRecord.id,
         path: publicPath,
         url,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size
+        originalName: fileRecord.original_name,
+        mimeType: fileRecord.mime_type,
+        size: fileRecord.file_size
       });
     } catch (e) {
       console.error('Upload processing error:', e);

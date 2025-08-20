@@ -16,7 +16,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string}[]>([]);
+  const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string; id?:number}[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -82,7 +82,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       const resp = await apiService.uploadFile(form);
       console.log('Upload successful:', resp);
       
-      setUploads(prev => [...prev, { url: resp.url, path: resp.path, mimeType: resp.mimeType, name: file.name }]);
+      setUploads(prev => [...prev, { 
+        url: resp.url, 
+        path: resp.path, 
+        mimeType: resp.mimeType, 
+        name: resp.originalName || file.name,
+        id: resp.id 
+      }]);
     } catch (err:any) {
       console.error('Upload error details:', {
         message: err?.message,
@@ -94,12 +100,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       
       let errorMsg = 'Upload failed';
       if (err?.response?.status === 400) {
-        const serverError = err?.response?.data?.error;
-        if (serverError?.includes('Cloud storage integration needed')) {
-          errorMsg = 'File uploads are temporarily disabled. You can still create threads without media attachments.';
-        } else {
-          errorMsg = serverError || 'Bad request - invalid file or request format';
-        }
+        errorMsg = err?.response?.data?.error || 'Bad request - invalid file or request format';
       } else if (err?.response?.status === 401) {
         errorMsg = 'Authentication required for file upload';
       } else if (err?.response?.status === 403) {
