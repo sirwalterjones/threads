@@ -327,29 +327,31 @@ const Dashboard: React.FC = () => {
                 </Button>
                 
                 <Button 
-                  variant="outlined" 
+                  variant="contained" 
                   onClick={handleClearSearch}
                   disabled={!searchQuery && searchResults.length === 0}
                   size="large"
                   sx={{ 
                     borderRadius: '25px',
-                    borderColor: '#000000',
-                    color: '#000000',
-                    backgroundColor: 'white',
+                    backgroundColor: '#000000',
+                    color: 'white',
                     fontSize: '16px',
                     fontWeight: 500,
                     px: 3,
                     py: 1.5,
                     textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                     '&:hover': {
-                      borderColor: '#1F2937',
-                      backgroundColor: '#F9FAFB',
-                      color: '#1F2937'
+                      backgroundColor: '#1F2937',
+                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                      transform: 'translateY(-1px)'
                     },
                     '&:disabled': {
-                      borderColor: '#E5E7EB',
-                      color: '#D1D5DB'
-                    }
+                      backgroundColor: '#E5E7EB',
+                      color: '#9CA3AF',
+                      boxShadow: 'none'
+                    },
+                    transition: 'all 0.2s ease'
                   }}
                 >
                   Clear
