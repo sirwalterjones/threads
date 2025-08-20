@@ -91,15 +91,64 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     setSaving(true);
     setError('');
     try {
+      // Validate input
+      if (!title?.trim()) {
+        setError('Thread title is required');
+        return;
+      }
+      if (!content?.trim()) {
+        setError('Thread content is required');
+        return;
+      }
+      
+      // Check user permissions
+      if (!user || !['edit', 'admin'].includes(user.role)) {
+        setError('You do not have permission to create threads');
+        return;
+      }
+      
       const autoExcerpt = generateExcerpt(content);
-      const payload = { title, content, excerpt: autoExcerpt, categoryId: '' as any, retentionDays: '365' } as any;
-      if (post) await apiService.updatePost(post.id, payload);
-      else await apiService.createPost(payload);
-      setTitle(''); setContent(''); setExcerpt(''); setCategoryId(''); setUploads([]);
+      const payload: any = { 
+        title: title.trim(), 
+        content: content.trim(), 
+        excerpt: autoExcerpt, 
+        categoryId: categoryId || null, // Send null instead of empty string
+        retentionDays: '365' 
+      };
+      
+      console.log('User role:', user.role);
+      console.log('Submitting payload:', payload);
+      
+      if (post) {
+        await apiService.updatePost(post.id, payload);
+      } else {
+        await apiService.createPost(payload);
+      }
+      
+      // Reset form
+      setTitle(''); 
+      setContent(''); 
+      setExcerpt(''); 
+      setCategoryId(''); 
+      setUploads([]);
+      
       onCreated?.();
       onClose();
     } catch (err:any) {
-      setError(err?.response?.data?.error || 'Failed to create post');
+      console.error('Thread creation error:', err);
+      let errorMessage = 'Failed to create thread';
+      
+      if (err?.response?.status === 401) {
+        errorMessage = 'Authentication required. Please log in again.';
+      } else if (err?.response?.status === 403) {
+        errorMessage = 'You do not have permission to create threads.';
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(`Error: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
