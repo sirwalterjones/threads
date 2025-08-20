@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const adminPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
-    { text: 'Search Posts', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
+    { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] },
     { text: 'Tables', icon: <TableIcon />, path: '/tables', roles: ['admin'] }
@@ -144,8 +144,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         left: 0,
         top: 0,
         zIndex: 1200,
-        overflow: 'auto',
-        overflowY: 'scroll',
+        display: 'flex',
+        flexDirection: 'column',
         transform: { xs: open ? 'translateX(0)' : 'translateX(-100%)', md: 'translateX(0)' },
         transition: 'transform 0.3s ease-in-out',
         borderRight: '1px solid #374151'
@@ -167,7 +167,24 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       </Box>
 
       {/* Navigation */}
-      <Box sx={{ py: 2 }}>
+      <Box sx={{ 
+        py: 2, 
+        flex: 1, 
+        overflowY: 'auto',
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#374151',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#6B7280',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#9CA3AF',
+        },
+      }}>
         {renderNavSection('ADMIN LAYOUT PAGES', adminPages)}
         
         {user && ['edit', 'admin'].includes(user.role) && (
@@ -184,13 +201,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* User Info at Bottom */}
       {user && (
         <Box sx={{ 
-          position: 'absolute', 
-          bottom: 0, 
-          left: 0, 
-          right: 0, 
           p: 3, 
           borderTop: '1px solid #374151',
-          backgroundColor: '#111827'
+          backgroundColor: '#111827',
+          flexShrink: 0
         }}>
           <Typography variant="body2" sx={{ color: '#9CA3AF', fontSize: '0.75rem' }}>
             Logged in as:

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Box, IconButton, useMediaQuery, useTheme, AppBar, Toolbar, Typography, InputBase, Avatar } from '@mui/material';
-import { Menu as MenuIcon, Search as SearchIcon, AccountCircle } from '@mui/icons-material';
+import { Box, IconButton, useMediaQuery, useTheme, AppBar, Toolbar, Typography, InputBase, Avatar, Menu, MenuItem } from '@mui/material';
+import { Menu as MenuIcon, Search as SearchIcon, AccountCircle, ExitToApp, Settings, Dashboard } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import NewPostModal from '../NewPostModal';
 import apiService from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,9 +15,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openNewPost, setOpenNewPost] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   // Listen for global open-new-post-modal events from sidebar
   React.useEffect(() => {
@@ -42,6 +45,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    handleMenuClose();
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleMenuClose();
+  };
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
@@ -53,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1, 
           marginLeft: { xs: 0, md: '280px' },
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #1F2937 0%, #374151 50%, #4B5563 100%)', // Dark gradient matching sidebar
+          backgroundColor: '#111827', // Dark blue like sidebar bottom
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -129,18 +151,52 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Box>
 
               {/* User Avatar */}
-              <Avatar 
-                sx={{ 
-                  width: 40, 
-                  height: 40,
-                  border: '2px solid rgba(255,255,255,0.3)'
-                }}
+              <IconButton
+                size="large"
+                edge="end"
+                aria-label="account menu"
+                aria-controls="account-menu"
+                aria-haspopup="true"
+                onClick={handleMenuOpen}
+                color="inherit"
+                sx={{ p: 0 }}
               >
-                {user?.username?.[0]?.toUpperCase() || <AccountCircle />}
-              </Avatar>
+                <Avatar 
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    border: '2px solid rgba(255,255,255,0.3)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {user?.username?.[0]?.toUpperCase() || <AccountCircle />}
+                </Avatar>
+              </IconButton>
             </Box>
           </Toolbar>
         </AppBar>
+
+        {/* User Menu */}
+        <Menu
+          id="account-menu"
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          MenuListProps={{
+            'aria-labelledby': 'account-button',
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem onClick={handleProfile}>
+            <Settings sx={{ mr: 2 }} />
+            Profile Settings
+          </MenuItem>
+          <MenuItem onClick={handleLogout}>
+            <ExitToApp sx={{ mr: 2 }} />
+            Logout
+          </MenuItem>
+        </Menu>
 
         {/* Content Area with white background */}
         <Box

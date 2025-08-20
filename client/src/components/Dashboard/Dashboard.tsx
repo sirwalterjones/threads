@@ -15,7 +15,8 @@ import {
   Chip,
   TextField,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  Badge
 } from '@mui/material';
 import {
   Assessment,
@@ -24,11 +25,14 @@ import {
   Schedule,
   Search as SearchIcon,
   TrendingUp,
-  CalendarToday
+  CalendarToday,
+  Visibility
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService from '../../services/api';
 import { DashboardStats as ApiDashboardStats, Post, SearchFilters } from '../../types';
+import { format } from 'date-fns';
+import PostDetailModal from '../PostDetailModal';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<ApiDashboardStats | null>(null);
@@ -36,6 +40,35 @@ const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Utility functions for text processing
+  const stripHtmlTags = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  };
+
+  const highlightText = (input: string) => {
+    if (!searchQuery.trim()) return input;
+    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+    const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+    const parts = input.split(regex);
+    return parts.map((part, i) => (
+      regex.test(part) ? (
+        <mark key={i} style={{ backgroundColor: 'yellow', padding: 0 }}>{part}</mark>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      )
+    ));
+  };
+
+  const handlePostClick = (postId: number) => {
+    setSelectedPostId(postId);
+    setModalOpen(true);
+  };
 
   useEffect(() => {
     loadDashboardData();
@@ -92,129 +125,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box>
-      {/* Central Search Bar */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-        <Card sx={{ 
-          p: 3, 
-          width: '100%', 
-          maxWidth: '800px',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <Typography variant="h4" sx={{ 
-            color: 'white', 
-            textAlign: 'center', 
-            mb: 3,
-            fontWeight: 'bold' 
-          }}>
-            Search Intelligence Reports
-          </Typography>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search posts, content, authors..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={handleKeyPress}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchLoading && (
-                <InputAdornment position="end">
-                  <CircularProgress size={20} sx={{ color: 'white' }} />
-                </InputAdornment>
-              ),
-              sx: {
-                '& .MuiOutlinedInput-root': {
-                  color: 'white',
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'white',
-                  },
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  color: 'rgba(255, 255, 255, 0.7)',
-                },
-              }
-            }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              onClick={handleSearch}
-              disabled={searchLoading}
-              sx={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                }
-              }}
-            >
-              Search
-            </Button>
-          </Box>
-        </Card>
-      </Box>
-
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <Card sx={{ mb: 4, backgroundColor: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)' }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ color: 'white', mb: 2 }}>
-              Search Results ({searchResults.length})
-            </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Title</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Category</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Author</TableCell>
-                    <TableCell sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {searchResults.map((post) => (
-                    <TableRow key={post.id}>
-                      <TableCell sx={{ color: 'white' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {post.title}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ color: 'white' }}>
-                        <Chip 
-                          label={post.category_name || 'Uncategorized'} 
-                          size="small"
-                          sx={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            color: 'white'
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ color: 'white' }}>{post.author_name}</TableCell>
-                      <TableCell sx={{ color: 'white' }}>
-                        {new Date(post.wp_published_date).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Dashboard Stats Cards */}
+      {/* Dashboard Stats Cards at Top */}
       {stats && (
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -266,6 +177,200 @@ const Dashboard: React.FC = () => {
             />
           </Grid>
         </Grid>
+      )}
+
+      {/* Central Search Bar */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: '600px' }}>
+          <Typography variant="h5" sx={{ 
+            color: 'white', 
+            textAlign: 'center', 
+            mb: 2,
+            fontWeight: 'bold' 
+          }}>
+            Search Intelligence Reports
+          </Typography>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search posts, content, authors..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchLoading && (
+                <InputAdornment position="end">
+                  <CircularProgress size={20} sx={{ color: 'white' }} />
+                </InputAdornment>
+              ),
+              sx: {
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'white',
+                  },
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+              }
+            }}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Button 
+              variant="contained" 
+              onClick={handleSearch}
+              disabled={searchLoading}
+              sx={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                }
+              }}
+            >
+              Search
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Search Results as Cards */}
+      {searchResults.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ color: 'white', mb: 3, textAlign: 'center' }}>
+            Search Results ({searchResults.length})
+          </Typography>
+          <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
+            {searchResults.map((post) => (
+              <Card
+                key={post.id}
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 4,
+                  },
+                }}
+                onClick={() => handlePostClick(post.id)}
+              >
+                <CardContent>
+                  <Typography variant="h6" component="h2" gutterBottom sx={{ color: 'white' }}>
+                    {highlightText(stripHtmlTags(post.title))}
+                  </Typography>
+                  
+                  {post.excerpt && (
+                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}>
+                      {highlightText(stripHtmlTags(post.excerpt).substring(0, 150))}...
+                    </Typography>
+                  )}
+
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {post.category_name && (
+                      <Chip 
+                        size="small" 
+                        label={post.category_name} 
+                        sx={{ 
+                          backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                          color: 'white'
+                        }}
+                      />
+                    )}
+                    <Chip 
+                      size="small" 
+                      label={post.author_name} 
+                      sx={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                    />
+                    <Chip 
+                      size="small" 
+                      label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                      sx={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        color: 'white'
+                      }}
+                    />
+                  </Box>
+
+                  {/* Media attachments preview */}
+                  {post.featured_media_url && (
+                    <Box sx={{ mb: 2 }}>
+                      <img 
+                        src={post.featured_media_url.startsWith('http') 
+                          ? post.featured_media_url 
+                          : `https://cmansrms.us${post.featured_media_url}`}
+                        alt="Featured media"
+                        style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                      />
+                    </Box>
+                  )}
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      startIcon={<Visibility />}
+                      size="small"
+                      sx={{ 
+                        color: 'white',
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                        '&:hover': {
+                          borderColor: 'white',
+                          backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                        }
+                      }}
+                      variant="outlined"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePostClick(post.id);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                    {!post.wp_post_id && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        sx={{ 
+                          color: 'white',
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
+                          '&:hover': {
+                            borderColor: 'white',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
+                          window.dispatchEvent(evt);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        </Box>
       )}
 
       {/* Analytics Tables */}
@@ -382,6 +487,13 @@ const Dashboard: React.FC = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        postId={selectedPostId}
+      />
     </Box>
   );
 };
