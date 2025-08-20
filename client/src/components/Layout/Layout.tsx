@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { Box, IconButton, useMediaQuery, useTheme, AppBar, Toolbar, Typography, InputBase, Avatar, Menu, MenuItem } from '@mui/material';
-import { Menu as MenuIcon, Search as SearchIcon, AccountCircle, ExitToApp, Settings, Dashboard } from '@mui/icons-material';
+import { Box, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { Menu as MenuIcon } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
-import { useAuth } from '../../contexts/AuthContext';
 import NewPostModal from '../NewPostModal';
 import apiService from '../../services/api';
-import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,11 +14,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openNewPost, setOpenNewPost] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   // Listen for global open-new-post-modal events from sidebar
   React.useEffect(() => {
@@ -44,25 +39,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    handleMenuClose();
-  };
-
-  const handleProfile = () => {
-    navigate('/profile');
-    handleMenuClose();
   };
 
   return (
@@ -93,9 +69,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             minHeight: '100vh'
           }}
         >
-          {/* Top Header Bar */}
+          {/* Mobile Menu Button - only show on mobile */}
           <Box
             sx={{
+              display: { xs: 'block', md: 'none' },
               position: 'sticky',
               top: 0,
               zIndex: 10,
@@ -105,73 +82,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               p: 2
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              {/* Mobile Menu Button */}
-              <IconButton
-                edge="start"
-                onClick={handleSidebarToggle}
-                sx={{ display: { xs: 'block', md: 'none' }, color: '#E7E9EA' }}
-              >
-                <MenuIcon />
-              </IconButton>
-
-              {/* Page Title - Social Media Style */}
-              <Typography variant="h5" sx={{ 
-                color: '#E7E9EA', 
-                fontWeight: 700,
-                fontSize: '20px'
-              }}>
-                Home
-              </Typography>
-
-              {/* User Avatar */}
-              <IconButton
-                onClick={handleMenuOpen}
-                sx={{ p: 0 }}
-              >
-                <Avatar 
-                  sx={{ 
-                    width: 32, 
-                    height: 32,
-                    backgroundColor: '#1D9BF0',
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                >
-                  {user?.username?.[0]?.toUpperCase() || <AccountCircle />}
-                </Avatar>
-              </IconButton>
-            </Box>
+            <IconButton
+              edge="start"
+              onClick={handleSidebarToggle}
+              sx={{ color: '#E7E9EA' }}
+            >
+              <MenuIcon />
+            </IconButton>
           </Box>
-
-          {/* User Menu */}
-          <Menu
-            id="account-menu"
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{
-              sx: {
-                backgroundColor: '#000000',
-                border: '1px solid #2F3336',
-                color: '#E7E9EA'
-              }
-            }}
-            MenuListProps={{
-              'aria-labelledby': 'account-button',
-            }}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem onClick={handleProfile} sx={{ color: '#E7E9EA' }}>
-              <Settings sx={{ mr: 2 }} />
-              Profile Settings
-            </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ color: '#E7E9EA' }}>
-              <ExitToApp sx={{ mr: 2 }} />
-              Logout
-            </MenuItem>
-          </Menu>
 
           {/* Main Content Feed */}
           <Box sx={{ backgroundColor: '#000000' }}>

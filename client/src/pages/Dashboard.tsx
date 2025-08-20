@@ -27,21 +27,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>Dashboard</Typography>
-      <Box sx={{ display:'grid', gap:2, gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <Card><CardContent>
-          <Typography variant="overline">Total Posts</Typography>
-          <Typography variant="h4">{stats?.counts?.totalPosts ?? '-'}</Typography>
-        </CardContent></Card>
-        <Card><CardContent>
-          <Typography variant="overline">Categories</Typography>
-          <Typography variant="h4">{stats?.counts?.totalCategories ?? '-'}</Typography>
-        </CardContent></Card>
-        <Card><CardContent>
-          <Typography variant="overline">Users</Typography>
-          <Typography variant="h4">{stats?.counts?.totalUsers ?? '-'}</Typography>
-        </CardContent></Card>
-      </Box>
+      {/* Stats cards removed - content now flows directly */}
     </Box>
   );
 };

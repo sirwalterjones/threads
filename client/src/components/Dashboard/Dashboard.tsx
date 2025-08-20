@@ -206,59 +206,7 @@ const Dashboard: React.FC = () => {
         </Button>
       </Box>
 
-      {/* Dashboard Stats Cards at Top */}
-      {stats && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <DashboardCard
-              title="TOTAL REPORTS"
-              value={stats.counts.totalPosts.toLocaleString()}
-              change="Active"
-              changeType="positive"
-              period="Intelligence reports"
-              icon={Description}
-              iconColor="#EF4444"
-              iconBgColor="#FEE2E2"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <DashboardCard
-              title="RECENT ACTIVITY"
-              value={stats.counts.recentPosts.toLocaleString()}
-              change="This week"
-              changeType="positive"
-              period="New reports"
-              icon={TrendingUp}
-              iconColor="#F97316"
-              iconBgColor="#FED7AA"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <DashboardCard
-              title="CATEGORIES"
-              value={stats.counts.totalCategories}
-              change="Active"
-              changeType="positive"
-              period="Classification types"
-              icon={Category}
-              iconColor="#EC4899"
-              iconBgColor="#FCE7F3"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <DashboardCard
-              title="EXPIRING SOON"
-              value={stats.counts.expiringPosts}
-              change="Attention required"
-              changeType="negative"
-              period="Reports expiring"
-              icon={CalendarToday}
-              iconColor="#3B82F6"
-              iconBgColor="#DBEAFE"
-            />
-          </Grid>
-        </Grid>
-      )}
+      {/* Dashboard Stats Cards removed */}
 
       {/* Central Search Bar - Primary Focus */}
       {searchResults.length === 0 && (

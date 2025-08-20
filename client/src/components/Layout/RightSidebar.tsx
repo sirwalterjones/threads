@@ -106,6 +106,104 @@ const RightSidebar: React.FC = () => {
         background: '#3F4144',
       },
     }}>
+      {/* Recent Activity - Moved to Top */}
+      {!loading && recentThreads.length > 0 && (
+      <Card 
+        sx={{ 
+          mb: 4, 
+          backgroundColor: '#16181C', 
+          border: 'none',
+          borderRadius: 4
+        }}
+      >
+        <CardContent sx={{ p: 0 }}>
+          <Box sx={{ p: 2, pb: 1 }}>
+            <Typography variant="h6" sx={{ 
+              color: '#E7E9EA', 
+              fontWeight: 700, 
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              <Schedule sx={{ color: '#1D9BF0' }} />
+              Recent Threads
+            </Typography>
+          </Box>
+          
+          <List sx={{ py: 0 }}>
+            {recentThreads.map((thread) => (
+              <ListItem key={thread.id} disablePadding>
+                <ListItemButton
+                  onClick={() => handleThreadClick(thread.id)}
+                  sx={{
+                    py: 3,
+                    px: 4,
+                    '&:hover': {
+                      backgroundColor: '#1C1F23'
+                    }
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar sx={{ 
+                      width: 32, 
+                      height: 32,
+                      backgroundColor: '#1D9BF0',
+                      fontSize: '12px'
+                    }}>
+                      {thread.author_name[0]?.toUpperCase()}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ 
+                        color: '#E7E9EA', 
+                        fontWeight: 500, 
+                        fontSize: '15px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {thread.title}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography sx={{ 
+                        color: '#71767B', 
+                        fontSize: '13px' 
+                      }}>
+                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          
+          <Box sx={{ p: 4, pt: 3 }}>
+            <Button
+              fullWidth
+              sx={{
+                color: '#1D9BF0',
+                textTransform: 'none',
+                fontWeight: 400,
+                justifyContent: 'flex-start',
+                pl: 0,
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  textDecoration: 'underline'
+                }
+              }}
+              onClick={() => navigate('/search')}
+            >
+              Show more
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+      )}
+
       {/* Search Box */}
       <Card 
         sx={{ 
@@ -230,104 +328,6 @@ const RightSidebar: React.FC = () => {
                 }
               }}
               onClick={() => navigate('/categories')}
-            >
-              Show more
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-      )}
-
-      {/* Recent Activity */}
-      {!loading && recentThreads.length > 0 && (
-      <Card 
-        sx={{ 
-          mb: 4, 
-          backgroundColor: '#16181C', 
-          border: 'none',
-          borderRadius: 4
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          <Box sx={{ p: 2, pb: 1 }}>
-            <Typography variant="h6" sx={{ 
-              color: '#E7E9EA', 
-              fontWeight: 700, 
-              fontSize: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <Schedule sx={{ color: '#1D9BF0' }} />
-              Recent Threads
-            </Typography>
-          </Box>
-          
-          <List sx={{ py: 0 }}>
-            {recentThreads.map((thread) => (
-              <ListItem key={thread.id} disablePadding>
-                <ListItemButton
-                  onClick={() => handleThreadClick(thread.id)}
-                  sx={{
-                    py: 3,
-                    px: 4,
-                    '&:hover': {
-                      backgroundColor: '#1C1F23'
-                    }
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ 
-                      width: 32, 
-                      height: 32,
-                      backgroundColor: '#1D9BF0',
-                      fontSize: '12px'
-                    }}>
-                      {thread.author_name[0]?.toUpperCase()}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ 
-                        color: '#E7E9EA', 
-                        fontWeight: 500, 
-                        fontSize: '15px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {thread.title}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography sx={{ 
-                        color: '#71767B', 
-                        fontSize: '13px' 
-                      }}>
-                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          
-          <Box sx={{ p: 4, pt: 3 }}>
-            <Button
-              fullWidth
-              sx={{
-                color: '#1D9BF0',
-                textTransform: 'none',
-                fontWeight: 400,
-                justifyContent: 'flex-start',
-                pl: 0,
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  textDecoration: 'underline'
-                }
-              }}
-              onClick={() => navigate('/search')}
             >
               Show more
             </Button>

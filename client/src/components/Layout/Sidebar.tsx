@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   List,
@@ -7,7 +7,9 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  Divider
+  Divider,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -21,7 +23,8 @@ import {
   Login as LoginIcon,
   AppRegistration as RegisterIcon,
   History as AuditIcon,
-  AccessTime as ExpirationIcon
+  AccessTime as ExpirationIcon,
+  ExitToApp as LogoutIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,9 +37,29 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    handleMenuClose();
+  };
 
   const adminPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
@@ -208,55 +231,90 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
       {/* User Info at Bottom */}
       {user && (
-        <Box sx={{ 
-          p: 3, 
-          borderTop: '1px solid #2F3336',
-          backgroundColor: '#000000',
-          flexShrink: 0,
-          cursor: 'pointer',
-          borderRadius: '16px',
-          mx: 2,
-          mb: 2,
-          '&:hover': {
-            backgroundColor: '#16181C'
-          }
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                backgroundColor: '#1D9BF0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 700
-              }}
-            >
-              {user.username[0]?.toUpperCase()}
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ 
-                color: '#E7E9EA', 
-                fontWeight: 700,
-                fontSize: '15px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}>
-                {user.username}
-              </Typography>
-              <Typography variant="caption" sx={{ 
-                color: '#71767B', 
-                fontSize: '15px'
-              }}>
-                @{user.username.toLowerCase()}
-              </Typography>
+        <>
+          <Box 
+            onClick={handleMenuOpen}
+            sx={{ 
+              p: 3, 
+              borderTop: '1px solid #2F3336',
+              backgroundColor: '#000000',
+              flexShrink: 0,
+              cursor: 'pointer',
+              borderRadius: '16px',
+              mx: 2,
+              mb: 2,
+              '&:hover': {
+                backgroundColor: '#16181C'
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  backgroundColor: '#1D9BF0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: 700
+                }}
+              >
+                {user.username[0]?.toUpperCase()}
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" sx={{ 
+                  color: '#E7E9EA', 
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {user.username}
+                </Typography>
+                <Typography variant="caption" sx={{ 
+                  color: '#71767B', 
+                  fontSize: '15px'
+                }}>
+                  @{user.username.toLowerCase()}
+                </Typography>
+              </Box>
             </Box>
           </Box>
-        </Box>
+
+          {/* User Menu */}
+          <Menu
+            id="user-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                backgroundColor: '#000000',
+                border: '1px solid #2F3336',
+                color: '#E7E9EA',
+                minWidth: 200
+              }
+            }}
+            MenuListProps={{
+              'aria-labelledby': 'user-button',
+            }}
+            transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+            anchorOrigin={{ horizontal: 'left', vertical: 'top' }}
+          >
+            <MenuItem onClick={handleProfile} sx={{ color: '#E7E9EA' }}>
+              <SettingsIcon sx={{ mr: 2 }} />
+              Profile Settings
+            </MenuItem>
+            <MenuItem onClick={handleLogout} sx={{ color: '#E7E9EA' }}>
+              <LogoutIcon sx={{ mr: 2 }} />
+              Logout
+            </MenuItem>
+          </Menu>
+        </>
       )}
     </Box>
   );
