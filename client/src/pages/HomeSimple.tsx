@@ -176,11 +176,11 @@ const HomeSimple: React.FC = () => {
   const highlightText = (input: string) => {
     if (!highlightTerms.length) return input;
     
-    // Create patterns for each term including variations
+    // Create a single pattern for all terms with word variations
     const patterns = highlightTerms.map(term => {
       const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Match the term with optional word boundaries and partial matches
-      return `(${escaped}\\w*|\\w*${escaped}\\w*|${escaped})`;
+      // Match the exact term or words containing the term
+      return `\\b\\w*${escaped}\\w*\\b`;
     });
     
     const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
@@ -189,10 +189,13 @@ const HomeSimple: React.FC = () => {
     return parts.map((part, i) => {
       if (!part) return <React.Fragment key={i}></React.Fragment>;
       
-      // Check if this part contains any of our search terms
-      const shouldHighlight = highlightTerms.some(term => 
-        part.toLowerCase().includes(term.toLowerCase()) ||
-        term.toLowerCase().includes(part.toLowerCase())
+      // Check if this part matches our regex (was captured)
+      const isMatch = regex.test(part);
+      regex.lastIndex = 0; // Reset regex state
+      
+      // Also check manually for term matching
+      const shouldHighlight = isMatch || highlightTerms.some(term => 
+        part.toLowerCase().includes(term.toLowerCase())
       );
       
       return shouldHighlight ? (
@@ -322,14 +325,6 @@ const HomeSimple: React.FC = () => {
               }}>
                 Search Threads
               </Typography>
-              <Typography variant="h6" sx={{ 
-                color: '#6B7280', 
-                textAlign: 'center', 
-                mb: 6,
-                fontWeight: 400
-              }}>
-                Search through reports and intelligence data
-              </Typography>
               
               <Box sx={{ 
                 position: 'relative',
@@ -340,7 +335,7 @@ const HomeSimple: React.FC = () => {
                 <TextField
                   fullWidth
                   variant="outlined"
-                  placeholder='Search posts (e.g., "car theft" author:smith before:2025-01-01)'
+  placeholder=""
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={handleKeyPress}

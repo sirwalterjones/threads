@@ -31,6 +31,10 @@
       "dest": "/server/index.js"
     },
     {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
+      "dest": "/client/build/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/client/build/index.html"
     }

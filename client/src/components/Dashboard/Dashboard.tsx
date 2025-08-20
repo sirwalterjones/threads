@@ -57,11 +57,11 @@ const Dashboard: React.FC = () => {
     if (!searchQuery.trim()) return input;
     const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
     
-    // Create patterns for each term including variations
+    // Create a single pattern for all terms with word variations
     const patterns = terms.map(term => {
       const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Match the term with optional word boundaries and partial matches
-      return `(${escaped}\\w*|\\w*${escaped}\\w*|${escaped})`;
+      // Match the exact term or words containing the term
+      return `\\b\\w*${escaped}\\w*\\b`;
     });
     
     const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
@@ -70,10 +70,13 @@ const Dashboard: React.FC = () => {
     return parts.map((part, i) => {
       if (!part) return <React.Fragment key={i}></React.Fragment>;
       
-      // Check if this part contains any of our search terms
-      const shouldHighlight = terms.some(term => 
-        part.toLowerCase().includes(term.toLowerCase()) ||
-        term.toLowerCase().includes(part.toLowerCase())
+      // Check if this part matches our regex (was captured)
+      const isMatch = regex.test(part);
+      regex.lastIndex = 0; // Reset regex state
+      
+      // Also check manually for term matching
+      const shouldHighlight = isMatch || terms.some(term => 
+        part.toLowerCase().includes(term.toLowerCase())
       );
       
       return shouldHighlight ? (
@@ -622,6 +625,13 @@ const Dashboard: React.FC = () => {
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePostClick(post.id);
+                      }}
+                      sx={{
+                        backgroundColor: '#000000',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#1F2937'
+                        }
                       }}
                     >
                       View Details

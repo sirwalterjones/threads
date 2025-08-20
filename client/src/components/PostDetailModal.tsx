@@ -84,9 +84,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
       .replace(/>/g, '&gt;');
     let safe = escape(text || '');
     if (highlightTerms.length) {
-      const escaped = highlightTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-      const re = new RegExp(`(${escaped.join('|')})`, 'gi');
-      safe = safe.replace(re, '<mark style="background-color: yellow; padding:0;">$1</mark>');
+      // Create patterns for word variations, similar to other highlight functions
+      const patterns = highlightTerms.map(term => {
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Match the exact term or words containing the term
+        return `\\b\\w*${escaped}\\w*\\b`;
+      });
+      const re = new RegExp(`(${patterns.join('|')})`, 'gi');
+      safe = safe.replace(re, '<mark style="background-color: #FFEB3B; padding: 2px; border-radius: 2px;">$1</mark>');
     }
     return safe;
   };
