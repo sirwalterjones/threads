@@ -220,6 +220,163 @@ class WordPressService {
     }
   }
 
+  async getLastSyncTimestamp() {
+    try {
+      const result = await pool.query(`
+        SELECT MAX(wp_modified_date) as last_modified
+        FROM posts 
+        WHERE wp_modified_date IS NOT NULL
+      `);
+      return result.rows[0]?.last_modified || new Date(0);
+    } catch (error) {
+      console.error('Error getting last sync timestamp:', error);
+      return new Date(0);
+    }
+  }
+
+  async ingestNewPosts(page = 1, perPage = 100, afterDate = null) {
+    try {
+      console.log(`Ingesting new/updated posts from WordPress (page ${page})...`);
+      
+      const params = {
+        page,
+        per_page: perPage,
+        _embed: true,
+        orderby: 'modified',
+        order: 'desc'
+      };
+
+      // Only fetch posts modified after the last sync
+      if (afterDate) {
+        params.modified_after = afterDate.toISOString();
+      }
+
+      const response = await this.http.get(`/posts`, { params });
+      const posts = response.data;
+      let ingestedCount = 0;
+
+      if (posts.length === 0) {
+        console.log('No new posts to ingest');
+        return 0;
+      }
+
+      for (const post of posts) {
+        const retentionDate = new Date();
+        retentionDate.setDate(retentionDate.getDate() + parseInt(this.retentionDays));
+
+        // Get category ID from our local database
+        let categoryId = null;
+        if (post.categories && post.categories.length > 0) {
+          const categoryResult = await pool.query(
+            'SELECT id FROM categories WHERE wp_category_id = $1',
+            [post.categories[0]]
+          );
+          if (categoryResult.rows.length > 0) {
+            categoryId = categoryResult.rows[0].id;
+          }
+        }
+
+        // Extract author name from embedded data
+        let authorName = 'Unknown';
+        if (post._embedded && post._embedded.author && post._embedded.author[0]) {
+          authorName = post._embedded.author[0].name;
+        }
+
+        await pool.query(`
+          INSERT INTO posts (
+            wp_post_id, title, content, excerpt, slug, status,
+            wp_author_id, author_name, wp_published_date, wp_modified_date,
+            retention_date, category_id, metadata
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          ON CONFLICT (wp_post_id)
+          DO UPDATE SET
+            title = EXCLUDED.title,
+            content = EXCLUDED.content,
+            excerpt = EXCLUDED.excerpt,
+            wp_modified_date = EXCLUDED.wp_modified_date,
+            category_id = EXCLUDED.category_id,
+            metadata = EXCLUDED.metadata,
+            updated_at = NOW()
+        `, [
+          post.id,
+          post.title.rendered,
+          post.content.rendered,
+          post.excerpt.rendered,
+          post.slug,
+          post.status,
+          post.author,
+          authorName,
+          new Date(post.date),
+          new Date(post.modified),
+          retentionDate,
+          categoryId,
+          JSON.stringify({
+            featured_media: post.featured_media,
+            tags: post.tags,
+            sticky: post.sticky,
+            format: post.format
+          })
+        ]);
+
+        ingestedCount++;
+      }
+
+      console.log(`Ingested ${ingestedCount} new/updated posts from page ${page}`);
+      
+      // Check if there are more pages of new content
+      const totalPages = parseInt(response.headers['x-wp-totalpages'] || 1);
+      if (page < totalPages && posts.length === perPage) {
+        const additionalCount = await this.ingestNewPosts(page + 1, perPage, afterDate);
+        return ingestedCount + additionalCount;
+      }
+
+      return ingestedCount;
+    } catch (error) {
+      console.error(`Error ingesting new posts (page ${page}):`, error);
+      throw error;
+    }
+  }
+
+  async performIncrementalSync() {
+    try {
+      console.log('Starting incremental WordPress sync...');
+      
+      // Get timestamp of last modified post in our database
+      const lastSyncTime = await this.getLastSyncTimestamp();
+      console.log('Last sync timestamp:', lastSyncTime);
+
+      // Fetch new categories first (quick)
+      const categoriesCount = await this.ingestCategories();
+      
+      // Fetch only new/updated posts
+      const newPostsCount = await this.ingestNewPosts(1, 100, lastSyncTime);
+      
+      // Update category post counts if we got new posts
+      if (newPostsCount > 0) {
+        await pool.query(`
+          UPDATE categories 
+          SET post_count = (
+            SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
+          ),
+          updated_at = NOW()
+        `);
+      }
+      
+      console.log(`Incremental sync complete: ${categoriesCount} categories checked, ${newPostsCount} new/updated posts`);
+      
+      return {
+        categories: categoriesCount,
+        newPosts: newPostsCount,
+        timestamp: new Date(),
+        type: 'incremental'
+      };
+    } catch (error) {
+      console.error('Incremental sync failed:', error);
+      throw error;
+    }
+  }
+
   async purgeExpiredData() {
     try {
       console.log('Purging expired data...');

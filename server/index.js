@@ -145,14 +145,25 @@ app.get('*', (req, res, next) => {
 
 // Scheduled tasks
 if (process.env.NODE_ENV !== 'test') {
-  // WordPress data sync every 5 minutes
-  cron.schedule('*/5 * * * *', async () => {
-    console.log('Running scheduled WordPress data sync (every 5 minutes)...');
+  // WordPress incremental sync every 2 minutes (efficient for new posts)
+  cron.schedule('*/2 * * * *', async () => {
+    console.log('Running scheduled WordPress incremental sync (every 2 minutes)...');
     try {
-      await wpService.performFullIngestion();
-      console.log('Scheduled WordPress sync completed');
+      const result = await wpService.performIncrementalSync();
+      console.log(`Scheduled incremental sync completed: ${result.newPosts} new posts ingested`);
     } catch (error) {
-      console.error('Scheduled WordPress sync failed:', error);
+      console.error('Scheduled incremental sync failed:', error);
+    }
+  });
+
+  // Full WordPress sync every 6 hours (comprehensive backup)
+  cron.schedule('0 */6 * * *', async () => {
+    console.log('Running scheduled full WordPress sync (every 6 hours)...');
+    try {
+      const result = await wpService.performFullIngestion();
+      console.log('Scheduled full WordPress sync completed');
+    } catch (error) {
+      console.error('Scheduled full WordPress sync failed:', error);
     }
   });
 

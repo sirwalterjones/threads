@@ -183,6 +183,11 @@ class ApiService {
     return response.data;
   }
 
+  async ingestWordPressDataIncremental(): Promise<{ result: any }> {
+    const response = await axios.post(`${API_BASE_URL}/admin/ingest-wordpress-incremental`);
+    return response.data;
+  }
+
   async purgeExpiredData(): Promise<{ purgedCount: number }> {
     const response = await axios.post(`${API_BASE_URL}/admin/purge-expired`);
     return response.data;

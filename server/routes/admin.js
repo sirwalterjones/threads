@@ -344,6 +344,39 @@ router.post('/ingest-wordpress',
   }
 );
 
+// Trigger WordPress incremental sync (new/updated posts only)
+router.post('/ingest-wordpress-incremental', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('wordpress_incremental_sync'),
+  async (req, res) => {
+    try {
+      console.log('Starting WordPress incremental sync...');
+      console.log('WordPress API URL:', wpService.baseUrl);
+      console.log('Current environment variables:', {
+        hasApiUrl: !!process.env.WORDPRESS_API_URL,
+        hasUsername: !!process.env.WORDPRESS_USERNAME,
+        hasPassword: !!process.env.WORDPRESS_PASSWORD,
+        hasJwtToken: !!process.env.WORDPRESS_JWT_TOKEN
+      });
+      
+      const result = await wpService.performIncrementalSync();
+      
+      res.json({
+        message: 'WordPress incremental sync completed successfully',
+        result
+      });
+    } catch (error) {
+      console.error('WordPress incremental sync error:', error);
+      res.status(500).json({ 
+        error: 'WordPress incremental sync failed',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  }
+);
+
 // Purge expired data
 router.post('/purge-expired', 
   authenticateToken, 
