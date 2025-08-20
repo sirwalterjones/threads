@@ -171,17 +171,17 @@ const Dashboard: React.FC = () => {
           size="large"
           sx={{
             borderRadius: '50px',
-            backgroundColor: '#10B981',
+            backgroundColor: '#000000',
             color: 'white',
             fontSize: '16px',
             fontWeight: 600,
             px: 3,
             py: 1.5,
             textTransform: 'none',
-            boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
             '&:hover': {
-              backgroundColor: '#059669',
-              boxShadow: '0 12px 35px rgba(16, 185, 129, 0.5)',
+              backgroundColor: '#1F2937',
+              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5)',
               transform: 'translateY(-2px)'
             },
             transition: 'all 0.3s ease'
