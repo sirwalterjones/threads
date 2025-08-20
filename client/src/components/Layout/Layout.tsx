@@ -116,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <MenuIcon />
               </IconButton>
 
-              {/* Page Title */}
+              {/* Page Title - Social Media Style */}
               <Typography variant="h5" sx={{ 
                 color: '#E7E9EA', 
                 fontWeight: 700,
