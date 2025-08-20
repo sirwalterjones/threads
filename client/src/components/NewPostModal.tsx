@@ -42,6 +42,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     if (!file) return;
     setError('');
     
+    console.log('Uploading file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / (1024 * 1024)).toFixed(2)
+    });
+    
     // Validate file size (50MB limit)
     if (file.size > 50 * 1024 * 1024) {
       setError('File too large. Maximum size is 50MB.');
@@ -57,18 +64,52 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     ];
     
     if (!allowedTypes.includes(file.type)) {
-      setError('Unsupported file type. Please upload images, PDFs, or media files.');
+      setError(`Unsupported file type: ${file.type}. Please upload images, PDFs, or media files.`);
       return;
     }
     
     try {
+      console.log('Creating FormData...');
       const form = new FormData();
       form.append('file', file);
+      
+      console.log('FormData entries:');
+      for (let [key, value] of form.entries()) {
+        console.log(key, value);
+      }
+      
+      console.log('Calling API upload...');
       const resp = await apiService.uploadFile(form);
+      console.log('Upload successful:', resp);
+      
       setUploads(prev => [...prev, { url: resp.url, path: resp.path, mimeType: resp.mimeType, name: file.name }]);
     } catch (err:any) {
-      console.error('Upload error:', err);
-      const errorMsg = err?.response?.data?.error || err?.message || 'Upload failed';
+      console.error('Upload error details:', {
+        message: err?.message,
+        status: err?.response?.status,
+        statusText: err?.response?.statusText,
+        data: err?.response?.data,
+        config: err?.config
+      });
+      
+      let errorMsg = 'Upload failed';
+      if (err?.response?.status === 400) {
+        const serverError = err?.response?.data?.error;
+        if (serverError?.includes('Cloud storage integration needed')) {
+          errorMsg = 'File uploads are temporarily disabled. You can still create threads without media attachments.';
+        } else {
+          errorMsg = serverError || 'Bad request - invalid file or request format';
+        }
+      } else if (err?.response?.status === 401) {
+        errorMsg = 'Authentication required for file upload';
+      } else if (err?.response?.status === 403) {
+        errorMsg = 'You do not have permission to upload files';
+      } else if (err?.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      
       setError(`Upload failed: ${errorMsg}`);
     }
   };

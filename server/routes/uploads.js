@@ -40,8 +40,16 @@ const upload = multer({
 });
 
 router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res) => {
+  // Check if we're on Vercel (serverless) - file uploads won't work
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    return res.status(400).json({ 
+      error: 'File uploads are not supported in the current deployment. Cloud storage integration needed.' 
+    });
+  }
+
   upload.single('file')(req, res, (err) => {
     if (err) {
+      console.error('Multer error:', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ error: `File too large. Max ${(process.env.UPLOAD_MAX_MB || '50')}MB` });
       }
@@ -52,8 +60,17 @@ router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res)
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
+      
+      console.log('File uploaded successfully:', {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+      
       const publicPath = `/uploads/${req.file.filename}`;
       const url = `${req.protocol}://${req.get('host')}${publicPath}`;
+      
       return res.status(201).json({
         path: publicPath,
         url,
@@ -62,6 +79,7 @@ router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res)
         size: req.file.size
       });
     } catch (e) {
+      console.error('Upload processing error:', e);
       return res.status(500).json({ error: 'Upload failed' });
     }
   });
