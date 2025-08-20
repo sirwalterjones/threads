@@ -126,7 +126,7 @@ class ApiService {
     return response.data;
   }
 
-  async uploadFile(formData: FormData): Promise<{ url: string; path: string; mimeType: string }> {
+  async uploadFile(formData: FormData): Promise<{ id: number; url: string; path: string; mimeType: string; originalName: string; size: number }> {
     const response = await axios.post(`${API_BASE_URL}/uploads`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
