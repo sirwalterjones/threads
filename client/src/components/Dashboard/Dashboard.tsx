@@ -16,10 +16,10 @@ import {
   Chip
 } from '@mui/material';
 import {
-  TrendingUp,
-  Group,
-  ShoppingCart,
-  Speed,
+  Assessment,
+  Category,
+  Description,
+  Schedule,
   Visibility,
   Facebook,
   Twitter,
@@ -83,71 +83,71 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Mock data for page visits table
-  const pageVisits = [
-    { page: '/dashboard', visitors: 4569, uniqueUsers: 340, bounceRate: '46,53%' },
-    { page: '/search', visitors: 3985, uniqueUsers: 319, bounceRate: '46,53%' },
-    { page: '/categories', visitors: 3513, uniqueUsers: 294, bounceRate: '36,49%' },
-    { page: '/my-threads', visitors: 2050, uniqueUsers: 147, bounceRate: '50,87%' },
-    { page: '/new-post', visitors: 1795, uniqueUsers: 190, bounceRate: '46,53%' }
+  // Recent intelligence activity
+  const recentActivity = [
+    { type: 'Case Report', count: 156, priority: 'High', status: 'Active' },
+    { type: 'Intelligence Brief', count: 89, priority: 'Medium', status: 'Review' },
+    { type: 'Field Report', count: 234, priority: 'Low', status: 'Closed' },
+    { type: 'Threat Assessment', count: 45, priority: 'Critical', status: 'Urgent' },
+    { type: 'Surveillance Log', count: 178, priority: 'Medium', status: 'Active' }
   ];
 
-  // Mock data for social traffic
-  const socialTraffic = [
-    { platform: 'Facebook', referral: 'facebook.com', visitors: 1480, percentage: 60 },
-    { platform: 'Twitter', referral: 'twitter.com', visitors: 5480, percentage: 70 },
-    { platform: 'Instagram', referral: 'instagram.com', visitors: 4480, percentage: 80 },
-    { platform: 'LinkedIn', referral: 'linkedin.com', visitors: 4480, percentage: 75 }
+  // Category breakdown
+  const categoryBreakdown = [
+    { category: 'Intel Quick Updates', count: 1480, percentage: 60 },
+    { category: 'Threat Intelligence', count: 548, percentage: 23 },
+    { category: 'Field Operations', count: 448, percentage: 18 },
+    { category: 'Surveillance', count: 324, percentage: 13 }
   ];
 
   return (
     <Box>
-      {/* Dashboard Cards */}
+      {/* Intelligence Dashboard Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <DashboardCard
-            title="TRAFFIC"
+            title="TOTAL REPORTS"
             value={loading ? "..." : stats.totalPosts.toLocaleString()}
             change="3.48%"
             changeType="positive"
             period="Since last month"
-            icon={TrendingUp}
+            icon={Description}
             iconColor="#EF4444"
             iconBgColor="#FEE2E2"
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <DashboardCard
-            title="NEW USERS"
-            value={loading ? "..." : stats.totalUsers.toLocaleString()}
-            change="3.48%"
-            changeType="negative"
+            title="ACTIVE CASES"
+            value={loading ? "..." : stats.recentPosts.toLocaleString()}
+            change="2.1%"
+            changeType="positive"
             period="Since last week"
-            icon={Group}
+            icon={Assessment}
             iconColor="#F97316"
             iconBgColor="#FED7AA"
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <DashboardCard
-            title="SALES"
+            title="CATEGORIES"
             value={loading ? "..." : stats.totalCategories}
             change="1.10%"
             changeType="negative"
             period="Since yesterday"
-            icon={ShoppingCart}
+            icon={Category}
             iconColor="#EC4899"
             iconBgColor="#FCE7F3"
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <DashboardCard
-            title="PERFORMANCE"
-            value={loading ? "..." : `${((stats.recentPosts / stats.totalPosts) * 100 || 0).toFixed(1)}%`}
+            title="THIS WEEK"
+            value={loading ? "..." : `${stats.recentPosts}`}
             change="12%"
             changeType="positive"
-            period="Since last month"
-            icon={Speed}
+            period="New reports"
+            icon={Schedule}
             iconColor="#3B82F6"
             iconBgColor="#DBEAFE"
           />
@@ -157,12 +157,12 @@ const Dashboard: React.FC = () => {
       {/* Charts and Tables Row */}
       <Grid container spacing={3}>
         {/* Page Visits Table */}
-        <Grid item xs={12} lg={7}>
+        <Grid size={{ xs: 12, lg: 7 }}>
           <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Page visits
+                  Recent Activity
                 </Typography>
                 <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
                   SEE ALL
@@ -173,41 +173,45 @@ const Dashboard: React.FC = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        PAGE NAME
+                        REPORT TYPE
                       </TableCell>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        VISITORS
+                        COUNT
                       </TableCell>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        UNIQUE USERS
+                        PRIORITY
                       </TableCell>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        BOUNCE RATE
+                        STATUS
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {pageVisits.map((row, index) => (
+                    {recentActivity.map((row, index) => (
                       <TableRow key={index}>
                         <TableCell sx={{ py: 2 }}>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {row.page}
+                            {row.type}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ py: 2 }}>
                           <Typography variant="body2">
-                            {row.visitors.toLocaleString()}
+                            {row.count}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ py: 2 }}>
-                          <Typography variant="body2">
-                            {row.uniqueUsers}
-                          </Typography>
+                          <Chip 
+                            label={row.priority} 
+                            size="small"
+                            color={row.priority === 'Critical' ? 'error' : row.priority === 'High' ? 'warning' : 'default'}
+                          />
                         </TableCell>
                         <TableCell sx={{ py: 2 }}>
-                          <Typography variant="body2">
-                            {row.bounceRate}
-                          </Typography>
+                          <Chip 
+                            label={row.status} 
+                            size="small"
+                            color={row.status === 'Active' ? 'success' : row.status === 'Urgent' ? 'error' : 'default'}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -219,12 +223,12 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         {/* Social Traffic */}
-        <Grid item xs={12} lg={5}>
+        <Grid size={{ xs: 12, lg: 5 }}>
           <Card sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Social traffic
+                  Category Breakdown
                 </Typography>
                 <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
                   SEE ALL
@@ -235,27 +239,27 @@ const Dashboard: React.FC = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        REFERRAL
+                        CATEGORY
                       </TableCell>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        VISITORS
+                        REPORTS
                       </TableCell>
                       <TableCell sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
-                        
+                        PERCENTAGE
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {socialTraffic.map((row, index) => (
+                    {categoryBreakdown.map((row, index) => (
                       <TableRow key={index}>
                         <TableCell sx={{ py: 2 }}>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {row.referral}
+                            {row.category}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ py: 2 }}>
                           <Typography variant="body2">
-                            {row.visitors.toLocaleString()}
+                            {row.count.toLocaleString()}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ py: 2 }}>
