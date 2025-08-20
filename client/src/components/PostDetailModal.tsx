@@ -306,7 +306,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             </Box>
 
             {/* Media and Attachments */}
-            {(post.featured_media_url || (post.attachments && JSON.parse(post.attachments || '[]').length > 0)) && (
+            {(post.featured_media_url || (post.attachments && post.attachments.length > 0)) && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Media & Attachments
@@ -329,76 +329,74 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                 )}
 
                 {/* Additional Attachments */}
-                {post.attachments && JSON.parse(post.attachments || '[]').length > 0 && (
+                {post.attachments && post.attachments.length > 0 && (
                   <Box>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
                       Additional Attachments:
                     </Typography>
                     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))' }}>
-                      {JSON.parse(post.attachments || '[]').map((att: any, index: number) => {
-                        const rawUrl = typeof att === 'string' ? att : att?.url;
-                        if (!rawUrl) return null;
-                        const relativeOrAbsolute = rawUrl.startsWith('/') ? rawUrl : rawUrl;
-                        const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
-                        const remoteUrl = relativeOrAbsolute.startsWith('http') ? relativeOrAbsolute : `${remoteBase}${relativeOrAbsolute}`;
-                        const url = relativeOrAbsolute;
-                        const mime = typeof att === 'object' ? att.mime_type || '' : '';
-                        const contentHasUrl = (post.content || '').includes(url) || (post.content || '').includes(remoteUrl);
-                        if (contentHasUrl || (post.featured_media_url && (post.featured_media_url.includes(url) || post.featured_media_url.includes(remoteUrl)))) {
-                          return null;
-                        }
-                        const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url) || mime.startsWith('image/');
-                        const isPdf = /\.pdf$/i.test(url) || mime === 'application/pdf';
-                        const isVideo = /\.(mp4|mov|webm)$/i.test(url) || mime.startsWith('video/');
-                        const isAudio = /\.(mp3|wav|m4a|aac)$/i.test(url) || mime.startsWith('audio/');
+                      {post.attachments.map((att, index: number) => {
+                        const url = `/api/files/${att.id}/${encodeURIComponent(att.filename)}`;
+                        const isImage = att.mime_type?.startsWith('image/');
+                        const isPdf = att.mime_type === 'application/pdf';
+                        const isVideo = att.mime_type?.startsWith('video/');
+                        const isAudio = att.mime_type?.startsWith('audio/');
 
-                        const openViewer = (attObj: any) => {
-                          setSelectedAttachment({ url: rawUrl, mime_type: attObj?.mime_type || mime, title: attObj?.title || null });
+                        const openViewer = () => {
+                          setSelectedAttachment({ 
+                            url, 
+                            mime_type: att.mime_type, 
+                            title: att.original_name 
+                          });
                           setAttachmentOpen(true);
                         };
 
                         if (isImage) {
                           return (
-                            <a key={index} onClick={(e)=>{e.preventDefault(); openViewer(att);}} href={remoteUrl} rel="noopener noreferrer" style={{ textDecoration: 'none', cursor: 'zoom-in' }}>
+                            <Box key={index} onClick={openViewer} sx={{ cursor: 'zoom-in' }}>
                               <img
-                                src={remoteUrl}
-                                alt={att.title || `Image ${index + 1}`}
+                                src={url}
+                                alt={att.original_name}
                                 style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, border: '1px solid #e0e0e0' }}
                               />
-                            </a>
+                            </Box>
                           );
                         }
 
                         if (isPdf) {
                           return (
-                            <a key={index} onClick={(e)=>{e.preventDefault(); openViewer(att);}} href={remoteUrl} rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, border: '1px solid #e0e0e0', borderRadius: 4, cursor: 'pointer' }}>
+                            <Box key={index} onClick={openViewer} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1, cursor: 'pointer' }}>
                               <span role="img" aria-label="PDF">📄</span>
                               <Typography variant="caption" noWrap>PDF</Typography>
-                            </a>
+                            </Box>
                           );
                         }
 
                         if (isVideo) {
                           return (
-                            <video key={index} controls style={{ width: '100%', height: 100, borderRadius: 4, border: '1px solid #e0e0e0' }} onClick={(e)=>{e.preventDefault(); openViewer(att);}}>
-                              <source src={remoteUrl} />
-                            </video>
+                            <Box key={index} onClick={openViewer} sx={{ cursor: 'pointer' }}>
+                              <video style={{ width: '100%', height: 100, borderRadius: 4, border: '1px solid #e0e0e0' }}>
+                                <source src={url} />
+                              </video>
+                            </Box>
                           );
                         }
 
                         if (isAudio) {
                           return (
-                            <audio key={index} controls style={{ width: '100%' }} onClick={(e)=>{e.preventDefault(); openViewer(att);}}>
-                              <source src={remoteUrl} />
-                            </audio>
+                            <Box key={index} onClick={openViewer} sx={{ cursor: 'pointer' }}>
+                              <audio controls style={{ width: '100%' }}>
+                                <source src={url} />
+                              </audio>
+                            </Box>
                           );
                         }
 
                         return (
-                          <a key={index} onClick={(e)=>{e.preventDefault(); openViewer(att);}} href={remoteUrl} rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, border: '1px solid #e0e0e0', borderRadius: 4, cursor: 'pointer' }}>
+                          <Box key={index} onClick={openViewer} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1, cursor: 'pointer' }}>
                             <span role="img" aria-label="File">📎</span>
-                            <Typography variant="caption" noWrap>Attachment</Typography>
-                          </a>
+                            <Typography variant="caption" noWrap>{att.original_name}</Typography>
+                          </Box>
                         );
                       })}
                     </Box>
