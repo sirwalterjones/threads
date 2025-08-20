@@ -129,22 +129,6 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             fontSize: '0.875rem',
             padding: '0.625rem 1.25rem'
           },
-          containedPrimary: {
-            background: mode === 'light' 
-              ? 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)'
-              : 'linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%)',
-            boxShadow: mode === 'light'
-              ? '0 4px 14px 0 rgba(30, 136, 229, 0.39)'
-              : '0 4px 14px 0 rgba(66, 165, 245, 0.39)',
-            '&:hover': {
-              background: mode === 'light'
-                ? 'linear-gradient(135deg, #1565C0 0%, #1E88E5 100%)'
-                : 'linear-gradient(135deg, #1976D2 0%, #42A5F5 100%)',
-              boxShadow: mode === 'light'
-                ? '0 6px 20px 0 rgba(30, 136, 229, 0.49)'
-                : '0 6px 20px 0 rgba(66, 165, 245, 0.49)'
-            }
-          }
         } 
       },
       MuiTextField: {
