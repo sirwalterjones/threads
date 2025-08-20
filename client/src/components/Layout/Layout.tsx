@@ -3,6 +3,8 @@ import { Box, IconButton, useMediaQuery, useTheme, AppBar, Toolbar, Typography, 
 import { Menu as MenuIcon, Search as SearchIcon, AccountCircle } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
+import NewPostModal from '../NewPostModal';
+import apiService from '../../services/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,9 +12,31 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openNewPost, setOpenNewPost] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAuth();
+
+  // Listen for global open-new-post-modal events from sidebar
+  React.useEffect(() => {
+    const handler = async (e: any) => {
+      const postId = e?.detail?.postId;
+      if (postId) {
+        try { 
+          const p = await apiService.getPost(postId); 
+          setEditingPost(p); 
+        } catch { 
+          setEditingPost(null); 
+        }
+      } else {
+        setEditingPost(null);
+      }
+      setOpenNewPost(true);
+    };
+    window.addEventListener('open-new-post-modal', handler as any);
+    return () => window.removeEventListener('open-new-post-modal', handler as any);
+  }, []);
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -29,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1, 
           marginLeft: { xs: 0, md: '280px' },
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Blue gradient like in screenshot
+          background: 'linear-gradient(135deg, #1F2937 0%, #374151 50%, #4B5563 100%)', // Dark gradient matching sidebar
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -131,6 +155,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </Box>
       </Box>
+      
+      {/* New Post Modal */}
+      <NewPostModal 
+        open={openNewPost} 
+        onClose={() => setOpenNewPost(false)} 
+        onCreated={() => { /* optionally refresh */ }} 
+        post={editingPost} 
+      />
     </Box>
   );
 };

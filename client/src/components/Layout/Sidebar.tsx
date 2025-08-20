@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const contentPages = [
     { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
-    { text: 'Add Post', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
+    { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] }
   ];
 
@@ -145,6 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         top: 0,
         zIndex: 1200,
         overflow: 'auto',
+        overflowY: 'scroll',
         transform: { xs: open ? 'translateX(0)' : 'translateX(-100%)', md: 'translateX(0)' },
         transition: 'transform 0.3s ease-in-out',
         borderRight: '1px solid #374151'
