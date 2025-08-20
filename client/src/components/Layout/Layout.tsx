@@ -183,9 +183,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Right Sidebar - Suggestions & Trends */}
         <Box
           sx={{
-            width: { xs: 0, lg: '350px' },
+            width: { xs: 0, lg: '480px' },
+            minWidth: '480px',
             display: { xs: 'none', lg: 'block' },
-            p: 2,
+            p: 4,
             backgroundColor: '#000000'
           }}
         >

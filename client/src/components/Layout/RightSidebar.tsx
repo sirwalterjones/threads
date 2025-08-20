@@ -109,21 +109,21 @@ const RightSidebar: React.FC = () => {
       {/* Search Box */}
       <Card 
         sx={{ 
-          mb: 3, 
+          mb: 4, 
           backgroundColor: '#16181C', 
           border: 'none',
           borderRadius: 4
         }}
       >
-        <CardContent sx={{ p: 2 }}>
+        <CardContent sx={{ p: 4 }}>
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               backgroundColor: '#202327',
               borderRadius: 10,
-              px: 2,
-              py: 1,
+              px: 4,
+              py: 2,
               cursor: 'pointer',
               '&:hover': {
                 backgroundColor: '#2C2F33'
@@ -143,14 +143,14 @@ const RightSidebar: React.FC = () => {
       {!loading && topCategories.length > 0 && (
         <Card 
           sx={{ 
-            mb: 3, 
+            mb: 4, 
             backgroundColor: '#16181C', 
             border: 'none',
             borderRadius: 4
           }}
         >
           <CardContent sx={{ p: 0 }}>
-            <Box sx={{ p: 2, pb: 1 }}>
+            <Box sx={{ p: 4, pb: 3 }}>
               <Typography variant="h6" sx={{ 
                 color: '#E7E9EA', 
                 fontWeight: 700, 
@@ -170,8 +170,8 @@ const RightSidebar: React.FC = () => {
                 <ListItemButton
                   onClick={() => handleCategoryClick(category.id)}
                   sx={{
-                    py: 1.5,
-                    px: 2,
+                    py: 3,
+                    px: 4,
                     '&:hover': {
                       backgroundColor: '#1C1F23'
                     }
@@ -182,7 +182,7 @@ const RightSidebar: React.FC = () => {
                       <Typography sx={{ 
                         color: '#E7E9EA', 
                         fontWeight: 700, 
-                        fontSize: '15px' 
+                        fontSize: '16px' 
                       }}>
                         {category.name}
                       </Typography>
@@ -190,7 +190,7 @@ const RightSidebar: React.FC = () => {
                     secondary={
                       <Typography sx={{ 
                         color: '#71767B', 
-                        fontSize: '13px' 
+                        fontSize: '14px' 
                       }}>
                         {category.post_count > 1000 
                           ? `${(category.post_count / 1000).toFixed(1)}K threads`
@@ -215,7 +215,7 @@ const RightSidebar: React.FC = () => {
             ))}
           </List>
           
-          <Box sx={{ p: 2, pt: 1 }}>
+          <Box sx={{ p: 4, pt: 3 }}>
             <Button
               fullWidth
               sx={{
@@ -242,7 +242,7 @@ const RightSidebar: React.FC = () => {
       {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
-          mb: 3, 
+          mb: 4, 
           backgroundColor: '#16181C', 
           border: 'none',
           borderRadius: 4
@@ -269,8 +269,8 @@ const RightSidebar: React.FC = () => {
                 <ListItemButton
                   onClick={() => handleThreadClick(thread.id)}
                   sx={{
-                    py: 1.5,
-                    px: 2,
+                    py: 3,
+                    px: 4,
                     '&:hover': {
                       backgroundColor: '#1C1F23'
                     }
@@ -290,8 +290,8 @@ const RightSidebar: React.FC = () => {
                     primary={
                       <Typography sx={{ 
                         color: '#E7E9EA', 
-                        fontWeight: 400, 
-                        fontSize: '14px',
+                        fontWeight: 500, 
+                        fontSize: '15px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
@@ -302,7 +302,7 @@ const RightSidebar: React.FC = () => {
                     secondary={
                       <Typography sx={{ 
                         color: '#71767B', 
-                        fontSize: '12px' 
+                        fontSize: '13px' 
                       }}>
                         @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
                       </Typography>
@@ -313,7 +313,7 @@ const RightSidebar: React.FC = () => {
             ))}
           </List>
           
-          <Box sx={{ p: 2, pt: 1 }}>
+          <Box sx={{ p: 4, pt: 3 }}>
             <Button
               fullWidth
               sx={{
@@ -340,7 +340,7 @@ const RightSidebar: React.FC = () => {
       {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
-          mb: 3, 
+          mb: 4, 
           backgroundColor: '#16181C', 
           border: 'none',
           borderRadius: 4
@@ -427,7 +427,7 @@ const RightSidebar: React.FC = () => {
             ))}
           </List>
           
-          <Box sx={{ p: 2, pt: 1 }}>
+          <Box sx={{ p: 4, pt: 3 }}>
             <Button
               fullWidth
               sx={{
@@ -451,7 +451,7 @@ const RightSidebar: React.FC = () => {
       )}
 
       {/* Footer */}
-      <Box sx={{ px: 2, pb: 2 }}>
+      <Box sx={{ px: 4, pb: 4 }}>
         <Typography sx={{ 
           color: '#536471', 
           fontSize: '13px',
