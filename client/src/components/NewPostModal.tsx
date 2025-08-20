@@ -74,7 +74,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       form.append('file', file);
       
       console.log('FormData entries:');
-      for (let [key, value] of form.entries()) {
+      for (let [key, value] of Array.from(form.entries())) {
         console.log(key, value);
       }
       
