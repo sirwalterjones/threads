@@ -6,6 +6,7 @@ import {
   Typography,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemAvatar,
   Avatar,
@@ -155,48 +156,48 @@ const RightSidebar: React.FC = () => {
           
           <List sx={{ py: 0 }}>
             {topCategories.map((category, index) => (
-              <ListItem 
-                key={category.id}
-                button
-                onClick={() => handleCategoryClick(category.id)}
-                sx={{
-                  py: 1.5,
-                  px: 2,
-                  '&:hover': {
-                    backgroundColor: '#1C1F23'
-                  }
-                }}
-              >
-                <ListItemText
-                  primary={
-                    <Typography sx={{ 
-                      color: '#E7E9EA', 
-                      fontWeight: 700, 
-                      fontSize: '15px' 
-                    }}>
-                      {category.name}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography sx={{ 
-                      color: '#71767B', 
-                      fontSize: '13px' 
-                    }}>
-                      {category.post_count} threads
-                    </Typography>
-                  }
-                />
-                <Chip
-                  label={`#${index + 1}`}
-                  size="small"
+              <ListItem key={category.id} disablePadding>
+                <ListItemButton
+                  onClick={() => handleCategoryClick(category.id)}
                   sx={{
-                    backgroundColor: '#1D9BF0',
-                    color: 'white',
-                    fontSize: '11px',
-                    height: '20px',
-                    minWidth: '24px'
+                    py: 1.5,
+                    px: 2,
+                    '&:hover': {
+                      backgroundColor: '#1C1F23'
+                    }
                   }}
-                />
+                >
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ 
+                        color: '#E7E9EA', 
+                        fontWeight: 700, 
+                        fontSize: '15px' 
+                      }}>
+                        {category.name}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography sx={{ 
+                        color: '#71767B', 
+                        fontSize: '13px' 
+                      }}>
+                        {category.post_count} threads
+                      </Typography>
+                    }
+                  />
+                  <Chip
+                    label={`#${index + 1}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: '#1D9BF0',
+                      color: 'white',
+                      fontSize: '11px',
+                      height: '20px',
+                      minWidth: '24px'
+                    }}
+                  />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
@@ -249,50 +250,50 @@ const RightSidebar: React.FC = () => {
           
           <List sx={{ py: 0 }}>
             {recentThreads.map((thread) => (
-              <ListItem 
-                key={thread.id}
-                button
-                onClick={() => handleThreadClick(thread.id)}
-                sx={{
-                  py: 1.5,
-                  px: 2,
-                  '&:hover': {
-                    backgroundColor: '#1C1F23'
-                  }
-                }}
-              >
-                <ListItemAvatar>
-                  <Avatar sx={{ 
-                    width: 32, 
-                    height: 32,
-                    backgroundColor: '#1D9BF0',
-                    fontSize: '12px'
-                  }}>
-                    {thread.author_name[0]?.toUpperCase()}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Typography sx={{ 
-                      color: '#E7E9EA', 
-                      fontWeight: 400, 
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+              <ListItem key={thread.id} disablePadding>
+                <ListItemButton
+                  onClick={() => handleThreadClick(thread.id)}
+                  sx={{
+                    py: 1.5,
+                    px: 2,
+                    '&:hover': {
+                      backgroundColor: '#1C1F23'
+                    }
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar sx={{ 
+                      width: 32, 
+                      height: 32,
+                      backgroundColor: '#1D9BF0',
+                      fontSize: '12px'
                     }}>
-                      {thread.title}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography sx={{ 
-                      color: '#71767B', 
-                      fontSize: '12px' 
-                    }}>
-                      @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
-                    </Typography>
-                  }
-                />
+                      {thread.author_name[0]?.toUpperCase()}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ 
+                        color: '#E7E9EA', 
+                        fontWeight: 400, 
+                        fontSize: '14px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {thread.title}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography sx={{ 
+                        color: '#71767B', 
+                        fontSize: '12px' 
+                      }}>
+                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
