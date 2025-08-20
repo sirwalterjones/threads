@@ -28,7 +28,8 @@ import {
   TrendingUp,
   CalendarToday,
   Visibility,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService from '../../services/api';
@@ -146,8 +147,47 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const handleAddThread = () => {
+    const evt = new CustomEvent('open-new-post-modal');
+    window.dispatchEvent(evt);
+  };
+
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
+      {/* Floating Add Thread Button */}
+      <Box sx={{ 
+        position: 'fixed', 
+        bottom: 24, 
+        right: 24, 
+        zIndex: 1000 
+      }}>
+        <Button
+          variant="contained"
+          onClick={handleAddThread}
+          startIcon={<AddIcon />}
+          size="large"
+          sx={{
+            borderRadius: '50px',
+            backgroundColor: '#10B981',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 600,
+            px: 3,
+            py: 1.5,
+            textTransform: 'none',
+            boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)',
+            '&:hover': {
+              backgroundColor: '#059669',
+              boxShadow: '0 12px 35px rgba(16, 185, 129, 0.5)',
+              transform: 'translateY(-2px)'
+            },
+            transition: 'all 0.3s ease'
+          }}
+        >
+          Add Thread
+        </Button>
+      </Box>
+
       {/* Dashboard Stats Cards at Top */}
       {stats && (
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -216,19 +256,11 @@ const Dashboard: React.FC = () => {
             <Typography variant="h2" sx={{ 
               color: '#1F2937', 
               textAlign: 'center', 
-              mb: 2,
+              mb: 6,
               fontWeight: 300,
               fontSize: { xs: '2.5rem', md: '3.5rem' }
             }}>
               Search Threads
-            </Typography>
-            <Typography variant="h6" sx={{ 
-              color: '#6B7280', 
-              textAlign: 'center', 
-              mb: 6,
-              fontWeight: 400
-            }}>
-              Search through reports and intelligence data
             </Typography>
             
             <Box sx={{ 
@@ -240,7 +272,7 @@ const Dashboard: React.FC = () => {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Search reports, content, authors, classifications..."
+                placeholder=""
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -398,7 +430,7 @@ const Dashboard: React.FC = () => {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Search reports, content, authors..."
+                placeholder=""
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
