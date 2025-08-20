@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CategoriesManage from './pages/CategoriesManage';
 import UsersManage from './pages/UsersManage';
 import AuditLog from './pages/AuditLog';
+import PostExpiration from './pages/PostExpiration';
 import SystemTools from './pages/SystemTools';
 import Profile from './pages/Profile';
 import NewPost from './pages/NewPost';
@@ -81,6 +82,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/my-threads" element={<Home />} />
                 <Route path="/categories" element={<CategoriesManage />} />
                 <Route path="/users" element={<UsersManage />} />
+                <Route path="/expiration" element={<PostExpiration />} />
                 <Route path="/audit" element={<AuditLog />} />
                 <Route path="/tools" element={<SystemTools />} />
                 <Route path="/sync" element={<SystemTools />} />

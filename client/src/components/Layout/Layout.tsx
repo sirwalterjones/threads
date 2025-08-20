@@ -85,23 +85,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           position="static" 
           elevation={0}
           sx={{ 
-            backgroundColor: 'transparent',
-            borderBottom: '1px solid rgba(255,255,255,0.1)'
+            backgroundColor: 'white',
+            borderBottom: '1px solid #E5E7EB'
           }}
         >
           <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
             {/* Mobile Menu Button */}
             <IconButton
-              color="inherit"
               edge="start"
               onClick={handleSidebarToggle}
-              sx={{ display: { xs: 'block', md: 'none' }, mr: 2 }}
+              sx={{ display: { xs: 'block', md: 'none' }, mr: 2, color: '#1F2937' }}
             >
               <MenuIcon />
             </IconButton>
 
             {/* Page Title */}
-            <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ color: '#1F2937', fontWeight: 600 }}>
               DASHBOARD
             </Typography>
 
@@ -115,15 +114,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 aria-controls="account-menu"
                 aria-haspopup="true"
                 onClick={handleMenuOpen}
-                color="inherit"
                 sx={{ p: 0 }}
               >
                 <Avatar 
                   sx={{ 
                     width: 40, 
                     height: 40,
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    cursor: 'pointer'
+                    border: '2px solid #E5E7EB',
+                    cursor: 'pointer',
+                    backgroundColor: '#3B82F6',
+                    color: 'white'
                   }}
                 >
                   {user?.username?.[0]?.toUpperCase() || <AccountCircle />}

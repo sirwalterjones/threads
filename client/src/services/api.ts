@@ -218,6 +218,49 @@ class ApiService {
     const response = await axios.post(`${API_BASE_URL}/admin/maintenance`, { action });
     return response.data;
   }
+
+  // Post Expiration Management
+  async getExpiringPosts(filters: {
+    page?: number;
+    limit?: number;
+    daysUntilExpiry?: number;
+    category?: string;
+    author?: string;
+  }): Promise<{ posts: Post[]; pagination: any }> {
+    const params = new URLSearchParams();
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const response = await axios.get(`${API_BASE_URL}/admin/expiring-posts?${params.toString()}`);
+    return response.data;
+  }
+
+  async updatePostRetention(id: number, retentionDays: number): Promise<Post> {
+    const response: AxiosResponse<Post> = await axios.put(
+      `${API_BASE_URL}/admin/posts/${id}/retention`,
+      { retentionDays }
+    );
+    return response.data;
+  }
+
+  async bulkUpdateRetention(postIds: number[], retentionDays: number): Promise<{ updatedCount: number }> {
+    const response = await axios.put(`${API_BASE_URL}/admin/posts/bulk-retention`, {
+      postIds,
+      retentionDays
+    });
+    return response.data;
+  }
+
+  async setDefaultRetentionForCategory(categoryId: number, retentionDays: number): Promise<{ success: boolean }> {
+    const response = await axios.put(`${API_BASE_URL}/admin/categories/${categoryId}/default-retention`, {
+      retentionDays
+    });
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();

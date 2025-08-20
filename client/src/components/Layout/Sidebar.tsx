@@ -20,7 +20,8 @@ import {
   Person as PersonIcon,
   Login as LoginIcon,
   AppRegistration as RegisterIcon,
-  History as AuditIcon
+  History as AuditIcon,
+  AccessTime as ExpirationIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -41,9 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
     { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] },
+    { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] },
-    { text: 'Tables', icon: <TableIcon />, path: '/tables', roles: ['admin'] }
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] }
   ];
 
   const authPages = [

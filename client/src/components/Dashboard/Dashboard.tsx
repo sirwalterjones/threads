@@ -186,83 +186,170 @@ const Dashboard: React.FC = () => {
         </Grid>
       )}
 
-      {/* Central Search Bar - Google Style */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: '600px' }}>
-          <Typography variant="h4" sx={{ 
+      {/* Central Search Bar - Primary Focus */}
+      <Box sx={{ 
+        mb: 6, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        minHeight: '60vh',
+        flexDirection: 'column'
+      }}>
+        <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+          <Typography variant="h2" sx={{ 
             color: '#1F2937', 
             textAlign: 'center', 
-            mb: 3,
-            fontWeight: 'bold' 
+            mb: 2,
+            fontWeight: 300,
+            fontSize: { xs: '2.5rem', md: '3.5rem' }
           }}>
-            Search Intelligence Reports
+            Intelligence Search
           </Typography>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            backgroundColor: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: '24px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            '&:hover': {
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-            },
-            '&:focus-within': {
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              borderColor: '#3B82F6'
-            }
+          <Typography variant="h6" sx={{ 
+            color: '#6B7280', 
+            textAlign: 'center', 
+            mb: 6,
+            fontWeight: 400
           }}>
-            <SearchIcon sx={{ color: '#6B7280', ml: 2 }} />
+            Search through classified reports and intelligence data
+          </Typography>
+          
+          <Box sx={{ 
+            position: 'relative',
+            width: '100%',
+            maxWidth: '700px',
+            margin: '0 auto'
+          }}>
             <TextField
               fullWidth
-              variant="standard"
-              placeholder="Search posts, content, authors..."
+              variant="outlined"
+              placeholder="Search reports, content, authors, classifications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              InputProps={{
-                disableUnderline: true,
-                sx: {
-                  px: 2,
-                  py: 1,
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '50px',
+                  backgroundColor: 'white',
+                  fontSize: '18px',
+                  height: '64px',
+                  boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.1)',
+                  border: '2px solid transparent',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    boxShadow: '0 12px 35px -8px rgba(0, 0, 0, 0.15)',
+                    transform: 'translateY(-1px)'
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: '0 12px 35px -8px rgba(59, 130, 246, 0.15)',
+                    borderColor: '#3B82F6',
+                    transform: 'translateY(-1px)'
+                  },
+                  '& fieldset': {
+                    border: 'none'
+                  },
                   '& input': {
+                    padding: '20px 24px 20px 60px',
+                    fontSize: '18px',
                     color: '#1F2937',
-                    fontSize: '16px',
                     '&::placeholder': {
                       color: '#9CA3AF',
-                    },
+                      opacity: 1
+                    }
                   }
                 }
               }}
-            />
-            {searchQuery && (
-              <IconButton 
-                onClick={handleClearSearch}
-                sx={{ mr: 1, color: '#6B7280' }}
-              >
-                <ClearIcon />
-              </IconButton>
-            )}
-            <Button 
-              variant="contained" 
-              onClick={handleSearch}
-              disabled={searchLoading || !searchQuery.trim()}
-              sx={{ 
-                mr: 1,
-                borderRadius: '20px',
-                backgroundColor: '#3B82F6',
-                '&:hover': {
-                  backgroundColor: '#2563EB',
-                },
-                '&:disabled': {
-                  backgroundColor: '#E5E7EB'
-                },
-                textTransform: 'none',
-                px: 3
+              InputProps={{
+                startAdornment: (
+                  <Box sx={{ 
+                    position: 'absolute', 
+                    left: 20, 
+                    zIndex: 1,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
+                  </Box>
+                ),
+                endAdornment: searchQuery && (
+                  <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                    <IconButton 
+                      onClick={handleClearSearch}
+                      sx={{ 
+                        color: '#6B7280',
+                        '&:hover': { color: '#374151' }
+                      }}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </Box>
+                )
               }}
-            >
-              {searchLoading ? <CircularProgress size={20} color="inherit" /> : 'Search'}
-            </Button>
+            />
+            
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: 2, 
+              mt: 4 
+            }}>
+              <Button 
+                variant="contained" 
+                onClick={handleSearch}
+                disabled={searchLoading || !searchQuery.trim()}
+                size="large"
+                sx={{ 
+                  borderRadius: '25px',
+                  backgroundColor: '#3B82F6',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  px: 4,
+                  py: 1.5,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                  '&:hover': {
+                    backgroundColor: '#2563EB',
+                    boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
+                    transform: 'translateY(-1px)'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#E5E7EB',
+                    boxShadow: 'none'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+                Search Intelligence
+              </Button>
+              
+              <Button 
+                variant="outlined" 
+                onClick={handleClearSearch}
+                disabled={!searchQuery && searchResults.length === 0}
+                size="large"
+                sx={{ 
+                  borderRadius: '25px',
+                  borderColor: '#D1D5DB',
+                  color: '#6B7280',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  px: 3,
+                  py: 1.5,
+                  textTransform: 'none',
+                  '&:hover': {
+                    borderColor: '#9CA3AF',
+                    backgroundColor: '#F9FAFB'
+                  },
+                  '&:disabled': {
+                    borderColor: '#E5E7EB',
+                    color: '#D1D5DB'
+                  }
+                }}
+              >
+                Clear
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -376,120 +463,6 @@ const Dashboard: React.FC = () => {
         </Box>
       )}
 
-      {/* Analytics Tables */}
-      {stats && (
-        <Grid container spacing={3}>
-          {/* Recent Activity */}
-          <Grid size={{ xs: 12, lg: 7 }}>
-            <Card sx={{ 
-              borderRadius: 3, 
-              height: '100%',
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB'
-            }}>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
-                    Recent Activity
-                  </Typography>
-                  <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
-                    SEE ALL
-                  </Button>
-                </Box>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
-                          ACTION
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
-                          USER
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
-                          TIME
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {stats.recentActivity.slice(0, 5).map((activity, index) => (
-                        <TableRow key={index}>
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1F2937' }}>
-                              {activity.action}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ color: '#1F2937' }}>
-                              {activity.username || 'System'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ color: '#6B7280' }}>
-                              {new Date(activity.timestamp).toLocaleTimeString()}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Top Categories */}
-          <Grid size={{ xs: 12, lg: 5 }}>
-            <Card sx={{ 
-              borderRadius: 3, 
-              height: '100%',
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB'
-            }}>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
-                    Top Categories
-                  </Typography>
-                  <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
-                    SEE ALL
-                  </Button>
-                </Box>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
-                          CATEGORY
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
-                          REPORTS
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {stats.topCategories.slice(0, 5).map((category, index) => (
-                        <TableRow key={index}>
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1F2937' }}>
-                              {category.name}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ color: '#10B981', fontWeight: 600 }}>
-                              {category.post_count.toLocaleString()}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      )}
 
       {/* Post Detail Modal */}
       <PostDetailModal
