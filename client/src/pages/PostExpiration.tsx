@@ -222,7 +222,7 @@ const PostExpiration: React.FC = () => {
                     {posts.filter(p => getDaysUntilExpiry(p.retention_date) <= 7).length}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#7F1D1D' }}>
-                    Critical (≤7 days)
+                    Critical (&le;7 days)
                   </Typography>
                 </Box>
               </Box>
@@ -259,7 +259,7 @@ const PostExpiration: React.FC = () => {
                     {posts.filter(p => getDaysUntilExpiry(p.retention_date) > 30).length}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#15803D' }}>
-                    Normal (>30 days)
+                    Normal (&gt;30 days)
                   </Typography>
                 </Box>
               </Box>
