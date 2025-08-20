@@ -175,16 +175,32 @@ const HomeSimple: React.FC = () => {
 
   const highlightText = (input: string) => {
     if (!highlightTerms.length) return input;
-    const escaped = highlightTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+    
+    // Create patterns for each term including variations
+    const patterns = highlightTerms.map(term => {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match the term with optional word boundaries and partial matches
+      return `(${escaped}\\w*|\\w*${escaped}\\w*|${escaped})`;
+    });
+    
+    const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
     const parts = input.split(regex);
-    return parts.map((part, i) => (
-      regex.test(part) ? (
-        <mark key={i} style={{ backgroundColor: 'yellow', padding: 0 }}>{part}</mark>
+    
+    return parts.map((part, i) => {
+      if (!part) return <React.Fragment key={i}></React.Fragment>;
+      
+      // Check if this part contains any of our search terms
+      const shouldHighlight = highlightTerms.some(term => 
+        part.toLowerCase().includes(term.toLowerCase()) ||
+        term.toLowerCase().includes(part.toLowerCase())
+      );
+      
+      return shouldHighlight ? (
+        <mark key={i} style={{ backgroundColor: '#FFEB3B', padding: '0 2px', borderRadius: '2px' }}>{part}</mark>
       ) : (
         <React.Fragment key={i}>{part}</React.Fragment>
-      )
-    ));
+      );
+    });
   };
 
   useEffect(() => {
@@ -286,49 +302,259 @@ const HomeSimple: React.FC = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Intelligence Database
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            Search and browse intelligence reports and case files
-          </Typography>
-        </Box>
+        {/* Dashboard-style Search Interface */}
+        {posts.length === 0 && !loading && (
+          <Box sx={{ 
+            mb: 6, 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            minHeight: '50vh',
+            flexDirection: 'column'
+          }}>
+            <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+              <Typography variant="h2" sx={{ 
+                color: '#1F2937', 
+                textAlign: 'center', 
+                mb: 2,
+                fontWeight: 300,
+                fontSize: { xs: '2.5rem', md: '3.5rem' }
+              }}>
+                Search Threads
+              </Typography>
+              <Typography variant="h6" sx={{ 
+                color: '#6B7280', 
+                textAlign: 'center', 
+                mb: 6,
+                fontWeight: 400
+              }}>
+                Search through reports and intelligence data
+              </Typography>
+              
+              <Box sx={{ 
+                position: 'relative',
+                width: '100%',
+                maxWidth: '700px',
+                margin: '0 auto'
+              }}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder='Search posts (e.g., "car theft" author:smith before:2025-01-01)'
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '50px',
+                      backgroundColor: 'white',
+                      fontSize: '18px',
+                      height: '64px',
+                      boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.25)',
+                      border: '2px solid transparent',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
+                        borderColor: '#3B82F6',
+                        transform: 'translateY(-1px)'
+                      },
+                      '& fieldset': {
+                        border: 'none'
+                      },
+                      '& input': {
+                        padding: '20px 24px 20px 60px',
+                        fontSize: '18px',
+                        color: '#1F2937',
+                        '&::placeholder': {
+                          color: '#9CA3AF',
+                          opacity: 1
+                        }
+                      }
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <Box sx={{ 
+                        position: 'absolute', 
+                        left: 20, 
+                        zIndex: 1,
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
+                      </Box>
+                    ),
+                    endAdornment: (
+                      <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                        <Tooltip title="Search syntax">
+                          <IconButton aria-label="search help" onClick={()=> setHelpOpen(true)} size="small">
+                            <HelpOutline sx={{ color: '#6B7280' }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    )
+                  }}
+                />
+                
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  gap: 2, 
+                  mt: 4 
+                }}>
+                  <Button 
+                    variant="contained" 
+                    onClick={handleSearch}
+                    disabled={loading || !searchTerm.trim()}
+                    size="large"
+                    sx={{ 
+                      borderRadius: '25px',
+                      backgroundColor: '#000000',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.5,
+                      textTransform: 'none',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                      '&:hover': {
+                        backgroundColor: '#1F2937',
+                        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&:disabled': {
+                        backgroundColor: '#E5E7EB',
+                        color: '#9CA3AF',
+                        boxShadow: 'none'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {loading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+                    Search
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
 
-        {/* Search and Filters (modernized) */}
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            {/* Primary search bar */}
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
+        {/* Compact Search Bar for Results Page */}
+        {(posts.length > 0 || loading) && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            mb: 4,
+            gap: 2,
+            flexWrap: 'wrap'
+          }}>
+            <Box sx={{ 
+              position: 'relative',
+              width: '100%',
+              maxWidth: '500px'
+            }}>
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder='Search posts (e.g., "car theft" author:smith before:2025-01-01 origin:wordpress)'
+                placeholder='Search posts...'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
+                size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '25px',
+                    backgroundColor: 'white',
+                    fontSize: '14px',
+                    height: '44px',
+                    boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.2)',
+                    border: '1px solid #E5E7EB',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
+                      borderColor: '#D1D5DB'
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: '0 10px 30px -8px rgba(59, 130, 246, 0.15)',
+                      borderColor: '#3B82F6'
+                    },
+                    '& input': {
+                      padding: '12px 16px 12px 45px',
+                      fontSize: '14px',
+                      color: '#1F2937',
+                      '&::placeholder': {
+                        color: '#9CA3AF',
+                        opacity: 1
+                      }
+                    }
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      left: 16, 
+                      zIndex: 1,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <SearchIcon sx={{ color: '#6B7280', fontSize: 18 }} />
+                    </Box>
                   ),
                   endAdornment: (
-                    <InputAdornment position="end">
+                    <Box sx={{ position: 'absolute', right: 16, zIndex: 1 }}>
                       <Tooltip title="Search syntax">
                         <IconButton aria-label="search help" onClick={()=> setHelpOpen(true)} size="small">
-                          <HelpOutline />
+                          <HelpOutline sx={{ color: '#6B7280', fontSize: 16 }} />
                         </IconButton>
                       </Tooltip>
-                    </InputAdornment>
+                    </Box>
                   )
                 }}
               />
-              <Button variant="contained" onClick={handleSearch} disabled={loading} sx={{ minWidth: 120 }}>
-                Search
-              </Button>
             </Box>
+            
+            <Button 
+              variant="contained" 
+              onClick={handleSearch}
+              disabled={loading || !searchTerm.trim()}
+              sx={{ 
+                borderRadius: '20px',
+                backgroundColor: '#000000',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                minWidth: 'auto',
+                height: '44px',
+                '&:hover': {
+                  backgroundColor: '#1F2937'
+                },
+                '&:disabled': {
+                  backgroundColor: '#E5E7EB',
+                  color: '#9CA3AF'
+                }
+              }}
+            >
+              {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
+              Search
+            </Button>
+          </Box>
+        )}
+
+        {/* Advanced Filters - Separate Section */}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2, color: '#1F2937', fontWeight: 600 }}>
+              Advanced Filters
+            </Typography>
 
             {/* Uniform filter grid */}
             <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
