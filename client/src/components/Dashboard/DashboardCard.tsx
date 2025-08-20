@@ -28,11 +28,16 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
       sx={{
         borderRadius: 3,
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        backgroundColor: 'white',
+        border: '1px solid #E5E7EB',
         overflow: 'visible',
-        position: 'relative'
+        position: 'relative',
+        borderLeft: `4px solid ${iconColor}`,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+        }
       }}
     >
       <CardContent sx={{ p: 3 }}>
@@ -41,7 +46,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
             <Typography
               variant="caption"
               sx={{
-                color: 'rgba(255, 255, 255, 0.8)',
+                color: '#6B7280',
                 fontWeight: 600,
                 fontSize: '0.75rem',
                 textTransform: 'uppercase',
@@ -54,7 +59,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
               variant="h4"
               sx={{
                 fontWeight: 700,
-                color: 'white',
+                color: '#111827',
                 mt: 1,
                 mb: 1
               }}
@@ -77,7 +82,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
                   <Typography
                     variant="body2"
                     sx={{
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: '#6B7280',
                       fontSize: '0.875rem'
                     }}
                   >

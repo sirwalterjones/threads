@@ -16,7 +16,8 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Badge
+  Badge,
+  IconButton
 } from '@mui/material';
 import {
   Assessment,
@@ -26,7 +27,8 @@ import {
   Search as SearchIcon,
   TrendingUp,
   CalendarToday,
-  Visibility
+  Visibility,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService from '../../services/api';
@@ -115,6 +117,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -179,70 +186,82 @@ const Dashboard: React.FC = () => {
         </Grid>
       )}
 
-      {/* Central Search Bar */}
+      {/* Central Search Bar - Google Style */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
         <Box sx={{ width: '100%', maxWidth: '600px' }}>
-          <Typography variant="h5" sx={{ 
-            color: 'white', 
+          <Typography variant="h4" sx={{ 
+            color: '#1F2937', 
             textAlign: 'center', 
-            mb: 2,
+            mb: 3,
             fontWeight: 'bold' 
           }}>
             Search Intelligence Reports
           </Typography>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search posts, content, authors..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={handleKeyPress}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchLoading && (
-                <InputAdornment position="end">
-                  <CircularProgress size={20} sx={{ color: 'white' }} />
-                </InputAdornment>
-              ),
-              sx: {
-                '& .MuiOutlinedInput-root': {
-                  color: 'white',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'white',
-                  },
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  color: 'rgba(255, 255, 255, 0.7)',
-                },
-              }
-            }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            backgroundColor: 'white',
+            border: '1px solid #E5E7EB',
+            borderRadius: '24px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            '&:hover': {
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+            },
+            '&:focus-within': {
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              borderColor: '#3B82F6'
+            }
+          }}>
+            <SearchIcon sx={{ color: '#6B7280', ml: 2 }} />
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder="Search posts, content, authors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              InputProps={{
+                disableUnderline: true,
+                sx: {
+                  px: 2,
+                  py: 1,
+                  '& input': {
+                    color: '#1F2937',
+                    fontSize: '16px',
+                    '&::placeholder': {
+                      color: '#9CA3AF',
+                    },
+                  }
+                }
+              }}
+            />
+            {searchQuery && (
+              <IconButton 
+                onClick={handleClearSearch}
+                sx={{ mr: 1, color: '#6B7280' }}
+              >
+                <ClearIcon />
+              </IconButton>
+            )}
             <Button 
               variant="contained" 
               onClick={handleSearch}
-              disabled={searchLoading}
+              disabled={searchLoading || !searchQuery.trim()}
               sx={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
+                mr: 1,
+                borderRadius: '20px',
+                backgroundColor: '#3B82F6',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                }
+                  backgroundColor: '#2563EB',
+                },
+                '&:disabled': {
+                  backgroundColor: '#E5E7EB'
+                },
+                textTransform: 'none',
+                px: 3
               }}
             >
-              Search
+              {searchLoading ? <CircularProgress size={20} color="inherit" /> : 'Search'}
             </Button>
           </Box>
         </Box>
@@ -251,7 +270,7 @@ const Dashboard: React.FC = () => {
       {/* Search Results as Cards */}
       {searchResults.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ color: 'white', mb: 3, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ color: '#1F2937', mb: 3, textAlign: 'center' }}>
             Search Results ({searchResults.length})
           </Typography>
           <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
@@ -261,23 +280,23 @@ const Dashboard: React.FC = () => {
                 sx={{
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'white',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: 3,
                   '&:hover': {
                     transform: 'translateY(-2px)',
-                    boxShadow: 4,
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   },
                 }}
                 onClick={() => handlePostClick(post.id)}
               >
                 <CardContent>
-                  <Typography variant="h6" component="h2" gutterBottom sx={{ color: 'white' }}>
+                  <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
                     {highlightText(stripHtmlTags(post.title))}
                   </Typography>
                   
                   {post.excerpt && (
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
                       {highlightText(stripHtmlTags(post.excerpt).substring(0, 150))}...
                     </Typography>
                   )}
@@ -287,26 +306,26 @@ const Dashboard: React.FC = () => {
                       <Chip 
                         size="small" 
                         label={post.category_name} 
-                        sx={{ 
-                          backgroundColor: 'rgba(59, 130, 246, 0.3)',
-                          color: 'white'
-                        }}
+                        color="primary"
+                        variant="outlined"
                       />
                     )}
                     <Chip 
                       size="small" 
                       label={post.author_name} 
+                      variant="outlined"
                       sx={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        color: 'white'
+                        borderColor: '#E5E7EB',
+                        color: '#6B7280'
                       }}
                     />
                     <Chip 
                       size="small" 
                       label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                      variant="outlined"
                       sx={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        color: 'white'
+                        borderColor: '#E5E7EB',
+                        color: '#6B7280'
                       }}
                     />
                   </Box>
@@ -328,15 +347,7 @@ const Dashboard: React.FC = () => {
                     <Button
                       startIcon={<Visibility />}
                       size="small"
-                      sx={{ 
-                        color: 'white',
-                        borderColor: 'rgba(255, 255, 255, 0.3)',
-                        '&:hover': {
-                          borderColor: 'white',
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                        }
-                      }}
-                      variant="outlined"
+                      variant="contained"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePostClick(post.id);
@@ -348,14 +359,6 @@ const Dashboard: React.FC = () => {
                       <Button
                         size="small"
                         variant="outlined"
-                        sx={{ 
-                          color: 'white',
-                          borderColor: 'rgba(255, 255, 255, 0.3)',
-                          '&:hover': {
-                            borderColor: 'white',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                          }
-                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
@@ -381,15 +384,15 @@ const Dashboard: React.FC = () => {
             <Card sx={{ 
               borderRadius: 3, 
               height: '100%',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
+              backgroundColor: 'white',
+              border: '1px solid #E5E7EB'
             }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
                     Recent Activity
                   </Typography>
-                  <Button size="small" sx={{ textTransform: 'none', color: 'rgba(255, 255, 255, 0.8)' }}>
+                  <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
                     SEE ALL
                   </Button>
                 </Box>
@@ -397,13 +400,13 @@ const Dashboard: React.FC = () => {
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.75rem' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
                           ACTION
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.75rem' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
                           USER
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.75rem' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
                           TIME
                         </TableCell>
                       </TableRow>
@@ -412,17 +415,17 @@ const Dashboard: React.FC = () => {
                       {stats.recentActivity.slice(0, 5).map((activity, index) => (
                         <TableRow key={index}>
                           <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: 'white' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1F2937' }}>
                               {activity.action}
                             </Typography>
                           </TableCell>
                           <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ color: 'white' }}>
+                            <Typography variant="body2" sx={{ color: '#1F2937' }}>
                               {activity.username || 'System'}
                             </Typography>
                           </TableCell>
                           <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                            <Typography variant="body2" sx={{ color: '#6B7280' }}>
                               {new Date(activity.timestamp).toLocaleTimeString()}
                             </Typography>
                           </TableCell>
@@ -440,15 +443,15 @@ const Dashboard: React.FC = () => {
             <Card sx={{ 
               borderRadius: 3, 
               height: '100%',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
+              backgroundColor: 'white',
+              border: '1px solid #E5E7EB'
             }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1F2937' }}>
                     Top Categories
                   </Typography>
-                  <Button size="small" sx={{ textTransform: 'none', color: 'rgba(255, 255, 255, 0.8)' }}>
+                  <Button size="small" sx={{ textTransform: 'none', color: '#3B82F6' }}>
                     SEE ALL
                   </Button>
                 </Box>
@@ -456,10 +459,10 @@ const Dashboard: React.FC = () => {
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.75rem' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
                           CATEGORY
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.75rem' }}>
+                        <TableCell sx={{ fontWeight: 600, color: '#6B7280', fontSize: '0.75rem' }}>
                           REPORTS
                         </TableCell>
                       </TableRow>
@@ -468,7 +471,7 @@ const Dashboard: React.FC = () => {
                       {stats.topCategories.slice(0, 5).map((category, index) => (
                         <TableRow key={index}>
                           <TableCell sx={{ py: 2 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500, color: 'white' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#1F2937' }}>
                               {category.name}
                             </Typography>
                           </TableCell>

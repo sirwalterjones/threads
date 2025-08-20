@@ -75,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1, 
           marginLeft: { xs: 0, md: '280px' },
           minHeight: '100vh',
-          backgroundColor: '#111827', // Dark blue like sidebar bottom
+          backgroundColor: 'white', // White background
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -105,51 +105,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               DASHBOARD
             </Typography>
 
-            {/* Search and User Section */}
+            {/* User Section */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {/* Search Bar */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  borderRadius: 1,
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.25)',
-                  },
-                  marginLeft: 0,
-                  width: { xs: 'auto', sm: '300px' },
-                  display: { xs: 'none', sm: 'block' }
-                }}
-              >
-                <Box
-                  sx={{
-                    padding: theme.spacing(0, 2),
-                    height: '100%',
-                    position: 'absolute',
-                    pointerEvents: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <SearchIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                </Box>
-                <InputBase
-                  placeholder="Search here..."
-                  sx={{
-                    color: 'white',
-                    '& .MuiInputBase-input': {
-                      padding: theme.spacing(1, 1, 1, 0),
-                      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-                      width: '100%',
-                      '&::placeholder': {
-                        color: 'rgba(255,255,255,0.7)',
-                      },
-                    },
-                  }}
-                />
-              </Box>
-
               {/* User Avatar */}
               <IconButton
                 size="large"

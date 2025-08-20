@@ -19,7 +19,8 @@ import {
   TableChart as TableIcon,
   Person as PersonIcon,
   Login as LoginIcon,
-  AppRegistration as RegisterIcon
+  AppRegistration as RegisterIcon,
+  History as AuditIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
     { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] },
+    { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] },
     { text: 'Tables', icon: <TableIcon />, path: '/tables', roles: ['admin'] }
   ];
@@ -78,21 +80,23 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const renderNavSection = (title: string, items: any[], color = '#9CA3AF') => (
     <Box sx={{ mb: 2 }}>
-      <Typography
-        variant="caption"
-        sx={{
-          px: 3,
-          py: 1,
-          color: color,
-          fontWeight: 600,
-          fontSize: '0.75rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          display: 'block'
-        }}
-      >
-        {title}
-      </Typography>
+      {title && (
+        <Typography
+          variant="caption"
+          sx={{
+            px: 3,
+            py: 1,
+            color: color,
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            display: 'block'
+          }}
+        >
+          {title}
+        </Typography>
+      )}
       <List sx={{ py: 0 }}>
         {items
           .filter(item => isItemAllowed(item.roles))
@@ -185,17 +189,17 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           background: '#9CA3AF',
         },
       }}>
-        {renderNavSection('ADMIN LAYOUT PAGES', adminPages)}
+        {renderNavSection('', adminPages)}
         
         {user && ['edit', 'admin'].includes(user.role) && (
           <>
             <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
-            {renderNavSection('CONTENT MANAGEMENT', contentPages)}
+            {renderNavSection('', contentPages)}
           </>
         )}
         
         <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
-        {renderNavSection('AUTH LAYOUT PAGES', authPages)}
+        {renderNavSection('', authPages)}
       </Box>
 
       {/* User Info at Bottom */}
