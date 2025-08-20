@@ -222,15 +222,42 @@ class WordPressService {
 
   async getLastSyncTimestamp() {
     try {
+      // First check if posts table exists and has data
+      const tableCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'posts'
+        );
+      `);
+      
+      if (!tableCheck.rows[0].exists) {
+        console.log('Posts table does not exist, using epoch date');
+        return new Date(0);
+      }
+      
       const result = await pool.query(`
         SELECT MAX(wp_modified_date) as last_modified
         FROM posts 
         WHERE wp_modified_date IS NOT NULL
       `);
-      return result.rows[0]?.last_modified || new Date(0);
+      
+      const lastModified = result.rows[0]?.last_modified;
+      if (!lastModified) {
+        console.log('No posts with wp_modified_date found, using date from 7 days ago');
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return sevenDaysAgo;
+      }
+      
+      console.log('Last sync timestamp found:', lastModified);
+      return lastModified;
     } catch (error) {
       console.error('Error getting last sync timestamp:', error);
-      return new Date(0);
+      console.log('Falling back to 7 days ago');
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return sevenDaysAgo;
     }
   }
 
@@ -347,20 +374,39 @@ class WordPressService {
       console.log('Last sync timestamp:', lastSyncTime);
 
       // Fetch new categories first (quick)
-      const categoriesCount = await this.ingestCategories();
+      let categoriesCount = 0;
+      try {
+        categoriesCount = await this.ingestCategories();
+        console.log(`Categories sync completed: ${categoriesCount} categories`);
+      } catch (catError) {
+        console.error('Categories sync failed, continuing with posts:', catError.message);
+      }
       
       // Fetch only new/updated posts
-      const newPostsCount = await this.ingestNewPosts(1, 100, lastSyncTime);
+      let newPostsCount = 0;
+      try {
+        newPostsCount = await this.ingestNewPosts(1, 100, lastSyncTime);
+        console.log(`Posts sync completed: ${newPostsCount} new/updated posts`);
+      } catch (postsError) {
+        console.error('Posts sync failed:', postsError.message);
+        throw postsError; // This is critical, so we throw
+      }
       
       // Update category post counts if we got new posts
       if (newPostsCount > 0) {
-        await pool.query(`
-          UPDATE categories 
-          SET post_count = (
-            SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
-          ),
-          updated_at = NOW()
-        `);
+        try {
+          await pool.query(`
+            UPDATE categories 
+            SET post_count = (
+              SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
+            ),
+            updated_at = NOW()
+          `);
+          console.log('Category post counts updated');
+        } catch (updateError) {
+          console.error('Failed to update category counts:', updateError.message);
+          // Not critical, continue
+        }
       }
       
       console.log(`Incremental sync complete: ${categoriesCount} categories checked, ${newPostsCount} new/updated posts`);
@@ -369,10 +415,12 @@ class WordPressService {
         categories: categoriesCount,
         newPosts: newPostsCount,
         timestamp: new Date(),
-        type: 'incremental'
+        type: 'incremental',
+        lastSyncTime: lastSyncTime
       };
     } catch (error) {
       console.error('Incremental sync failed:', error);
+      console.error('Stack trace:', error.stack);
       throw error;
     }
   }
