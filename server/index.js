@@ -63,7 +63,8 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date(),
-    version: '1.0.0'
+    version: '1.1.0',
+    features: ['incremental-sync', 'auto-ingestion']
   });
 });
 
