@@ -77,17 +77,30 @@ router.get('/',
       const countResult = await pool.query(countQuery, queryParams);
       const total = parseInt(countResult.rows[0].total);
 
-      // Get posts
+      // Get posts with attachments
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           c.name as category_name, c.slug as category_slug,
           ${search ? "ts_rank(search_vector, plainto_tsquery('english', $1)) as rank," : ''}
-          p.metadata
+          p.metadata,
+          json_agg(
+            json_build_object(
+              'id', f.id,
+              'filename', f.filename,
+              'original_name', f.original_name,
+              'mime_type', f.mime_type,
+              'file_size', f.file_size,
+              'uploaded_at', f.uploaded_at
+            ) ORDER BY f.uploaded_at
+          ) FILTER (WHERE f.id IS NOT NULL) as attachments
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN post_attachments pa ON p.id = pa.post_id
+        LEFT JOIN files f ON pa.file_id = f.id
         ${whereClause}
+        GROUP BY p.id, c.name, c.slug
         ORDER BY ${search ? 'rank DESC,' : ''} ${sortField} ${sortDirection}
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
@@ -130,10 +143,23 @@ router.get('/:id',
       
       const result = await pool.query(`
         SELECT 
-          p.*, c.name as category_name, c.slug as category_slug
+          p.*, c.name as category_name, c.slug as category_slug,
+          json_agg(
+            json_build_object(
+              'id', f.id,
+              'filename', f.filename,
+              'original_name', f.original_name,
+              'mime_type', f.mime_type,
+              'file_size', f.file_size,
+              'uploaded_at', f.uploaded_at
+            ) ORDER BY f.uploaded_at
+          ) FILTER (WHERE f.id IS NOT NULL) as attachments
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN post_attachments pa ON p.id = pa.post_id
+        LEFT JOIN files f ON pa.file_id = f.id
         WHERE p.id = $1
+        GROUP BY p.id, c.name, c.slug
       `, [id]);
 
       if (result.rows.length === 0) {
@@ -160,7 +186,8 @@ router.post('/',
         content,
         excerpt,
         categoryId,
-        retentionDays = process.env.DEFAULT_RETENTION_DAYS
+        retentionDays = process.env.DEFAULT_RETENTION_DAYS,
+        attachments = []
       } = req.body;
 
       if (!title || !content) {
@@ -170,16 +197,73 @@ router.post('/',
       const retentionDate = new Date();
       retentionDate.setDate(retentionDate.getDate() + parseInt(retentionDays));
 
-      const result = await pool.query(`
-        INSERT INTO posts (
-          title, content, excerpt, category_id, author_name, 
-          wp_published_date, retention_date, status
-        )
-        VALUES ($1, $2, $3, $4, $5, NOW(), $6, 'publish')
-        RETURNING *
-      `, [title, content, excerpt, categoryId, req.user.username, retentionDate]);
+      // Start a transaction to ensure data consistency
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
 
-      res.status(201).json(result.rows[0]);
+        // If no category is specified, find or create a "Thread" category
+        let finalCategoryId = categoryId;
+        if (!categoryId) {
+          // Try to find existing "Thread" category
+          let threadCategory = await client.query(
+            'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)',
+            ['Thread']
+          );
+
+          if (threadCategory.rows.length === 0) {
+            // Create "Thread" category if it doesn't exist
+            const newCategory = await client.query(`
+              INSERT INTO categories (name, slug, post_count)
+              VALUES ('Thread', 'thread', 0)
+              RETURNING id
+            `);
+            finalCategoryId = newCategory.rows[0].id;
+          } else {
+            finalCategoryId = threadCategory.rows[0].id;
+          }
+        }
+
+        // Create the post
+        const postResult = await client.query(`
+          INSERT INTO posts (
+            title, content, excerpt, category_id, author_name, 
+            wp_published_date, retention_date, status
+          )
+          VALUES ($1, $2, $3, $4, $5, NOW(), $6, 'publish')
+          RETURNING *
+        `, [title, content, excerpt, finalCategoryId, req.user.username, retentionDate]);
+
+        const post = postResult.rows[0];
+
+        // Create attachment relationships if any files were uploaded
+        if (attachments && attachments.length > 0) {
+          for (const fileId of attachments) {
+            if (fileId) {
+              // Verify the file exists and belongs to the current user
+              const fileCheck = await client.query(
+                'SELECT id FROM files WHERE id = $1 AND uploaded_by = $2',
+                [fileId, req.user.id]
+              );
+              
+              if (fileCheck.rows.length > 0) {
+                await client.query(
+                  'INSERT INTO post_attachments (post_id, file_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+                  [post.id, fileId]
+                );
+              }
+            }
+          }
+        }
+
+        await client.query('COMMIT');
+        res.status(201).json(post);
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     } catch (error) {
       console.error('Error creating post:', error);
       res.status(500).json({ error: 'Failed to create post' });

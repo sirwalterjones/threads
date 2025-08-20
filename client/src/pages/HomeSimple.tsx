@@ -43,9 +43,12 @@ import {
 import { Post, Category, SearchFilters } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
 import { format } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import PostDetailModal from '../components/PostDetailModal';
+import MediaGallery from '../components/MediaGallery';
 
 const HomeSimple: React.FC = () => {
+  const location = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,6 +240,24 @@ const HomeSimple: React.FC = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
+
+  // Separate effect to handle path changes
+  useEffect(() => {
+    const isMyThreadsPath = location.pathname === '/my-threads';
+    
+    if (isMyThreadsPath) {
+      setOrigin('manual');
+      setMineOnly(true);
+      setCurrentPage(1);
+    } else {
+      // Reset filters when leaving My Threads page
+      if (origin === 'manual' && mineOnly) {
+        setOrigin('all');
+        setMineOnly(false);
+        setCurrentPage(1);
+      }
+    }
+  }, [location.pathname, origin, mineOnly]); // Listen for path changes
 
   const handleSearch = () => {
     const parsed = parseAdvancedQuery();
@@ -766,6 +787,11 @@ const HomeSimple: React.FC = () => {
                     onClick={() => handlePostClick(post.id)}
                   >
                     <CardContent>
+                      {/* Media Gallery */}
+                      {post.attachments && post.attachments.length > 0 && (
+                        <MediaGallery attachments={post.attachments} maxHeight={180} />
+                      )}
+                      
                       <Typography variant="h6" component="h2" gutterBottom>
                         {highlightText(stripHtmlTags(post.title))}
                       </Typography>

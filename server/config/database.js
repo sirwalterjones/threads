@@ -125,6 +125,17 @@ if (USE_SQLITE) {
         )
       `);
 
+      // Post attachments table to link files to posts
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS post_attachments (
+          id SERIAL PRIMARY KEY,
+          post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+          file_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(post_id, file_id)
+        )
+      `);
+
       // Audit log table
       await pool.query(`
         CREATE TABLE IF NOT EXISTS audit_log (

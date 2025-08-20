@@ -155,7 +155,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         content: content.trim(), 
         excerpt: autoExcerpt, 
         categoryId: categoryId || null, // Send null instead of empty string
-        retentionDays: '365' 
+        retentionDays: '365',
+        attachments: uploads.map(u => u.id).filter(Boolean) // Include file IDs
       };
       
       console.log('User role:', user.role);

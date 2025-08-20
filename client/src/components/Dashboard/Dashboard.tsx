@@ -36,6 +36,7 @@ import apiService from '../../services/api';
 import { DashboardStats as ApiDashboardStats, Post, SearchFilters } from '../../types';
 import { format } from 'date-fns';
 import PostDetailModal from '../PostDetailModal';
+import MediaGallery from '../MediaGallery';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<ApiDashboardStats | null>(null);
@@ -85,6 +86,20 @@ const Dashboard: React.FC = () => {
         <React.Fragment key={i}>{part}</React.Fragment>
       );
     });
+  };
+
+  const countMatches = (text: string, query: string) => {
+    if (!text || !query.trim()) return 0;
+    const terms = query.trim().split(/\s+/).filter(Boolean);
+    const plain = stripHtmlTags(text);
+    let total = 0;
+    for (const term of terms) {
+      if (!term) continue;
+      const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      const matches = plain.match(re);
+      if (matches) total += matches.length;
+    }
+    return total;
   };
 
   const handlePostClick = (postId: number) => {
@@ -565,6 +580,11 @@ const Dashboard: React.FC = () => {
                 onClick={() => handlePostClick(post.id)}
               >
                 <CardContent>
+                  {/* Media Gallery */}
+                  {post.attachments && post.attachments.length > 0 && (
+                    <MediaGallery attachments={post.attachments} maxHeight={180} />
+                  )}
+                  
                   <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
                     {highlightText(stripHtmlTags(post.title))}
                   </Typography>
@@ -618,24 +638,53 @@ const Dashboard: React.FC = () => {
                   )}
 
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      startIcon={<Visibility />}
-                      size="small"
-                      variant="contained"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePostClick(post.id);
-                      }}
-                      sx={{
-                        backgroundColor: '#000000',
-                        color: 'white',
-                        '&:hover': {
-                          backgroundColor: '#1F2937'
-                        }
-                      }}
-                    >
-                      View Details
-                    </Button>
+                    {(() => {
+                      const contentText = stripHtmlTags(post.content || '');
+                      const contentCount = countMatches(contentText, searchQuery);
+                      const showCount = contentCount > 0;
+                      
+                      return showCount ? (
+                        <Badge badgeContent={contentCount} color="secondary">
+                          <Button
+                            startIcon={<Visibility />}
+                            size="small"
+                            variant="contained"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePostClick(post.id);
+                            }}
+                            sx={{
+                              backgroundColor: '#000000',
+                              color: 'white',
+                              '&:hover': {
+                                backgroundColor: '#1F2937'
+                              }
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </Badge>
+                      ) : (
+                        <Button
+                          startIcon={<Visibility />}
+                          size="small"
+                          variant="contained"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePostClick(post.id);
+                          }}
+                          sx={{
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            '&:hover': {
+                              backgroundColor: '#1F2937'
+                            }
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      );
+                    })()}
                     {!post.wp_post_id && (
                       <Button
                         size="small"

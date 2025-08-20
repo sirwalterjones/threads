@@ -8,6 +8,15 @@ export interface User {
   isActive?: boolean;
 }
 
+export interface MediaFile {
+  id: number;
+  filename: string;
+  original_name: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+}
+
 export interface Post {
   id: number;
   wp_post_id?: number;
@@ -25,7 +34,7 @@ export interface Post {
   category_slug?: string;
   featured_media_id?: number;
   featured_media_url?: string;
-  attachments?: string;
+  attachments?: MediaFile[];
   metadata?: any;
   rank?: number;
 }
