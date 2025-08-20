@@ -107,19 +107,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 onClick={() => handleNavigation(item.path)}
                 sx={{
                   mx: 2,
-                  borderRadius: 2,
-                  mb: 0.5,
-                  backgroundColor: isActive(item.path) ? '#3B82F6' : 'transparent',
-                  color: isActive(item.path) ? 'white' : '#D1D5DB',
+                  borderRadius: 25,
+                  mb: 1,
+                  px: 3,
+                  py: 1.5,
+                  backgroundColor: 'transparent',
+                  color: isActive(item.path) ? '#E7E9EA' : '#71767B',
                   '&:hover': {
-                    backgroundColor: isActive(item.path) ? '#2563EB' : '#374151'
+                    backgroundColor: '#16181C',
+                    color: '#E7E9EA'
                   }
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    color: isActive(item.path) ? 'white' : '#9CA3AF',
-                    minWidth: 40
+                    color: isActive(item.path) ? '#E7E9EA' : '#71767B',
+                    minWidth: 48
                   }}
                 >
                   {item.icon}
@@ -127,8 +130,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: isActive(item.path) ? 600 : 500
+                    fontSize: '20px',
+                    fontWeight: isActive(item.path) ? 700 : 400
                   }}
                 />
               </ListItemButton>
@@ -143,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       sx={{
         width: DRAWER_WIDTH,
         height: '100vh',
-        backgroundColor: '#1F2937', // Dark gray background like in the screenshot
+        backgroundColor: '#000000', // Pure black like social media
         color: 'white',
         position: 'fixed',
         left: 0,
@@ -153,21 +156,21 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         flexDirection: 'column',
         transform: { xs: open ? 'translateX(0)' : 'translateX(-100%)', md: 'translateX(0)' },
         transition: 'transform 0.3s ease-in-out',
-        borderRight: '1px solid #374151'
+        borderRight: '1px solid #2F3336'
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 3, borderBottom: '1px solid #374151' }}>
+      <Box sx={{ p: 3, borderBottom: '1px solid #2F3336' }}>
         <Typography
-          variant="h6"
+          variant="h4"
           sx={{
             fontWeight: 700,
-            color: 'white',
-            fontSize: '1.125rem',
-            letterSpacing: '0.5px'
+            color: '#E7E9EA',
+            fontSize: '1.875rem',
+            letterSpacing: '-0.025em'
           }}
         >
-          THREADS
+          𝕏
         </Typography>
       </Box>
 
@@ -177,29 +180,29 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         flex: 1, 
         overflowY: 'auto',
         '&::-webkit-scrollbar': {
-          width: '6px',
+          width: '8px',
         },
         '&::-webkit-scrollbar-track': {
-          background: '#374151',
+          background: '#16181C',
         },
         '&::-webkit-scrollbar-thumb': {
-          background: '#6B7280',
-          borderRadius: '3px',
+          background: '#2F3336',
+          borderRadius: '4px',
         },
         '&::-webkit-scrollbar-thumb:hover': {
-          background: '#9CA3AF',
+          background: '#3F4144',
         },
       }}>
         {renderNavSection('', adminPages)}
         
         {user && ['edit', 'admin'].includes(user.role) && (
           <>
-            <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
+            <Divider sx={{ backgroundColor: '#2F3336', mx: 2, my: 2 }} />
             {renderNavSection('', contentPages)}
           </>
         )}
         
-        <Divider sx={{ backgroundColor: '#374151', mx: 2, my: 2 }} />
+        <Divider sx={{ backgroundColor: '#2F3336', mx: 2, my: 2 }} />
         {renderNavSection('', authPages)}
       </Box>
 
@@ -207,19 +210,52 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {user && (
         <Box sx={{ 
           p: 3, 
-          borderTop: '1px solid #374151',
-          backgroundColor: '#111827',
-          flexShrink: 0
+          borderTop: '1px solid #2F3336',
+          backgroundColor: '#000000',
+          flexShrink: 0,
+          cursor: 'pointer',
+          borderRadius: '16px',
+          mx: 2,
+          mb: 2,
+          '&:hover': {
+            backgroundColor: '#16181C'
+          }
         }}>
-          <Typography variant="body2" sx={{ color: '#9CA3AF', fontSize: '0.75rem' }}>
-            Logged in as:
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>
-            {user.username}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#6B7280', fontSize: '0.7rem' }}>
-            Role: {user.role.toUpperCase()}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                backgroundColor: '#1D9BF0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 700
+              }}
+            >
+              {user.username[0]?.toUpperCase()}
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ 
+                color: '#E7E9EA', 
+                fontWeight: 700,
+                fontSize: '15px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {user.username}
+              </Typography>
+              <Typography variant="caption" sx={{ 
+                color: '#71767B', 
+                fontSize: '15px'
+              }}>
+                @{user.username.toLowerCase()}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       )}
     </Box>

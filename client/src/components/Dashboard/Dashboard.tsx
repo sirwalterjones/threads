@@ -263,22 +263,23 @@ const Dashboard: React.FC = () => {
       {/* Central Search Bar - Primary Focus */}
       {searchResults.length === 0 && (
         <Box sx={{ 
-          mb: 6, 
+          mb: 4, 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center',
-          minHeight: '60vh',
-          flexDirection: 'column'
+          minHeight: '40vh',
+          flexDirection: 'column',
+          px: 4
         }}>
           <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
             <Typography variant="h2" sx={{ 
-              color: '#1F2937', 
+              color: '#E7E9EA', 
               textAlign: 'center', 
-              mb: 6,
-              fontWeight: 300,
-              fontSize: { xs: '2.5rem', md: '3.5rem' }
+              mb: 4,
+              fontWeight: 700,
+              fontSize: { xs: '2rem', md: '2.5rem' }
             }}>
-              Search Threads
+              What's happening?
             </Typography>
             
             <Box sx={{ 
@@ -297,30 +298,27 @@ const Dashboard: React.FC = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '50px',
-                    backgroundColor: 'white',
-                    fontSize: '18px',
-                    height: '64px',
-                    boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.25)',
-                    border: '2px solid transparent',
+                    backgroundColor: '#16181C',
+                    fontSize: '20px',
+                    height: '56px',
+                    border: '1px solid #2F3336',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
-                      transform: 'translateY(-1px)'
+                      borderColor: '#1D9BF0'
                     },
                     '&.Mui-focused': {
-                      boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
-                      borderColor: '#3B82F6',
-                      transform: 'translateY(-1px)'
+                      borderColor: '#1D9BF0',
+                      backgroundColor: '#000000'
                     },
                     '& fieldset': {
                       border: 'none'
                     },
                     '& input': {
-                      padding: '20px 24px 20px 60px',
-                      fontSize: '18px',
-                      color: '#1F2937',
+                      padding: '16px 24px 16px 60px',
+                      fontSize: '20px',
+                      color: '#E7E9EA',
                       '&::placeholder': {
-                        color: '#9CA3AF',
+                        color: '#71767B',
                         opacity: 1
                       }
                     }
@@ -335,7 +333,7 @@ const Dashboard: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center'
                     }}>
-                      <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
+                      <SearchIcon sx={{ color: '#71767B', fontSize: 24 }} />
                     </Box>
                   ),
                   endAdornment: searchQuery && (
@@ -366,24 +364,22 @@ const Dashboard: React.FC = () => {
                   disabled={searchLoading || !searchQuery.trim()}
                   size="large"
                   sx={{ 
-                    borderRadius: '25px',
-                    backgroundColor: '#000000',
+                    borderRadius: '50px',
+                    backgroundColor: '#1D9BF0',
                     color: 'white',
                     fontSize: '16px',
-                    fontWeight: 600,
-                    px: 4,
+                    fontWeight: 700,
+                    px: 6,
                     py: 1.5,
                     textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    border: '1px solid #1D9BF0',
                     '&:hover': {
-                      backgroundColor: '#1F2937',
-                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
-                      transform: 'translateY(-1px)'
+                      backgroundColor: '#1A8CD8'
                     },
                     '&:disabled': {
-                      backgroundColor: '#E5E7EB',
-                      color: '#9CA3AF',
-                      boxShadow: 'none'
+                      backgroundColor: '#2F3336',
+                      color: '#71767B',
+                      borderColor: '#2F3336'
                     },
                     transition: 'all 0.2s ease'
                   }}

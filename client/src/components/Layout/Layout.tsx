@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, IconButton, useMediaQuery, useTheme, AppBar, Toolbar, Typography, InputBase, Avatar, Menu, MenuItem } from '@mui/material';
 import { Menu as MenuIcon, Search as SearchIcon, AccountCircle, ExitToApp, Settings, Dashboard } from '@mui/icons-material';
 import Sidebar from './Sidebar';
+import RightSidebar from './RightSidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import NewPostModal from '../NewPostModal';
 import apiService from '../../services/api';
@@ -65,107 +66,130 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Sidebar */}
+    <Box sx={{ 
+      display: 'flex', 
+      minHeight: '100vh', 
+      backgroundColor: '#0F0F0F' // Dark background like social media
+    }}>
+      {/* Left Sidebar - Navigation */}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      {/* Main Content Area */}
+      {/* Main Layout - Center + Right Sidebar */}
       <Box 
         sx={{ 
           flexGrow: 1, 
           marginLeft: { xs: 0, md: '280px' },
           minHeight: '100vh',
-          backgroundColor: 'white', // White background
-          display: 'flex',
-          flexDirection: 'column'
+          display: 'flex'
         }}
       >
-        {/* Top Navigation Bar */}
-        <AppBar 
-          position="static" 
-          elevation={0}
-          sx={{ 
-            backgroundColor: 'white',
-            borderBottom: '1px solid #E5E7EB'
+        {/* Center Content Area */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            maxWidth: { xs: '100%', lg: '600px' },
+            borderLeft: '1px solid #2F3336',
+            borderRight: '1px solid #2F3336',
+            backgroundColor: '#000000',
+            minHeight: '100vh'
           }}
         >
-          <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-            {/* Mobile Menu Button */}
-            <IconButton
-              edge="start"
-              onClick={handleSidebarToggle}
-              sx={{ display: { xs: 'block', md: 'none' }, mr: 2, color: '#1F2937' }}
-            >
-              <MenuIcon />
-            </IconButton>
+          {/* Top Header Bar */}
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backdropFilter: 'blur(12px)',
+              borderBottom: '1px solid #2F3336',
+              p: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {/* Mobile Menu Button */}
+              <IconButton
+                edge="start"
+                onClick={handleSidebarToggle}
+                sx={{ display: { xs: 'block', md: 'none' }, color: '#E7E9EA' }}
+              >
+                <MenuIcon />
+              </IconButton>
 
-            {/* Page Title */}
-            <Typography variant="h6" sx={{ color: '#1F2937', fontWeight: 600 }}>
-              DASHBOARD
-            </Typography>
+              {/* Page Title */}
+              <Typography variant="h5" sx={{ 
+                color: '#E7E9EA', 
+                fontWeight: 700,
+                fontSize: '20px'
+              }}>
+                Home
+              </Typography>
 
-            {/* User Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {/* User Avatar */}
               <IconButton
-                size="large"
-                edge="end"
-                aria-label="account menu"
-                aria-controls="account-menu"
-                aria-haspopup="true"
                 onClick={handleMenuOpen}
                 sx={{ p: 0 }}
               >
                 <Avatar 
                   sx={{ 
-                    width: 40, 
-                    height: 40,
-                    border: '2px solid #E5E7EB',
-                    cursor: 'pointer',
-                    backgroundColor: '#3B82F6',
-                    color: 'white'
+                    width: 32, 
+                    height: 32,
+                    backgroundColor: '#1D9BF0',
+                    color: 'white',
+                    fontSize: '14px'
                   }}
                 >
                   {user?.username?.[0]?.toUpperCase() || <AccountCircle />}
                 </Avatar>
               </IconButton>
             </Box>
-          </Toolbar>
-        </AppBar>
+          </Box>
 
-        {/* User Menu */}
-        <Menu
-          id="account-menu"
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          MenuListProps={{
-            'aria-labelledby': 'account-button',
-          }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={handleProfile}>
-            <Settings sx={{ mr: 2 }} />
-            Profile Settings
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>
-            <ExitToApp sx={{ mr: 2 }} />
-            Logout
-          </MenuItem>
-        </Menu>
+          {/* User Menu */}
+          <Menu
+            id="account-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                backgroundColor: '#000000',
+                border: '1px solid #2F3336',
+                color: '#E7E9EA'
+              }
+            }}
+            MenuListProps={{
+              'aria-labelledby': 'account-button',
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <MenuItem onClick={handleProfile} sx={{ color: '#E7E9EA' }}>
+              <Settings sx={{ mr: 2 }} />
+              Profile Settings
+            </MenuItem>
+            <MenuItem onClick={handleLogout} sx={{ color: '#E7E9EA' }}>
+              <ExitToApp sx={{ mr: 2 }} />
+              Logout
+            </MenuItem>
+          </Menu>
 
-        {/* Content Area with white background */}
+          {/* Main Content Feed */}
+          <Box sx={{ backgroundColor: '#000000' }}>
+            {children}
+          </Box>
+        </Box>
+
+        {/* Right Sidebar - Suggestions & Trends */}
         <Box
-          component="main"
           sx={{
-            flexGrow: 1,
-            p: 4,
-            backgroundColor: 'transparent', // Transparent to show gradient
-            minHeight: 'calc(100vh - 80px)'
+            width: { xs: 0, lg: '350px' },
+            display: { xs: 'none', lg: 'block' },
+            p: 2,
+            backgroundColor: '#000000'
           }}
         >
-          {children}
+          <RightSidebar />
         </Box>
       </Box>
       
