@@ -87,7 +87,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Box
           sx={{
             flexGrow: 1,
-            maxWidth: { xs: '100%', lg: '600px' },
             borderLeft: '1px solid #2F3336',
             borderRight: '1px solid #2F3336',
             backgroundColor: '#000000',
