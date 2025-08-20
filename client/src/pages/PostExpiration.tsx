@@ -163,8 +163,8 @@ const PostExpiration: React.FC = () => {
     }
   };
 
-  const uniqueCategories = [...new Set(posts.map(p => p.category_name).filter(Boolean))];
-  const uniqueAuthors = [...new Set(posts.map(p => p.author_name).filter(Boolean))];
+  const uniqueCategories = Array.from(new Set(posts.map(p => p.category_name).filter(Boolean)));
+  const uniqueAuthors = Array.from(new Set(posts.map(p => p.author_name).filter(Boolean)));
 
   const paginatedPosts = filteredPosts.slice(
     (page - 1) * itemsPerPage,

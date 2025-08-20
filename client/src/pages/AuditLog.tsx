@@ -137,8 +137,8 @@ const AuditLog: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const uniqueActions = [...new Set(entries.map(e => e.action).filter(Boolean))];
-  const uniqueUsers = [...new Set(entries.map(e => e.username).filter(Boolean))];
+  const uniqueActions = Array.from(new Set(entries.map(e => e.action).filter(Boolean)));
+  const uniqueUsers = Array.from(new Set(entries.map(e => e.username).filter(Boolean)));
 
   const paginatedEntries = filteredEntries.slice(
     (page - 1) * itemsPerPage,
