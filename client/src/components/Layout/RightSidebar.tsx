@@ -45,7 +45,7 @@ const RightSidebar: React.FC = () => {
       
       // Load recent threads
       const recentResponse = await apiService.getPosts({
-        limit: 5,
+        limit: 3, // Reduced to 3 to avoid clutter
         sortBy: 'wp_published_date',
         sortOrder: 'DESC'
       });
@@ -53,10 +53,19 @@ const RightSidebar: React.FC = () => {
 
       // Load top categories
       const categoriesResponse = await apiService.getCategories();
-      const sortedCategories = categoriesResponse
-        .filter(cat => cat.post_count > 0)
+      
+      // Remove duplicates by name and filter properly
+      const uniqueCategories = categoriesResponse.reduce((acc: Category[], current) => {
+        const exists = acc.find(cat => cat.name.toLowerCase() === current.name.toLowerCase());
+        if (!exists && current.post_count > 0) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      const sortedCategories = uniqueCategories
         .sort((a, b) => b.post_count - a.post_count)
-        .slice(0, 5);
+        .slice(0, 4); // Reduced to 4 to avoid clutter
       setTopCategories(sortedCategories);
       
     } catch (error) {
@@ -131,31 +140,32 @@ const RightSidebar: React.FC = () => {
       </Card>
 
       {/* Trending Categories */}
-      <Card 
-        sx={{ 
-          mb: 3, 
-          backgroundColor: '#16181C', 
-          border: 'none',
-          borderRadius: 4
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          <Box sx={{ p: 2, pb: 1 }}>
-            <Typography variant="h6" sx={{ 
-              color: '#E7E9EA', 
-              fontWeight: 700, 
-              fontSize: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <LocalFireDepartment sx={{ color: '#FF6B35' }} />
-              What's happening
-            </Typography>
-          </Box>
-          
-          <List sx={{ py: 0 }}>
-            {topCategories.map((category, index) => (
+      {!loading && topCategories.length > 0 && (
+        <Card 
+          sx={{ 
+            mb: 3, 
+            backgroundColor: '#16181C', 
+            border: 'none',
+            borderRadius: 4
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
+            <Box sx={{ p: 2, pb: 1 }}>
+              <Typography variant="h6" sx={{ 
+                color: '#E7E9EA', 
+                fontWeight: 700, 
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <LocalFireDepartment sx={{ color: '#FF6B35' }} />
+                What's happening
+              </Typography>
+            </Box>
+            
+            <List sx={{ py: 0 }}>
+              {topCategories.map((category, index) => (
               <ListItem key={category.id} disablePadding>
                 <ListItemButton
                   onClick={() => handleCategoryClick(category.id)}
@@ -182,7 +192,10 @@ const RightSidebar: React.FC = () => {
                         color: '#71767B', 
                         fontSize: '13px' 
                       }}>
-                        {category.post_count} threads
+                        {category.post_count > 1000 
+                          ? `${(category.post_count / 1000).toFixed(1)}K threads`
+                          : `${category.post_count} threads`
+                        }
                       </Typography>
                     }
                   />
@@ -223,8 +236,10 @@ const RightSidebar: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Recent Activity */}
+      {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
           mb: 3, 
@@ -319,8 +334,10 @@ const RightSidebar: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Who to follow */}
+      {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
           mb: 3, 
@@ -345,7 +362,14 @@ const RightSidebar: React.FC = () => {
           </Box>
           
           <List sx={{ py: 0 }}>
-            {recentThreads.slice(0, 3).map((thread) => (
+            {recentThreads
+              .reduce((unique: Post[], thread) => {
+                const exists = unique.find(t => t.author_name === thread.author_name);
+                if (!exists) unique.push(thread);
+                return unique;
+              }, [])
+              .slice(0, 3)
+              .map((thread) => (
               <ListItem 
                 key={`author-${thread.author_name}`}
                 sx={{ py: 1.5, px: 2 }}
@@ -424,6 +448,7 @@ const RightSidebar: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Footer */}
       <Box sx={{ px: 2, pb: 2 }}>
