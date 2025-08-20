@@ -187,179 +187,313 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Central Search Bar - Primary Focus */}
-      <Box sx={{ 
-        mb: 6, 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        minHeight: '60vh',
-        flexDirection: 'column'
-      }}>
-        <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
-          <Typography variant="h2" sx={{ 
-            color: '#1F2937', 
-            textAlign: 'center', 
-            mb: 2,
-            fontWeight: 300,
-            fontSize: { xs: '2.5rem', md: '3.5rem' }
-          }}>
-            Intelligence Search
-          </Typography>
-          <Typography variant="h6" sx={{ 
-            color: '#6B7280', 
-            textAlign: 'center', 
-            mb: 6,
-            fontWeight: 400
-          }}>
-            Search through classified reports and intelligence data
-          </Typography>
-          
-          <Box sx={{ 
-            position: 'relative',
-            width: '100%',
-            maxWidth: '700px',
-            margin: '0 auto'
-          }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search reports, content, authors, classifications..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '50px',
-                  backgroundColor: 'white',
-                  fontSize: '18px',
-                  height: '64px',
-                  boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.1)',
-                  border: '2px solid transparent',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    boxShadow: '0 12px 35px -8px rgba(0, 0, 0, 0.15)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&.Mui-focused': {
-                    boxShadow: '0 12px 35px -8px rgba(59, 130, 246, 0.15)',
-                    borderColor: '#3B82F6',
-                    transform: 'translateY(-1px)'
-                  },
-                  '& fieldset': {
-                    border: 'none'
-                  },
-                  '& input': {
-                    padding: '20px 24px 20px 60px',
-                    fontSize: '18px',
-                    color: '#1F2937',
-                    '&::placeholder': {
-                      color: '#9CA3AF',
-                      opacity: 1
-                    }
-                  }
-                }
-              }}
-              InputProps={{
-                startAdornment: (
-                  <Box sx={{ 
-                    position: 'absolute', 
-                    left: 20, 
-                    zIndex: 1,
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
-                    <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
-                  </Box>
-                ),
-                endAdornment: searchQuery && (
-                  <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
-                    <IconButton 
-                      onClick={handleClearSearch}
-                      sx={{ 
-                        color: '#6B7280',
-                        '&:hover': { color: '#374151' }
-                      }}
-                    >
-                      <ClearIcon />
-                    </IconButton>
-                  </Box>
-                )
-              }}
-            />
+      {searchResults.length === 0 && (
+        <Box sx={{ 
+          mb: 6, 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          minHeight: '60vh',
+          flexDirection: 'column'
+        }}>
+          <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ 
+              color: '#1F2937', 
+              textAlign: 'center', 
+              mb: 2,
+              fontWeight: 300,
+              fontSize: { xs: '2.5rem', md: '3.5rem' }
+            }}>
+              Search Threads
+            </Typography>
+            <Typography variant="h6" sx={{ 
+              color: '#6B7280', 
+              textAlign: 'center', 
+              mb: 6,
+              fontWeight: 400
+            }}>
+              Search through reports and intelligence data
+            </Typography>
             
             <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              gap: 2, 
-              mt: 4 
+              position: 'relative',
+              width: '100%',
+              maxWidth: '700px',
+              margin: '0 auto'
             }}>
-              <Button 
-                variant="contained" 
-                onClick={handleSearch}
-                disabled={searchLoading || !searchQuery.trim()}
-                size="large"
-                sx={{ 
-                  borderRadius: '25px',
-                  backgroundColor: '#3B82F6',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  px: 4,
-                  py: 1.5,
-                  textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                  '&:hover': {
-                    backgroundColor: '#2563EB',
-                    boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#E5E7EB',
-                    boxShadow: 'none'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
-                Search Intelligence
-              </Button>
-              
-              <Button 
-                variant="outlined" 
-                onClick={handleClearSearch}
-                disabled={!searchQuery && searchResults.length === 0}
-                size="large"
-                sx={{ 
-                  borderRadius: '25px',
-                  borderColor: '#D1D5DB',
-                  color: '#6B7280',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  px: 3,
-                  py: 1.5,
-                  textTransform: 'none',
-                  '&:hover': {
-                    borderColor: '#9CA3AF',
-                    backgroundColor: '#F9FAFB'
-                  },
-                  '&:disabled': {
-                    borderColor: '#E5E7EB',
-                    color: '#D1D5DB'
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search reports, content, authors, classifications..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '50px',
+                    backgroundColor: 'white',
+                    fontSize: '18px',
+                    height: '64px',
+                    boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.25)',
+                    border: '2px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
+                      transform: 'translateY(-1px)'
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
+                      borderColor: '#3B82F6',
+                      transform: 'translateY(-1px)'
+                    },
+                    '& fieldset': {
+                      border: 'none'
+                    },
+                    '& input': {
+                      padding: '20px 24px 20px 60px',
+                      fontSize: '18px',
+                      color: '#1F2937',
+                      '&::placeholder': {
+                        color: '#9CA3AF',
+                        opacity: 1
+                      }
+                    }
                   }
                 }}
-              >
-                Clear
-              </Button>
+                InputProps={{
+                  startAdornment: (
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      left: 20, 
+                      zIndex: 1,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
+                    </Box>
+                  ),
+                  endAdornment: searchQuery && (
+                    <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                      <IconButton 
+                        onClick={handleClearSearch}
+                        sx={{ 
+                          color: '#6B7280',
+                          '&:hover': { color: '#374151' }
+                        }}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </Box>
+                  )
+                }}
+              />
+              
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: 2, 
+                mt: 4 
+              }}>
+                <Button 
+                  variant="contained" 
+                  onClick={handleSearch}
+                  disabled={searchLoading || !searchQuery.trim()}
+                  size="large"
+                  sx={{ 
+                    borderRadius: '25px',
+                    backgroundColor: '#000000',
+                    color: 'white',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    px: 4,
+                    py: 1.5,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    '&:hover': {
+                      backgroundColor: '#1F2937',
+                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                      transform: 'translateY(-1px)'
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#E5E7EB',
+                      color: '#9CA3AF',
+                      boxShadow: 'none'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+                  Search
+                </Button>
+                
+                <Button 
+                  variant="outlined" 
+                  onClick={handleClearSearch}
+                  disabled={!searchQuery && searchResults.length === 0}
+                  size="large"
+                  sx={{ 
+                    borderRadius: '25px',
+                    borderColor: '#000000',
+                    color: '#000000',
+                    backgroundColor: 'white',
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    px: 3,
+                    py: 1.5,
+                    textTransform: 'none',
+                    '&:hover': {
+                      borderColor: '#1F2937',
+                      backgroundColor: '#F9FAFB',
+                      color: '#1F2937'
+                    },
+                    '&:disabled': {
+                      borderColor: '#E5E7EB',
+                      color: '#D1D5DB'
+                    }
+                  }}
+                >
+                  Clear
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Box>
-      </Box>
+      )}
 
-      {/* Search Results as Cards */}
+      {/* Search Results Section */}
       {searchResults.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ color: '#1F2937', mb: 3, textAlign: 'center' }}>
+          {/* Compact Search Bar Above Results */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            mb: 4,
+            gap: 2,
+            flexWrap: 'wrap'
+          }}>
+            <Box sx={{ 
+              position: 'relative',
+              width: '100%',
+              maxWidth: '500px'
+            }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search reports, content, authors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '25px',
+                    backgroundColor: 'white',
+                    fontSize: '14px',
+                    height: '44px',
+                    boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.2)',
+                    border: '1px solid #E5E7EB',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
+                      borderColor: '#D1D5DB'
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: '0 10px 30px -8px rgba(59, 130, 246, 0.15)',
+                      borderColor: '#3B82F6'
+                    },
+                    '& input': {
+                      padding: '12px 16px 12px 45px',
+                      fontSize: '14px',
+                      color: '#1F2937',
+                      '&::placeholder': {
+                        color: '#9CA3AF',
+                        opacity: 1
+                      }
+                    }
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      left: 16, 
+                      zIndex: 1,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}>
+                      <SearchIcon sx={{ color: '#6B7280', fontSize: 18 }} />
+                    </Box>
+                  )
+                }}
+              />
+            </Box>
+            
+            <Button 
+              variant="contained" 
+              onClick={handleSearch}
+              disabled={searchLoading || !searchQuery.trim()}
+              sx={{ 
+                borderRadius: '20px',
+                backgroundColor: '#000000',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                minWidth: 'auto',
+                height: '44px',
+                '&:hover': {
+                  backgroundColor: '#1F2937'
+                },
+                '&:disabled': {
+                  backgroundColor: '#E5E7EB',
+                  color: '#9CA3AF'
+                }
+              }}
+            >
+              {searchLoading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
+              Search
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              onClick={handleClearSearch}
+              sx={{ 
+                borderRadius: '20px',
+                borderColor: '#000000',
+                color: '#000000',
+                backgroundColor: 'white',
+                fontSize: '14px',
+                fontWeight: 500,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                minWidth: 'auto',
+                height: '44px',
+                '&:hover': {
+                  borderColor: '#1F2937',
+                  backgroundColor: '#F9FAFB',
+                  color: '#1F2937'
+                }
+              }}
+            >
+              Reset
+            </Button>
+          </Box>
+
+          {/* Results Header */}
+          <Typography variant="h5" sx={{ 
+            color: '#1F2937', 
+            mb: 3, 
+            textAlign: 'center',
+            fontWeight: 600 
+          }}>
             Search Results ({searchResults.length})
           </Typography>
+
+          {/* Results Grid */}
           <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
             {searchResults.map((post) => (
               <Card
