@@ -55,16 +55,32 @@ const Dashboard: React.FC = () => {
   const highlightText = (input: string) => {
     if (!searchQuery.trim()) return input;
     const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
-    const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+    
+    // Create patterns for each term including variations
+    const patterns = terms.map(term => {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match the term with optional word boundaries and partial matches
+      return `(${escaped}\\w*|\\w*${escaped}\\w*|${escaped})`;
+    });
+    
+    const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
     const parts = input.split(regex);
-    return parts.map((part, i) => (
-      regex.test(part) ? (
-        <mark key={i} style={{ backgroundColor: 'yellow', padding: 0 }}>{part}</mark>
+    
+    return parts.map((part, i) => {
+      if (!part) return <React.Fragment key={i}></React.Fragment>;
+      
+      // Check if this part contains any of our search terms
+      const shouldHighlight = terms.some(term => 
+        part.toLowerCase().includes(term.toLowerCase()) ||
+        term.toLowerCase().includes(part.toLowerCase())
+      );
+      
+      return shouldHighlight ? (
+        <mark key={i} style={{ backgroundColor: '#FFEB3B', padding: '0 2px', borderRadius: '2px' }}>{part}</mark>
       ) : (
         <React.Fragment key={i}>{part}</React.Fragment>
-      )
-    ));
+      );
+    });
   };
 
   const handlePostClick = (postId: number) => {
