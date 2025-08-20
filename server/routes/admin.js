@@ -377,6 +377,47 @@ router.post('/ingest-wordpress-incremental',
   }
 );
 
+// Direct ingest endpoint - receives WordPress data directly
+router.post('/ingest-direct', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('direct_wordpress_ingest'),
+  async (req, res) => {
+    try {
+      console.log('Starting direct WordPress data ingest...');
+      const { posts, categories, timestamp, source } = req.body;
+      
+      if (!posts || !Array.isArray(posts)) {
+        return res.status(400).json({ 
+          error: 'Invalid data format',
+          details: 'Posts array is required'
+        });
+      }
+      
+      console.log(`Received ${posts.length} posts and ${categories?.length || 0} categories from ${source}`);
+      
+      const result = await wpService.ingestDirectData(posts, categories || []);
+      
+      res.json({
+        message: 'Direct WordPress ingest completed successfully',
+        result: {
+          postsProcessed: posts.length,
+          categoriesProcessed: categories?.length || 0,
+          timestamp: new Date(),
+          source: source
+        }
+      });
+    } catch (error) {
+      console.error('Direct WordPress ingest error:', error);
+      res.status(500).json({ 
+        error: 'Direct WordPress ingest failed',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  }
+);
+
 // Purge expired data
 router.post('/purge-expired', 
   authenticateToken, 

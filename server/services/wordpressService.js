@@ -425,6 +425,125 @@ class WordPressService {
     }
   }
 
+  async ingestDirectData(posts, categories) {
+    try {
+      console.log(`Processing direct data: ${posts.length} posts, ${categories.length} categories`);
+      
+      let categoriesIngested = 0;
+      let postsIngested = 0;
+      
+      // Process categories first
+      for (const category of categories) {
+        try {
+          await pool.query(`
+            INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (wp_category_id)
+            DO UPDATE SET
+              name = EXCLUDED.name,
+              slug = EXCLUDED.slug,
+              parent_id = EXCLUDED.parent_id,
+              post_count = EXCLUDED.post_count,
+              updated_at = NOW()
+          `, [
+            category.id,
+            category.name,
+            category.slug,
+            category.parent || null,
+            category.count || 0
+          ]);
+          categoriesIngested++;
+        } catch (catError) {
+          console.error(`Error processing category ${category.id}:`, catError.message);
+        }
+      }
+      
+      // Process posts
+      for (const post of posts) {
+        try {
+          const retentionDate = new Date();
+          retentionDate.setDate(retentionDate.getDate() + parseInt(this.retentionDays));
+
+          // Get category ID from our local database
+          let categoryId = null;
+          if (post.categories && post.categories.length > 0) {
+            const categoryResult = await pool.query(
+              'SELECT id FROM categories WHERE wp_category_id = $1',
+              [post.categories[0]]
+            );
+            if (categoryResult.rows.length > 0) {
+              categoryId = categoryResult.rows[0].id;
+            }
+          }
+
+          await pool.query(`
+            INSERT INTO posts (
+              wp_post_id, title, content, excerpt, slug, status,
+              wp_author_id, author_name, wp_published_date, wp_modified_date,
+              retention_date, category_id, metadata
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            ON CONFLICT (wp_post_id)
+            DO UPDATE SET
+              title = EXCLUDED.title,
+              content = EXCLUDED.content,
+              excerpt = EXCLUDED.excerpt,
+              wp_modified_date = EXCLUDED.wp_modified_date,
+              category_id = EXCLUDED.category_id,
+              metadata = EXCLUDED.metadata,
+              updated_at = NOW()
+          `, [
+            post.id,
+            post.title?.rendered || post.title,
+            post.content?.rendered || post.content,
+            post.excerpt?.rendered || post.excerpt,
+            post.slug,
+            post.status,
+            post.author,
+            post.author_name || 'Unknown',
+            new Date(post.date),
+            new Date(post.modified),
+            retentionDate,
+            categoryId,
+            JSON.stringify({
+              featured_media: post.featured_media,
+              tags: post.tags,
+              sticky: post.sticky,
+              format: post.format
+            })
+          ]);
+
+          postsIngested++;
+        } catch (postError) {
+          console.error(`Error processing post ${post.id}:`, postError.message);
+        }
+      }
+      
+      // Update category post counts
+      if (postsIngested > 0) {
+        await pool.query(`
+          UPDATE categories 
+          SET post_count = (
+            SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
+          ),
+          updated_at = NOW()
+        `);
+      }
+      
+      console.log(`Direct ingest complete: ${categoriesIngested} categories, ${postsIngested} posts`);
+      
+      return {
+        categoriesIngested,
+        postsIngested,
+        timestamp: new Date(),
+        type: 'direct'
+      };
+    } catch (error) {
+      console.error('Direct ingest failed:', error);
+      throw error;
+    }
+  }
+
   async purgeExpiredData() {
     try {
       console.log('Purging expired data...');
