@@ -112,6 +112,10 @@ const Header: React.FC = () => {
           <IconButton color="inherit" onClick={toggle} aria-label="toggle theme">
             {mode === 'light' ? <DarkMode /> : <LightMode />}
           </IconButton>
+          {/* Debug: Show user info */}
+          <Box sx={{ color: 'red', fontSize: '12px' }}>
+            User: {user ? `${user.username} (${user.role})` : 'null'}
+          </Box>
           {user && <NotificationBell />}
           {user && (
             <>

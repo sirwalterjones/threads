@@ -152,8 +152,10 @@ const Dashboard: React.FC = () => {
 
   const loadManualPosts = async () => {
     try {
+      console.log('Loading manual posts...'); // Debug
       setManualPostsLoading(true);
       const response = await apiService.getPosts({ mine: true, limit: 12, sortBy: 'ingested_at', sortOrder: 'DESC' });
+      console.log('Manual posts response:', response); // Debug
       setManualPosts(response.posts);
     } catch (error) {
       console.error('Failed to load manual posts:', error);

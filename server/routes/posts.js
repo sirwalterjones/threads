@@ -105,6 +105,9 @@ router.get('/',
   authenticateToken,
   async (req, res) => {
     try {
+      console.log('Posts route called with user:', req.user); // Debug
+      console.log('Query params:', req.query); // Debug
+      
       const {
         page = 1,
         limit = 20,
