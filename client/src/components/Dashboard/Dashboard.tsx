@@ -78,7 +78,9 @@ const Dashboard: React.FC = () => {
 
   const highlightText = (input: string) => {
     if (!searchQuery.trim()) return input;
-    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+    const terms = (searchQuery.match(/\"[^\"]+\"|\S+/g) || [])
+      .map(t => t.replace(/^\"|\"$/g, ''))
+      .filter(t => t && !t.includes(':'));
     
     // Create a single pattern for all terms with word variations
     const patterns = terms.map(term => {

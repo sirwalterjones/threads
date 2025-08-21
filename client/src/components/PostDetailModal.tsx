@@ -294,11 +294,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                   // Strip download attributes on links to prevent forced download
                   rewritten = rewritten.replace(/\sdownload(=\"[^\"]*\"|='[^']*'|)/gi, '');
                   let sanitized = DOMPurify.sanitize(rewritten);
-                  // Highlight terms in sanitized HTML
+                  // Highlight terms in sanitized HTML, but only inside text nodes (not attributes)
                   if (highlightTerms.length) {
                     const escaped = highlightTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
                     const re = new RegExp(`(${escaped.join('|')})`, 'gi');
-                    sanitized = sanitized.replace(re, '<mark style="background-color: yellow; padding:0;">$1</mark>');
+                    sanitized = sanitized.replace(/>([^<]+)</g, (m, text) => {
+                      const replaced = text.replace(re, '<mark style="background-color: yellow; padding:0;">$1</mark>');
+                      return '>' + replaced + '<';
+                    });
                   }
                   return sanitized;
                 })() }}
