@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useThemeMode } from '../../contexts/ThemeModeContext';
 import NewPostModal from '../NewPostModal';
+import NotificationBell from '../Notifications/NotificationBell';
 import apiService from '../../services/api';
 
 const Header: React.FC = () => {
@@ -111,6 +112,7 @@ const Header: React.FC = () => {
           <IconButton color="inherit" onClick={toggle} aria-label="toggle theme">
             {mode === 'light' ? <DarkMode /> : <LightMode />}
           </IconButton>
+          {user && <NotificationBell />}
           {user && (
             <>
               <Chip

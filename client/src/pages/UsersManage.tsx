@@ -33,7 +33,10 @@ const UsersManage: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    apiService.getUsers().then(setUsers).catch((e:any)=> setError(e?.response?.data?.error || 'Failed to load users'));
+    apiService.getUsers().then((data) => {
+      // Ensure we always get an array
+      setUsers(Array.isArray(data) ? data : []);
+    }).catch((e:any)=> setError(e?.response?.data?.error || 'Failed to load users'));
   }, []);
 
   const handleCreate = async () => {

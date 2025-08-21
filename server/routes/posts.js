@@ -167,10 +167,11 @@ router.get('/',
         whereConditions.push(`wp_post_id IS NULL`);
       }
 
-      // Handle mine filter - only show manually created posts
-      if (mine === 'true') {
-        // Show only posts that were created manually (not from WordPress)
-        whereConditions.push(`p.wp_post_id IS NULL`);
+      // Handle mine filter - only show current user's posts
+      if (mine === 'true' && req.user) {
+        // Show only posts created by the current user
+        whereConditions.push(`p.author_name = $${queryParams.length + 1}`);
+        queryParams.push(req.user.username);
       }
 
       // Build the WHERE clause
