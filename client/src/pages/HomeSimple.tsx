@@ -97,7 +97,7 @@ const HomeSimple: React.FC = () => {
           ...(mineOnly ? { mine: true } as any : {})
         }),
         categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
-        authors.length === 0 ? apiService.getAuthors() : Promise.resolve({ authors })
+        authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors })
       ]);
 
       setPosts(postsResponse.posts);
