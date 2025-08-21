@@ -203,27 +203,34 @@ const CategoriesManage: React.FC = () => {
                 }}
                 sx={{ 
                   '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#0F1115',
                     '& fieldset': { borderColor: '#2F3336' },
                     '&:hover fieldset': { borderColor: '#1D9BF0' },
-                    '&.Mui-focused fieldset': { borderColor: '#1D9BF0' }
+                    '&.Mui-focused fieldset': { borderColor: '#1D9BF0' },
+                    '& input': {
+                      color: '#E7E9EA',
+                      '::placeholder': { color: '#9CA3AF', opacity: 1 }
+                    }
                   },
-                  '& .MuiInputLabel-root': { color: '#71767B' }
+                  '& .MuiInputLabel-root': { color: '#9CA3AF' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' }
                 }}
               />
             </Box>
           </Box>
           
           {/* Sort Controls */}
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap', color: '#E7E9EA' }}>
             <Box sx={{ minWidth: 200 }}>
               <FormControl fullWidth>
-                <InputLabel sx={{ color: '#71767B' }}>Sort by</InputLabel>
+                <InputLabel sx={{ color: '#9CA3AF' }}>Sort by</InputLabel>
                 <Select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
                   label="Sort by"
                   sx={{ 
                     color: '#E7E9EA',
+                    backgroundColor: '#0F1115',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }
@@ -237,13 +244,14 @@ const CategoriesManage: React.FC = () => {
             </Box>
             <Box sx={{ minWidth: 200 }}>
               <FormControl fullWidth>
-                <InputLabel sx={{ color: '#71767B' }}>Order</InputLabel>
+                <InputLabel sx={{ color: '#9CA3AF' }}>Order</InputLabel>
                 <Select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as any)}
                   label="Order"
                   sx={{ 
                     color: '#E7E9EA',
+                    backgroundColor: '#0F1115',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }

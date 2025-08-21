@@ -52,6 +52,7 @@ const HomeSimple: React.FC = () => {
   const location = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [authors, setAuthors] = useState<Array<{ name: string; totalPosts: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,7 +80,7 @@ const HomeSimple: React.FC = () => {
   const loadData = async (page = 1, filters: SearchFilters = {}) => {
     try {
       setLoading(true);
-      const [postsResponse, categoriesResponse] = await Promise.all([
+      const [postsResponse, categoriesResponse, authorsResponse] = await Promise.all([
         apiService.getPosts({
           page,
           limit: 12,
@@ -94,13 +95,17 @@ const HomeSimple: React.FC = () => {
           ...(origin !== 'all' ? { origin } as any : {}),
           ...(mineOnly ? { mine: true } as any : {})
         }),
-        categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories)
+        categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
+        authors.length === 0 ? apiService.getAuthors() : Promise.resolve({ authors })
       ]);
 
       setPosts(postsResponse.posts);
       setTotalPages(postsResponse.pagination.pages);
       if (categories.length === 0) {
         setCategories(categoriesResponse as Category[]);
+      }
+      if (authors.length === 0) {
+        setAuthors(authorsResponse.authors);
       }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Failed to load data');
@@ -669,15 +674,25 @@ const HomeSimple: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Author"
-                placeholder="Filter by author"
-                value={authorFilter}
-                onChange={(e) => setAuthorFilter(e.target.value)}
-                InputProps={{ startAdornment: (<InputAdornment position="start"><Person /></InputAdornment>) }}
-              />
+              <FormControl fullWidth>
+                <InputLabel>Author</InputLabel>
+                <Select
+                  value={authorFilter}
+                  label="Author"
+                  onChange={(e) => {
+                    setAuthorFilter(e.target.value);
+                    setCurrentPage(1);
+                    loadData(1, { author: e.target.value, ...(origin !== 'all' ? { origin } as any : {}), ...(mineOnly ? { mine: true } as any : {}) });
+                  }}
+                >
+                  <MenuItem value="">All Authors</MenuItem>
+                  {authors.map((author) => (
+                    <MenuItem key={author.name} value={author.name}>
+                      {author.name} ({author.totalPosts} posts)
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <TextField
                 fullWidth

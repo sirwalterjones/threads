@@ -287,6 +287,11 @@ class ApiService {
     return response.data;
   }
 
+  async getAuthors(): Promise<{ authors: Array<{ name: string; totalPosts: number; wordpressPosts: number; manualPosts: number }> }> {
+    const response = await axios.get(`${API_BASE_URL}/posts/authors`);
+    return response.data;
+  }
+
   // Enhanced Audit Logging
   async logAuditEvents(events: any[]): Promise<{ success: boolean }> {
     const response = await axios.post(`${API_BASE_URL}/audit/bulk`, {
