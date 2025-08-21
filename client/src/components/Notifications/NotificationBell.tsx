@@ -26,6 +26,8 @@ const NotificationBell: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
 
+  console.log('NotificationBell component rendered'); // Debug log
+
   const loadNotifications = async () => {
     try {
       const data = await apiService.getNotifications();
@@ -93,7 +95,11 @@ const NotificationBell: React.FC = () => {
       <IconButton
         color="inherit"
         onClick={handleClick}
-        sx={{ color: '#E7E9EA' }}
+        sx={{ 
+          color: '#E7E9EA',
+          border: '1px solid red', // Debug border
+          backgroundColor: 'rgba(255, 0, 0, 0.1)' // Debug background
+        }}
       >
         <Badge badgeContent={unreadCount} color="error">
           {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
