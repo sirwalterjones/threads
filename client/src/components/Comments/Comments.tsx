@@ -110,7 +110,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     }
   };
 
-  const startEditing = (comment: Comment) => {
+  const startEditing = (comment: PostComment) => {
     setEditingComment(comment);
     setEditContent(comment.content);
   };
