@@ -395,20 +395,19 @@ router.post('/ingest-direct',
       }
       
       console.log(`Received ${posts.length} posts and ${categories?.length || 0} categories from ${source}`);
+      console.log('Sample post data:', JSON.stringify(posts[0], null, 2));
       
       const result = await wpService.ingestDirectData(posts, categories || []);
       
+      console.log('Ingest result:', result);
+      
       res.json({
         message: 'Direct WordPress ingest completed successfully',
-        result: {
-          postsProcessed: posts.length,
-          categoriesProcessed: categories?.length || 0,
-          timestamp: new Date(),
-          source: source
-        }
+        result: result
       });
     } catch (error) {
       console.error('Direct WordPress ingest error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ 
         error: 'Direct WordPress ingest failed',
         details: error.message,
