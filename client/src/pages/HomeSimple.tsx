@@ -30,7 +30,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  Badge
+  Badge,
+  Autocomplete
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -648,17 +649,20 @@ const HomeSimple: React.FC = () => {
 
             {/* Uniform filter grid */}
             <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-              <FormControl fullWidth>
-                <InputLabel>Category</InputLabel>
-                <Select value={selectedCategory} label="Category" onChange={(e) => handleCategoryFilter(e.target.value)}>
-                  <MenuItem value="">All Categories</MenuItem>
-                  {categories.map((category) => (
-                    <MenuItem key={category.id} value={category.id.toString()}>
-                      {category.parent_name ? `${category.parent_name} › ${category.name}` : category.name} ({category.post_count})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+                fullWidth
+                options={[{ id: '', name: 'All Categories', post_count: 0, parent_name: null }, ...categories]}
+                getOptionLabel={(option) => 
+                  option.id === '' ? 'All Categories' : 
+                  `${option.parent_name ? `${option.parent_name} › ` : ''}${option.name} (${option.post_count})`
+                }
+                value={categories.find(c => c.id.toString() === selectedCategory) || { id: '', name: 'All Categories', post_count: 0, parent_name: null }}
+                onChange={(_, newValue) => {
+                  handleCategoryFilter(newValue?.id?.toString() || '');
+                }}
+                renderInput={(params) => <TextField {...params} label="Category" />}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
 
               <FormControl fullWidth>
                 <InputLabel>Origin</InputLabel>
