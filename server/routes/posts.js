@@ -3,9 +3,34 @@ const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
-// Debug endpoint to check database content
+// Debug endpoint to check database content - no auth required
 router.get('/debug', async (req, res) => {
   try {
+    console.log('Debug endpoint called - checking database content...');
+    
+    // Check if posts table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'posts'
+      );
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      return res.json({
+        error: 'Posts table does not exist',
+        tableExists: false
+      });
+    }
+    
+    // Get table structure
+    const structureResult = await pool.query(`
+      SELECT column_name, data_type, is_nullable
+      FROM information_schema.columns 
+      WHERE table_name = 'posts'
+      ORDER BY ordinal_position
+    `);
+    
     // Simple query to see what's in the posts table
     const result = await pool.query(`
       SELECT 
@@ -17,8 +42,10 @@ router.get('/debug', async (req, res) => {
     `);
     
     res.json({
+      tableExists: true,
       totalPosts: result.rows.length,
       posts: result.rows,
+      tableStructure: structureResult.rows,
       message: 'Debug query successful'
     });
   } catch (error) {
