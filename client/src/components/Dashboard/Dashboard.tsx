@@ -340,170 +340,124 @@ const Dashboard: React.FC = () => {
         </Box>
       </Box>
 
-
-
-      {/* Central Search Bar - Primary Focus */}
-      {searchResults.length === 0 && (
-        <Box sx={{ 
-          mb: 4, 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          minHeight: '40vh',
-          flexDirection: 'column',
-          px: 4
-        }}>
-          <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
-                          <Typography variant="h2" sx={{ 
-                color: '#E7E9EA', 
-                textAlign: 'center', 
-                mb: 2,
-                fontWeight: 700,
-                fontSize: { xs: '2rem', md: '2.5rem' }
-              }}>
-                Search Vector
-              </Typography>
-            
-            <Box sx={{ 
-              position: 'relative',
-              width: '100%',
-              maxWidth: '700px',
-              margin: '0 auto'
-            }}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder=""
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '50px',
-                    backgroundColor: '#16181C',
-                    fontSize: '20px',
-                    height: '56px',
-                    border: '1px solid #2F3336',
-              '&:hover': {
-                borderColor: '#1D9BF0'
-              },
-              '&.Mui-focused': {
-                borderColor: '#1D9BF0',
-                backgroundColor: '#000000'
-              },
-              '& fieldset': {
-                border: 'none'
-              },
-              '& input': {
-                padding: '16px 24px 16px 60px',
-                fontSize: '20px',
-                color: '#E7E9EA',
-                '&::placeholder': {
-                  color: '#71767B',
-                  opacity: 1
-                }
-              }
-            }
-          }}
-          InputProps={{
-            startAdornment: (
-              <Box sx={{ 
-                position: 'absolute', 
-                left: 20, 
-                zIndex: 1,
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                <SearchIcon sx={{ color: '#71767B', fontSize: 24 }} />
-              </Box>
-            ),
-            endAdornment: searchQuery && (
-              <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
-                <IconButton 
-                  onClick={handleClearSearch}
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <Box sx={{ mb: 4, px: 3 }}>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 2,
+            maxWidth: '100%', 
+            mx: 'auto',
+            overflow: 'hidden'
+          }}>
+            {searchResults.map((post) => (
+              <Box key={post.id}>
+                <Card 
                   sx={{ 
-                    color: '#6B7280',
-                    '&:hover': { color: '#374151' }
+                    height: '100%',
+                    backgroundColor: '#16181C',
+                    border: '1px solid #2F3336',
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    },
                   }}
+                  onClick={() => handlePostClick(post.id)}
                 >
-                  <ClearIcon />
-                </IconButton>
+                  <CardContent>
+                    {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
+                    {post.attachments && post.attachments.length > 0 ? (
+                      <MediaGallery attachments={post.attachments} maxHeight={120} />
+                    ) : (() => {
+                      const imageUrls = extractImageUrls(post.content).slice(0, 3);
+                      if (imageUrls.length === 0) return null;
+                      return (
+                        <Box sx={{ mb: 1, display: 'flex', gap: 0.5, overflowX: 'auto', pb: 0.5 }}>
+                          {imageUrls.map((url, idx) => (
+                            <img
+                              key={idx}
+                              src={resolveContentImageUrl(url)}
+                              alt={`Post image ${idx + 1}`}
+                              style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: '4px', flex: '0 0 auto' }}
+                              onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                            />
+                          ))}
+                        </Box>
+                      );
+                    })()}
+                    
+                    <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
+                      {highlightText(stripHtmlTags(post.title))}
+                    </Typography>
+                    
+                    {(() => {
+                      const raw = post.excerpt && post.excerpt.trim().length > 0 
+                        ? post.excerpt 
+                        : (post.content || '');
+                      const text = stripHtmlTags(raw);
+                      if (!text) return null;
+                      return (
+                        <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
+                          {highlightText(text.substring(0, 80))}...
+                        </Typography>
+                      );
+                    })()}
+
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                      {post.category_name && (
+                        <Chip 
+                          size="small" 
+                          label={post.category_name} 
+                          color="primary"
+                          variant="outlined"
+                          sx={{ fontSize: '0.75rem' }}
+                        />
+                      )}
+                      <Chip 
+                        size="small" 
+                        label={post.author_name} 
+                        color="secondary"
+                        variant="outlined"
+                        sx={{ fontSize: '0.75rem' }}
+                      />
+                      <Chip 
+                        size="small" 
+                        label={format(new Date(post.wp_published_date || post.ingested_at), 'MMM d, yyyy')} 
+                        color="default"
+                        variant="outlined"
+                        sx={{ fontSize: '0.75rem' }}
+                      />
+                    </Box>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePostClick(post.id);
+                      }}
+                      sx={{
+                        borderColor: '#1D9BF0',
+                        color: '#1D9BF0',
+                        '&:hover': {
+                          borderColor: '#1A8CD8',
+                          backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                        }
+                      }}
+                    >
+                      View
+                    </Button>
+                  </CardContent>
+                </Card>
               </Box>
-            )
-          }}
-        />
-        
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          gap: 2, 
-          mt: 4 
-        }}>
-          <Button 
-            variant="contained" 
-            onClick={handleSearch}
-            disabled={searchLoading || !searchQuery.trim()}
-            size="large"
-            sx={{ 
-              borderRadius: '50px',
-              backgroundColor: '#1D9BF0',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 700,
-              px: 6,
-              py: 1.5,
-              textTransform: 'none',
-              border: '1px solid #1D9BF0',
-              '&:hover': {
-                backgroundColor: '#1A8CD8'
-              },
-              '&:disabled': {
-                backgroundColor: '#2F3336',
-                color: '#71767B',
-                borderColor: '#2F3336'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
-            Search
-          </Button>
-          
-          <Button 
-            variant="contained" 
-            onClick={handleClearSearch}
-            disabled={!searchQuery && searchResults.length === 0}
-            size="large"
-            sx={{ 
-              borderRadius: '25px',
-              backgroundColor: '#000000',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 500,
-              px: 3,
-              py: 1.5,
-              textTransform: 'none',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-              '&:hover': {
-                backgroundColor: '#1F2937',
-                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
-                transform: 'translateY(-1px)'
-              },
-              '&:disabled': {
-                backgroundColor: '#E5E7EB',
-                color: '#9CA3AF',
-                boxShadow: 'none'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            Clear
-          </Button>
+            ))}
+          </Box>
         </Box>
-      </Box>
-    </Box>
-  </Box>
-)}
+      )}
 
 {/* Manual Posts Grid - Show when no search results */}
 {searchResults.length === 0 && manualPosts.length > 0 && (
