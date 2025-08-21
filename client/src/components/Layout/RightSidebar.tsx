@@ -142,8 +142,11 @@ const RightSidebar: React.FC = () => {
               return (
               <Box key={thread.id}>
                 {header !== prev && (
-                  <Box sx={{ px: 1.25, py: 0.5, color: '#9CA3AF', fontSize: '11px', position: 'sticky', top: 0, backgroundColor: '#16181C', zIndex: 1 }}>
-                    {header}
+                  <Box sx={{ px: 1.25, pt: 0.75, pb: 0.25, position: 'sticky', top: 0, backgroundColor: '#16181C', zIndex: 1 }}>
+                    <Typography sx={{ color: '#E7E9EA', fontWeight: 700, fontSize: '12px' }}>
+                      {header}
+                    </Typography>
+                    <Box sx={{ mt: 0.5, height: '1px', backgroundColor: '#2F3336', width: '100%' }} />
                   </Box>
                 )}
               <ListItem disablePadding>
