@@ -402,8 +402,9 @@ const CategoriesManage: React.FC = () => {
       {/* Search and Filter Section */}
       <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
         <CardContent>
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
+          {/* Centered Search Field */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <Box sx={{ width: { xs: '100%', sm: '80%', md: '60%', lg: '50%' } }}>
               <TextField
                 fullWidth
                 variant="outlined"
@@ -435,8 +436,12 @@ const CategoriesManage: React.FC = () => {
                   '& .MuiInputLabel-root': { color: '#71767B' }
                 }}
               />
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
+            </Box>
+          </Box>
+          
+          {/* Sort Controls */}
+          <Grid container spacing={3} justifyContent="center">
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#71767B' }}>Sort by</InputLabel>
                 <Select
@@ -456,7 +461,7 @@ const CategoriesManage: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#71767B' }}>Order</InputLabel>
                 <Select

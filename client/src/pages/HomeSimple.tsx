@@ -342,19 +342,20 @@ const HomeSimple: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 3 }}>
+    <Container maxWidth="lg" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ py: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Dashboard-style Search Interface */}
         {posts.length === 0 && !loading && (
           <Box sx={{ 
-            mb: 6, 
             display: 'flex', 
             justifyContent: 'center', 
             alignItems: 'center',
-            minHeight: '50vh',
-            flexDirection: 'column'
+            minHeight: '80vh',
+            flexDirection: 'column',
+            width: '100%',
+            flex: 1
           }}>
-            <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+            <Box sx={{ width: '100%', maxWidth: '900px', textAlign: 'center', px: 2 }}>
               <Typography variant="h2" sx={{ 
                 color: '#1F2937', 
                 textAlign: 'center', 
@@ -368,8 +369,11 @@ const HomeSimple: React.FC = () => {
               <Box sx={{ 
                 position: 'relative',
                 width: '100%',
-                maxWidth: '700px',
-                margin: '0 auto'
+                maxWidth: '800px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
               }}>
                 <TextField
                   fullWidth
