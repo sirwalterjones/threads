@@ -179,6 +179,14 @@ const Dashboard: React.FC = () => {
     setSearchResults([]);
   };
 
+  // Terms to highlight inside PostDetailModal and snippets (ignore filter tokens like author:)
+  const modalHighlightTerms = React.useMemo(() => {
+    const tokens = (searchQuery.match(/\"[^\"]+\"|\S+/g) || [])
+      .map(t => t.replace(/^\"|\"$/g, ''))
+      .filter(t => t && !t.includes(':'));
+    return tokens;
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -701,6 +709,7 @@ const Dashboard: React.FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         postId={selectedPostId}
+        highlightTerms={modalHighlightTerms}
       />
     </Box>
   );
