@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
 
       {/* Dashboard Stats Cards removed */}
 
-      {/* Search Bar */}
+      {/* Search Bar with Buttons */}
       <Box sx={{ mb: 4, px: 3 }}>
         <Box sx={{ 
           position: 'relative',
@@ -323,22 +323,78 @@ const Dashboard: React.FC = () => {
                 }}>
                   <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
                 </Box>
-              ),
-              endAdornment: searchQuery && (
-                <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
-                  <IconButton 
-                    onClick={handleClearSearch}
-                    sx={{ 
-                      color: '#6B7280',
-                      '&:hover': { color: '#374151' }
-                    }}
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                </Box>
               )
             }}
           />
+          
+          {/* Search and Clear Buttons */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: 2, 
+            mt: 2 
+          }}>
+            <Button 
+              variant="contained" 
+              onClick={handleSearch}
+              disabled={searchLoading || !searchQuery.trim()}
+              size="large"
+              sx={{ 
+                borderRadius: '50px',
+                backgroundColor: '#1D9BF0',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 700,
+                px: 6,
+                py: 1.5,
+                textTransform: 'none',
+                border: '1px solid #1D9BF0',
+                '&:hover': {
+                  backgroundColor: '#1A8CD8'
+                },
+                '&:disabled': {
+                  backgroundColor: '#2F3336',
+                  color: '#71767B',
+                  borderColor: '#2F3336'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+              Search
+            </Button>
+            
+            <Button 
+              variant="contained" 
+              onClick={handleClearSearch}
+              disabled={!searchQuery && searchResults.length === 0}
+              size="large"
+              sx={{ 
+                borderRadius: '25px',
+                backgroundColor: '#000000',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 500,
+                px: 3,
+                py: 1.5,
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                  backgroundColor: '#1F2937',
+                  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                  transform: 'translateY(-1px)'
+                },
+                '&:disabled': {
+                  backgroundColor: '#E5E7EB',
+                  color: '#9CA3AF',
+                  boxShadow: 'none'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
         </Box>
       </Box>
 
