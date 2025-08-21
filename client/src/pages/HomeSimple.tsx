@@ -316,6 +316,27 @@ const HomeSimple: React.FC = () => {
     setSelectedPostId(null);
   };
 
+  // When filters change and results are shown, auto-refresh results (debounced)
+  useEffect(() => {
+    if (loading) return;
+    if (posts.length === 0) return; // only auto-update after initial results exist
+    const debounce = setTimeout(() => {
+      loadData(1, {
+        ...(selectedCategory ? { category: selectedCategory } as any : {}),
+        ...(authorFilter ? { author: authorFilter } as any : {}),
+        ...(dateFromFilter ? { dateFrom: dateFromFilter } as any : {}),
+        ...(dateToFilter ? { dateTo: dateToFilter } as any : {}),
+        ...(origin !== 'all' ? { origin } as any : {}),
+        ...(mineOnly ? { mine: true } as any : {}),
+        sortBy,
+        sortOrder
+      });
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(debounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, authorFilter, dateFromFilter, dateToFilter, origin, mineOnly, sortBy, sortOrder]);
+
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
