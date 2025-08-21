@@ -52,20 +52,23 @@ const Login: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             padding: 4,
-            backgroundColor: '#1a1a1a',
+            backgroundColor: '#1f1f1f',
             borderRadius: 3,
-            border: '1px solid #333',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+            border: '2px solid #444444',
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)'
           }}
         >
           <Typography 
             component="h1" 
-            variant="h4" 
+            variant="h3" 
             sx={{ 
-              fontWeight: 600,
+              fontWeight: 700,
               color: '#ffffff',
               mb: 4,
-              textAlign: 'center'
+              textAlign: 'center',
+              fontSize: '2.5rem',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+              letterSpacing: '0.02em'
             }}
           >
             Threads
@@ -106,22 +109,47 @@ const Login: React.FC = () => {
               sx={{ 
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#2a2a2a',
+                  backgroundColor: '#333333',
                   color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 500,
                   '& fieldset': {
-                    borderColor: '#444'
+                    borderColor: '#555555',
+                    borderWidth: '2px'
                   },
                   '&:hover fieldset': {
-                    borderColor: '#666'
+                    borderColor: '#777777'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#ffffff'
+                    borderColor: '#ffffff',
+                    borderWidth: '2px'
+                  },
+                  '& input': {
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    padding: '14px 16px',
+                    '&::placeholder': {
+                      color: '#cccccc',
+                      opacity: 1
+                    },
+                    '&:-webkit-autofill': {
+                      WebkitBoxShadow: '0 0 0 1000px #333333 inset',
+                      WebkitTextFillColor: '#ffffff',
+                      transition: 'background-color 5000s ease-in-out 0s'
+                    }
                   }
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#aaa'
+                  color: '#cccccc',
+                  fontSize: '16px',
+                  fontWeight: 500
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#ffffff',
+                  fontWeight: 600
+                },
+                '& .MuiInputLabel-root.MuiInputLabel-shrink': {
                   color: '#ffffff'
                 }
               }}
@@ -141,22 +169,47 @@ const Login: React.FC = () => {
               sx={{ 
                 mb: 3,
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#2a2a2a',
+                  backgroundColor: '#333333',
                   color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 500,
                   '& fieldset': {
-                    borderColor: '#444'
+                    borderColor: '#555555',
+                    borderWidth: '2px'
                   },
                   '&:hover fieldset': {
-                    borderColor: '#666'
+                    borderColor: '#777777'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#ffffff'
+                    borderColor: '#ffffff',
+                    borderWidth: '2px'
+                  },
+                  '& input': {
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    padding: '14px 16px',
+                    '&::placeholder': {
+                      color: '#cccccc',
+                      opacity: 1
+                    },
+                    '&:-webkit-autofill': {
+                      WebkitBoxShadow: '0 0 0 1000px #333333 inset',
+                      WebkitTextFillColor: '#ffffff',
+                      transition: 'background-color 5000s ease-in-out 0s'
+                    }
                   }
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#aaa'
+                  color: '#cccccc',
+                  fontSize: '16px',
+                  fontWeight: 500
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#ffffff',
+                  fontWeight: 600
+                },
+                '& .MuiInputLabel-root.MuiInputLabel-shrink': {
                   color: '#ffffff'
                 }
               }}
@@ -167,19 +220,27 @@ const Login: React.FC = () => {
               variant="contained"
               size="large"
               sx={{ 
-                mt: 1, 
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 600,
+                mt: 2, 
+                py: 2,
+                fontSize: '1.1rem',
+                fontWeight: 700,
                 backgroundColor: '#ffffff',
                 color: '#000000',
+                borderRadius: 2,
+                textTransform: 'none',
+                letterSpacing: '0.5px',
+                boxShadow: '0 4px 12px rgba(255, 255, 255, 0.2)',
                 '&:hover': {
-                  backgroundColor: '#f0f0f0'
+                  backgroundColor: '#f0f0f0',
+                  boxShadow: '0 6px 16px rgba(255, 255, 255, 0.3)',
+                  transform: 'translateY(-1px)'
                 },
                 '&:disabled': {
-                  backgroundColor: '#666',
-                  color: '#999'
-                }
+                  backgroundColor: '#555555',
+                  color: '#aaaaaa',
+                  boxShadow: 'none'
+                },
+                transition: 'all 0.2s ease-in-out'
               }}
               disabled={loading || !username || !password}
             >
