@@ -38,6 +38,15 @@ const auditService = {
     } catch {}
   },
   
+  async trackCreate(type: 'post'|'category', id: string | number, data?: any) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'CREATE',
+        meta: { type, id, data }
+      });
+    } catch {}
+  },
+  
   async trackLogin(username: string) {
     try {
       await axios.post(`${API_BASE_URL}/audit/log`, {
