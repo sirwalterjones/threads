@@ -117,25 +117,52 @@ const CategoriesManage: React.FC = () => {
       setError(''); // Clear any previous errors
       console.log('Attempting to load posts for category:', selectedCategory.name, selectedCategory.slug);
       
-      // Try category filter first, but fall back to showing a message if it fails
+      // Try category filter with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 8000)
+      );
+      
       try {
-        const data = await apiService.getPosts({
+        const dataPromise = apiService.getPosts({
           page: postsPage,
           limit: postsPerPage,
           search: postsSearch || undefined,
           category: selectedCategory.slug // Use category slug for filtering
         });
         
+        const data = await Promise.race([dataPromise, timeoutPromise]);
         console.log('Loaded posts:', data);
-        setCategoryPosts(data.posts || []);
-        setPostsTotal(data.pagination?.total || 0);
+        setCategoryPosts((data as any).posts || []);
+        setPostsTotal((data as any).pagination?.total || 0);
       } catch (filterError: any) {
-        console.warn('Category filter failed, this is expected for some categories:', filterError);
+        console.warn('Category filter failed (timeout or server error):', filterError);
         
         // Set a helpful message for the user
         setCategoryPosts([]);
         setPostsTotal(selectedCategory.post_count || 0);
-        setError(`Cannot load posts for "${selectedCategory.name}" - this category has ${selectedCategory.post_count} posts but the server cannot filter them efficiently. Try searching for specific terms instead.`);
+        
+        if (filterError.message === 'Request timeout') {
+          setError(`Loading posts for "${selectedCategory.name}" timed out. This category has ${selectedCategory.post_count} posts but they cannot be loaded efficiently. The server needs optimization for large categories.`);
+        } else {
+          setError(`Cannot load posts for "${selectedCategory.name}" - this category has ${selectedCategory.post_count} posts but the server cannot filter them efficiently. Try using the main search with the category name "${selectedCategory.name}" instead.`);
+        }
+        
+        // Try to load some sample posts to show something useful
+        try {
+          console.log('Attempting to load sample posts as fallback...');
+          const fallbackData = await apiService.getPosts({
+            page: 1,
+            limit: 10,
+            search: selectedCategory.name.split('-')[0] // Use part of category name as search
+          });
+          
+          if (fallbackData.posts && fallbackData.posts.length > 0) {
+            setCategoryPosts(fallbackData.posts);
+            setError(prev => prev + ` Showing ${fallbackData.posts.length} sample posts that may match this category.`);
+          }
+        } catch (fallbackError) {
+          console.warn('Fallback search also failed:', fallbackError);
+        }
       }
     } catch (e: any) {
       console.error('Error loading category posts:', e);
