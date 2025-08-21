@@ -85,13 +85,17 @@ router.get('/',
       const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'wp_published_date';
       const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
+      // Build hidden category filter
+      const hiddenCategoryFilter = req.user.role !== 'admin' ? 
+        `AND (c.is_hidden IS NULL OR c.is_hidden = false)` : '';
+      
       // Get total count
       const countQuery = `
         SELECT COUNT(*) as total
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
+        ${hiddenCategoryFilter}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
@@ -120,7 +124,7 @@ router.get('/',
         LEFT JOIN post_attachments pa ON p.id = pa.post_id
         LEFT JOIN files f ON pa.file_id = f.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
+        ${hiddenCategoryFilter}
         GROUP BY p.id, c.name, c.slug
         ORDER BY ${search ? 'rank DESC,' : ''} ${sortField} ${sortDirection}
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
