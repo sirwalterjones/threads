@@ -200,14 +200,13 @@ router.get('/',
       const countResult = await pool.query(countQuery, queryParams);
       const total = parseInt(countResult.rows[0].total);
 
-      // Get posts with simplified query for debugging
+      // TEMP: Use exact same query as debug endpoint to isolate the issue
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           p.metadata
         FROM posts p
-        ${whereClause}
         ORDER BY p.id DESC
         LIMIT $1 OFFSET $2
       `;
