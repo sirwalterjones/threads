@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [mineOnly, setMineOnly] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -171,7 +172,8 @@ const Dashboard: React.FC = () => {
       const filters: SearchFilters = {
         search: searchQuery,
         sortBy: 'wp_published_date',
-        sortOrder: 'DESC'
+        sortOrder: 'DESC',
+        ...(mineOnly ? { mine: true } : {})
       };
       console.log('Searching with filters:', filters); // DEBUG
       const response = await apiService.getPosts({ ...filters, limit: 20 });
@@ -260,15 +262,27 @@ const Dashboard: React.FC = () => {
           px: 4
         }}>
           <Box sx={{ width: '100%', maxWidth: '800px', textAlign: 'center' }}>
-            <Typography variant="h2" sx={{ 
-              color: '#E7E9EA', 
-              textAlign: 'center', 
-              mb: 4,
-              fontWeight: 700,
-              fontSize: { xs: '2rem', md: '2.5rem' }
-            }}>
-                              Search Vector
-            </Typography>
+                          <Typography variant="h2" sx={{ 
+                color: '#E7E9EA', 
+                textAlign: 'center', 
+                mb: 2,
+                fontWeight: 700,
+                fontSize: { xs: '2rem', md: '2.5rem' }
+              }}>
+                Search Vector
+              </Typography>
+              
+              {mineOnly && (
+                <Typography variant="body1" sx={{ 
+                  color: '#1D9BF0', 
+                  textAlign: 'center', 
+                  mb: 4,
+                  fontWeight: 600,
+                  fontSize: '1.1rem'
+                }}>
+                  Showing only your manually created posts
+                </Typography>
+              )}
             
             <Box sx={{ 
               position: 'relative',
@@ -276,6 +290,35 @@ const Dashboard: React.FC = () => {
               maxWidth: '700px',
               margin: '0 auto'
             }}>
+              {/* My Posts Toggle */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Button
+                  variant={mineOnly ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    const next = !mineOnly;
+                    setMineOnly(next);
+                    if (next) {
+                      handleSearch();
+                    }
+                  }}
+                  sx={{
+                    borderRadius: '20px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderColor: mineOnly ? 'transparent' : '#1D9BF0',
+                    backgroundColor: mineOnly ? '#1D9BF0' : 'transparent',
+                    color: mineOnly ? 'white' : '#1D9BF0',
+                    '&:hover': {
+                      backgroundColor: mineOnly ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)'
+                    }
+                  }}
+                >
+                  {mineOnly ? 'All Posts' : 'My Posts Only'}
+                </Button>
+              </Box>
+              
               <TextField
                 fullWidth
                 variant="outlined"
