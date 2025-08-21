@@ -828,17 +828,19 @@ const HomeSimple: React.FC = () => {
                       {post.attachments && post.attachments.length > 0 ? (
                         <MediaGallery attachments={post.attachments} maxHeight={180} />
                       ) : (() => {
-                        const imageUrls = extractImageUrls(post.content);
+                        const imageUrls = extractImageUrls(post.content).slice(0, 5);
                         if (imageUrls.length === 0) return null;
-                        const first = imageUrls[0];
                         return (
-                          <Box sx={{ mb: 2 }}>
-                            <img
-                              src={first}
-                              alt="Post media"
-                              style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
-                              onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
-                            />
+                          <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                            {imageUrls.map((url, idx) => (
+                              <img
+                                key={idx}
+                                src={url}
+                                alt={`Post image ${idx + 1}`}
+                                style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                                onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                              />
+                            ))}
                           </Box>
                         );
                       })()}
