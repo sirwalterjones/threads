@@ -212,6 +212,8 @@ const Dashboard: React.FC = () => {
   const handleClearSearch = () => {
     setSearchQuery('');
     setSearchResults([]);
+    // Reload manual posts when search is cleared
+    loadManualPosts();
   };
 
   // Terms to highlight inside PostDetailModal and snippets (ignore filter tokens like author:)
@@ -265,6 +267,174 @@ const Dashboard: React.FC = () => {
       </Box>
 
       {/* Dashboard Stats Cards removed */}
+
+      {/* Manual Posts Grid - Show when no search results */}
+      {searchResults.length === 0 && manualPosts.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ 
+            color: '#E7E9EA', 
+            mb: 3, 
+            fontWeight: 600,
+            textAlign: 'center'
+          }}>
+            Your Recent Posts
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 3,
+            maxWidth: '1200px', 
+            mx: 'auto' 
+          }}>
+            {manualPosts.map((post) => (
+              <Box key={post.id}>
+                <Card 
+                  sx={{ 
+                    height: '100%',
+                    backgroundColor: '#16181C',
+                    border: '1px solid #2F3336',
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    },
+                  }}
+                  onClick={() => handlePostClick(post.id)}
+                >
+                  <CardContent>
+                    {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
+                    {post.attachments && post.attachments.length > 0 ? (
+                      <MediaGallery attachments={post.attachments} maxHeight={180} />
+                    ) : (() => {
+                      const imageUrls = extractImageUrls(post.content).slice(0, 5);
+                      if (imageUrls.length === 0) return null;
+                      return (
+                        <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                          {imageUrls.map((url, idx) => (
+                            <img
+                              key={idx}
+                              src={resolveContentImageUrl(url)}
+                              alt={`Post image ${idx + 1}`}
+                              style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                              onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                            />
+                          ))}
+                        </Box>
+                      );
+                    })()}
+                    
+                    <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA' }}>
+                      {highlightText(stripHtmlTags(post.title))}
+                    </Typography>
+                    
+                    {(() => {
+                      const raw = post.excerpt && post.excerpt.trim().length > 0 
+                        ? post.excerpt 
+                        : (post.content || '');
+                      const text = stripHtmlTags(raw);
+                      if (!text) return null;
+                      return (
+                        <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
+                          {highlightText(text.substring(0, 100))}...
+                        </Typography>
+                      );
+                    })()}
+
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {post.category_name && (
+                        <Chip 
+                          size="small" 
+                          label={post.category_name} 
+                          color="primary"
+                          variant="outlined"
+                        />
+                      )}
+                      <Chip 
+                        size="small" 
+                        label={post.author_name} 
+                        variant="outlined"
+                        sx={{ 
+                          borderColor: '#E5E7EB',
+                          color: '#6B7280'
+                        }}
+                      />
+                      <Chip 
+                        size="small" 
+                        label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                        variant="outlined"
+                        sx={{ 
+                          borderColor: '#E5E7EB',
+                          color: '#6B7280'
+                        }}
+                      />
+                    </Box>
+
+                    {/* Media attachments preview */}
+                    {post.featured_media_url && (
+                      <Box sx={{ mb: 2 }}>
+                        <img 
+                          src={post.featured_media_url.startsWith('http') 
+                            ? post.featured_media_url 
+                            : `https://cso.vectoronline.us${post.featured_media_url}`}
+                          alt="Featured media"
+                          style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                      </Box>
+                    )}
+
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {(() => {
+                        const contentText = stripHtmlTags(post.content || '');
+                        const contentCount = countMatches(contentText, searchQuery);
+                        const showCount = contentCount > 0;
+                        
+                        return showCount ? (
+                          <Badge badgeContent={contentCount} color="secondary">
+                            <Button
+                              startIcon={<Visibility />}
+                              size="small"
+                              variant="contained"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePostClick(post.id);
+                              }}
+                              sx={{
+                                backgroundColor: '#10B981',
+                                '&:hover': { backgroundColor: '#059669' }
+                              }}
+                            >
+                              View
+                            </Button>
+                          </Badge>
+                        ) : (
+                          <Button
+                            startIcon={<Visibility />}
+                            size="small"
+                            variant="contained"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePostClick(post.id);
+                            }}
+                            sx={{
+                              backgroundColor: '#10B981',
+                              '&:hover': { backgroundColor: '#059669' }
+                            }}
+                          >
+                            View
+                          </Button>
+                        );
+                      })()}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
 
       {/* Central Search Bar - Primary Focus */}
       {searchResults.length === 0 && (
