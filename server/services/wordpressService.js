@@ -422,16 +422,12 @@ class WordPressService {
   }
 
   async ingestDirectData(posts, categories) {
-    const client = await pool.connect();
     let categoriesIngested = 0;
     let postsIngested = 0;
     const errors = [];
     
     try {
       console.log(`🔍 Starting direct data processing: ${posts.length} posts, ${categories.length} categories`);
-      
-      // Start transaction for data consistency
-      await client.query('BEGIN');
       
       // Validate input data first
       if (!Array.isArray(posts)) {
@@ -463,7 +459,7 @@ class WordPressService {
           
           console.log(`📂 Processing category: ${category.id} - ${category.name}`);
           
-          const result = await client.query(`
+          const result = await pool.query(`
             INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
             VALUES ($1, $2, $3, NULL, $4)
             ON CONFLICT (wp_category_id)
@@ -503,14 +499,14 @@ class WordPressService {
             console.log(`🔗 Setting parent ${category.parent} for category ${category.id}`);
             
             // Find the local ID of the parent category
-            const parentResult = await client.query(
+            const parentResult = await pool.query(
               'SELECT id FROM categories WHERE wp_category_id = $1',
               [category.parent]
             );
             
             if (parentResult.rows.length > 0) {
               const parentLocalId = parentResult.rows[0].id;
-              await client.query(
+              await pool.query(
                 'UPDATE categories SET parent_id = $1 WHERE wp_category_id = $2',
                 [parentLocalId, category.id]
               );
@@ -585,7 +581,7 @@ class WordPressService {
           let categoryId = null;
           if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
             console.log(`🔍 Looking up category ${post.categories[0]} for post ${post.id}`);
-            const categoryResult = await client.query(
+            const categoryResult = await pool.query(
               'SELECT id FROM categories WHERE wp_category_id = $1',
               [post.categories[0]]
             );
@@ -612,7 +608,7 @@ class WordPressService {
             throw new Error(`Post ${post.id}: Date parsing failed - ${dateError.message}`);
           }
 
-          const result = await client.query(`
+          const result = await pool.query(`
             INSERT INTO posts (
               wp_post_id, title, content, excerpt, slug, status,
               wp_author_id, author_name, wp_published_date, wp_modified_date,
@@ -671,7 +667,7 @@ class WordPressService {
       // Update category post counts
       if (postsIngested > 0) {
         console.log('🔄 Updating category post counts...');
-        const updateResult = await client.query(`
+        const updateResult = await pool.query(`
           UPDATE categories 
           SET post_count = (
             SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
@@ -680,13 +676,9 @@ class WordPressService {
         console.log(`✅ Updated post counts for ${updateResult.rowCount} categories`);
       }
       
-      // Commit transaction
-      await client.query('COMMIT');
-      console.log('✅ Transaction committed successfully');
-      
       // Verify the data was actually inserted
       console.log('🔍 Verifying insertions...');
-      const verifyResult = await client.query('SELECT COUNT(*) as total FROM posts');
+      const verifyResult = await pool.query('SELECT COUNT(*) as total FROM posts');
       const totalPosts = parseInt(verifyResult.rows[0].total);
       console.log(`📊 Total posts in database: ${totalPosts}`);
       
@@ -708,19 +700,9 @@ class WordPressService {
       return result;
       
     } catch (error) {
-      // Rollback transaction on error
-      try {
-        await client.query('ROLLBACK');
-        console.log('🔄 Transaction rolled back');
-      } catch (rollbackError) {
-        console.error('❌ Rollback failed:', rollbackError);
-      }
-      
       console.error('❌ Direct ingest failed:', error);
       console.error('❌ Stack trace:', error.stack);
       throw error;
-    } finally {
-      client.release();
     }
   }
 
