@@ -89,7 +89,8 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
+        ${req.user.role !== 'admin' && whereConditions.length > 0 ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
+        ${req.user.role !== 'admin' && whereConditions.length === 0 ? 'WHERE (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
@@ -106,7 +107,8 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
+        ${req.user.role !== 'admin' && whereConditions.length > 0 ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
+        ${req.user.role !== 'admin' && whereConditions.length === 0 ? 'WHERE (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
         ORDER BY ${sortField} ${sortDirection}
         LIMIT ? OFFSET ?
       `;
@@ -130,6 +132,22 @@ router.get('/',
   }
 );
 
+// Get authors list - MUST come before /:id route
+router.get('/authors', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT author_name 
+      FROM posts 
+      WHERE author_name IS NOT NULL 
+      ORDER BY author_name
+    `);
+    res.json(result.rows.map(row => row.author_name));
+  } catch (error) {
+    console.error('Error fetching authors:', error);
+    res.status(500).json({ error: 'Failed to fetch authors' });
+  }
+});
+
 // Get single post
 router.get('/:id', 
   authenticateToken, 
@@ -145,7 +163,7 @@ router.get('/:id',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.id = ?
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
       `, [id]);
 
       if (result.rows.length === 0) {
@@ -219,7 +237,7 @@ router.post('/',
           title, content, excerpt, category_id, author_name, 
           wp_published_date, retention_date, status
         )
-        VALUES (?, ?, ?, ?, ?, datetime('now'), ?, 'publish')
+        VALUES (?, ?, ?, ?, ?, NOW(), ?, 'publish')
       `, [title, content, summarize(content), resolvedCategoryId, req.user.username, retentionDate.toISOString().split('T')[0]]);
 
       // Get the created post
@@ -294,7 +312,7 @@ router.put('/:id',
         return res.status(400).json({ error: 'No fields to update' });
       }
 
-      updateFields.push('wp_modified_date = datetime("now")');
+      updateFields.push('wp_modified_date = NOW()');
       queryParams.push(id);
 
       await pool.query(`

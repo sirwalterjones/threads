@@ -690,25 +690,37 @@ const HomeSimple: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth>
-                <InputLabel>Author</InputLabel>
-                <Select
+{authors.length > 0 ? (
+                <FormControl fullWidth>
+                  <InputLabel>Author</InputLabel>
+                  <Select
+                    value={authorFilter}
+                    label="Author"
+                    onChange={(e) => {
+                      setAuthorFilter(e.target.value);
+                      setCurrentPage(1);
+                      loadData(1, { author: e.target.value, ...(origin !== 'all' ? { origin } as any : {}), ...(mineOnly ? { mine: true } as any : {}) });
+                    }}
+                  >
+                    <MenuItem value="">All Authors</MenuItem>
+                    {authors.map((author) => (
+                      <MenuItem key={author.name} value={author.name}>
+                        {author.name} ({author.totalPosts} posts)
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  label="Author (type to filter)"
+                  placeholder="e.g., Admin, Stephanie Hardison"
                   value={authorFilter}
-                  label="Author"
-                  onChange={(e) => {
-                    setAuthorFilter(e.target.value);
-                    setCurrentPage(1);
-                    loadData(1, { author: e.target.value, ...(origin !== 'all' ? { origin } as any : {}), ...(mineOnly ? { mine: true } as any : {}) });
-                  }}
-                >
-                  <MenuItem value="">All Authors</MenuItem>
-                  {authors.map((author) => (
-                    <MenuItem key={author.name} value={author.name}>
-                      {author.name} ({author.totalPosts} posts)
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  onChange={(e) => setAuthorFilter(e.target.value)}
+                  helperText="Authors API unavailable - type author name manually"
+                />
+              )}
 
               <TextField
                 fullWidth
