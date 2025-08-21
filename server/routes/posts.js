@@ -49,12 +49,27 @@ router.get('/debug', async (req, res) => {
       message: 'Debug query successful'
     });
   } catch (error) {
-    console.error('Debug query error:', error);
+    console.error('Debug endpoint error:', error);
     res.status(500).json({ 
-      error: 'Debug query failed', 
+      error: 'Debug endpoint failed', 
       details: error.message,
       stack: error.stack
     });
+  }
+});
+
+// Simple test endpoint - no auth required
+router.get('/test', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, title, author_name FROM posts LIMIT 5');
+    res.json({
+      message: 'Test endpoint working',
+      posts: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ error: 'Test endpoint failed', details: error.message });
   }
 });
 
