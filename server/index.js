@@ -107,6 +107,44 @@ app.get('/api/db-test', async (req, res) => {
   }
 });
 
+// TEMP: Direct posts endpoint to bypass router issues
+app.get('/api/posts-direct', async (req, res) => {
+  try {
+    const { pool } = require('./config/database');
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const countQuery = `SELECT COUNT(*) as total FROM posts p`;
+    const countResult = await pool.query(countQuery);
+    const total = parseInt(countResult.rows[0].total);
+    
+    const postsQuery = `
+      SELECT 
+        p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
+        p.wp_published_date, p.ingested_at, p.retention_date, p.status,
+        p.metadata
+      FROM posts p
+      ORDER BY p.id DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const postsResult = await pool.query(postsQuery, [limit, offset]);
+    
+    res.json({
+      posts: postsResult.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Direct posts error:', error);
+    res.status(500).json({ error: 'Direct posts failed', details: error.message });
+  }
+});
+
 // Get Vercel IP address
 app.get('/api/my-ip', async (req, res) => {
   try {
