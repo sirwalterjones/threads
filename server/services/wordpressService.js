@@ -57,8 +57,7 @@ class WordPressService {
             DO UPDATE SET 
               name = EXCLUDED.name,
               slug = EXCLUDED.slug,
-              post_count = EXCLUDED.post_count,
-              updated_at = NOW()
+              post_count = EXCLUDED.post_count
           `, [
             category.id,
             category.name,
@@ -86,7 +85,7 @@ class WordPressService {
         if (parentResult.rows.length > 0) {
           const parentLocalId = parentResult.rows[0].id;
           await pool.query(
-            `UPDATE categories SET parent_id = $1, updated_at = NOW() WHERE wp_category_id = $2`,
+            `UPDATE categories SET parent_id = $1 WHERE wp_category_id = $2`,
             [parentLocalId, wpCategoryId]
           );
           linkedCount++;
@@ -203,8 +202,7 @@ class WordPressService {
         UPDATE categories 
         SET post_count = (
           SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
-        ),
-        updated_at = NOW()
+        )
       `);
       
       console.log(`Ingestion complete: ${categoriesCount} categories, ${postsCount} posts`);
@@ -323,8 +321,7 @@ class WordPressService {
             excerpt = EXCLUDED.excerpt,
             wp_modified_date = EXCLUDED.wp_modified_date,
             category_id = EXCLUDED.category_id,
-            metadata = EXCLUDED.metadata,
-            updated_at = NOW()
+            metadata = EXCLUDED.metadata
         `, [
           post.id,
           post.title.rendered,
@@ -399,8 +396,7 @@ class WordPressService {
             UPDATE categories 
             SET post_count = (
               SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
-            ),
-            updated_at = NOW()
+            )
           `);
           console.log('Category post counts updated');
         } catch (updateError) {
@@ -472,8 +468,7 @@ class WordPressService {
               name = EXCLUDED.name,
               slug = EXCLUDED.slug,
               parent_id = EXCLUDED.parent_id,
-              post_count = EXCLUDED.post_count,
-              updated_at = NOW()
+              post_count = EXCLUDED.post_count
             RETURNING id, wp_category_id
           `, [
             category.id,
@@ -595,8 +590,7 @@ class WordPressService {
               excerpt = EXCLUDED.excerpt,
               wp_modified_date = EXCLUDED.wp_modified_date,
               category_id = EXCLUDED.category_id,
-              metadata = EXCLUDED.metadata,
-              updated_at = NOW()
+              metadata = EXCLUDED.metadata
             RETURNING id, wp_post_id
           `, [
             post.id,
@@ -645,8 +639,7 @@ class WordPressService {
           UPDATE categories 
           SET post_count = (
             SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
-          ),
-          updated_at = NOW()
+          )
         `);
         console.log(`✅ Updated post counts for ${updateResult.rowCount} categories`);
       }
