@@ -205,7 +205,20 @@ router.get('/',
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
-          p.metadata, c.name as category_name, c.slug as category_slug
+          p.metadata, c.name as category_name, c.slug as category_slug,
+          COALESCE(
+            (SELECT json_agg(
+              json_build_object(
+                'id', pa.id,
+                'filename', f.original_name,
+                'mime_type', f.mime_type,
+                'url', CONCAT('/api/files/', f.id, '/', f.filename)
+              )
+            ) FROM post_attachments pa 
+             JOIN files f ON pa.file_id = f.id 
+             WHERE pa.post_id = p.id), 
+            '[]'::json
+          ) as attachments
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
