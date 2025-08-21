@@ -51,6 +51,21 @@ export interface PostComment {
   role: string;
 }
 
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  data: any;
+  is_read: boolean;
+  created_at: string;
+  related_post_id?: number;
+  related_comment_id?: number;
+  from_user_id?: number;
+  from_username?: string;
+  post_title?: string;
+}
+
 export interface Category {
   id: number;
   wp_category_id?: number;

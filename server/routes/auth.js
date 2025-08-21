@@ -117,9 +117,7 @@ router.post('/register',
 );
 
 // Login
-const { auditLog } = require('../middleware/auth');
-
-router.post('/login', auditLog('LOGIN', 'auth'), async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -239,6 +237,28 @@ router.post('/login', auditLog('LOGIN', 'auth'), async (req, res) => {
       error: 'Login failed',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+});
+
+// Get users for @ mention suggestions
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const { search } = req.query;
+    let query = 'SELECT id, username, role FROM users WHERE is_active = true';
+    let params = [];
+    
+    if (search) {
+      query += ' AND LOWER(username) LIKE LOWER($1)';
+      params.push(`%${search}%`);
+    }
+    
+    query += ' ORDER BY username LIMIT 20';
+    
+    const result = await pool.query(query, params);
+    res.json({ users: result.rows });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 

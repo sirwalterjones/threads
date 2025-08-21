@@ -322,6 +322,34 @@ class ApiService {
     return response.data;
   }
 
+  // Get users for @ mentions
+  async getUsersForMentions(search?: string): Promise<{ users: Array<{ id: number; username: string; role: string }> }> {
+    const params = search ? `?search=${encodeURIComponent(search)}` : '';
+    const response = await axios.get(`${API_BASE_URL}/auth/users${params}`);
+    return response.data;
+  }
+
+  // Notifications
+  async getNotifications(): Promise<{ notifications: any[] }> {
+    const response = await axios.get(`${API_BASE_URL}/notifications`);
+    return response.data;
+  }
+
+  async markNotificationRead(id: number): Promise<{ success: boolean }> {
+    const response = await axios.put(`${API_BASE_URL}/notifications/${id}/read`);
+    return response.data;
+  }
+
+  async markAllNotificationsRead(): Promise<{ success: boolean }> {
+    const response = await axios.put(`${API_BASE_URL}/notifications/read-all`);
+    return response.data;
+  }
+
+  async getUnreadNotificationCount(): Promise<{ count: number }> {
+    const response = await axios.get(`${API_BASE_URL}/notifications/unread-count`);
+    return response.data;
+  }
+
   async deleteComment(commentId: number): Promise<{ message: string }> {
     const response = await axios.delete(`${API_BASE_URL}/comments/${commentId}`);
     return response.data;

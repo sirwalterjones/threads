@@ -172,6 +172,31 @@ if (USE_SQLITE) {
         CREATE INDEX IF NOT EXISTS comments_post_id_idx ON comments(post_id)
       `);
 
+      // Notifications table for @ mentions and other notifications
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          type VARCHAR(50) NOT NULL,
+          title TEXT NOT NULL,
+          message TEXT NOT NULL,
+          data JSONB,
+          is_read BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT NOW(),
+          related_post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+          related_comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+          from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+        )
+      `);
+
+      // Create index for notifications
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS notifications_user_id_idx ON notifications(user_id)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS notifications_unread_idx ON notifications(is_read)
+      `);
+
       // Audit log table
       await pool.query(`
         CREATE TABLE IF NOT EXISTS audit_log (

@@ -28,8 +28,8 @@ router.get('/post/:postId', async (req, res) => {
 // Create a new comment
 router.post('/', 
   authenticateToken, 
-  authorizeRole(['view', 'edit', 'admin']),
-  auditLog('create_comment', 'comments'),
+  authorizeRole(['view', 'edit', 'admin']), 
+  auditLog('create_comment', 'comments'), 
   async (req, res) => {
     try {
       const { postId, content } = req.body;
@@ -63,6 +63,12 @@ router.post('/',
         username: userResult.rows[0].username,
         role: userResult.rows[0].role
       };
+
+      // Process @ mentions and create notifications
+      const mentions = extractMentions(content);
+      if (mentions.length > 0) {
+        await createMentionNotifications(mentions, comment.id, postId, userId);
+      }
       
       res.status(201).json({ comment });
     } catch (error) {
@@ -71,6 +77,49 @@ router.post('/',
     }
   }
 );
+
+// Helper function to extract @ mentions from comment content
+function extractMentions(content) {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  
+  while ((match = mentionRegex.exec(content)) !== null) {
+    mentions.push(match[1].toLowerCase());
+  }
+  
+  return [...new Set(mentions)]; // Remove duplicates
+}
+
+// Helper function to create notifications for @ mentions
+async function createMentionNotifications(usernames, commentId, postId, fromUserId) {
+  try {
+    // Get user IDs for mentioned usernames
+    const userResult = await pool.query(`
+      SELECT id, username FROM users 
+      WHERE LOWER(username) = ANY($1) AND id != $2
+    `, [usernames, fromUserId]);
+
+    // Create notifications for each mentioned user
+    for (const user of userResult.rows) {
+      await pool.query(`
+        INSERT INTO notifications (user_id, type, title, message, data, related_post_id, related_comment_id, from_user_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `, [
+        user.id,
+        'mention',
+        'You were mentioned in a comment',
+        `@${user.username} was mentioned in a comment`,
+        { commentId, postId },
+        postId,
+        commentId,
+        fromUserId
+      ]);
+    }
+  } catch (error) {
+    console.error('Error creating mention notifications:', error);
+  }
+}
 
 // Update a comment
 router.put('/:id', 

@@ -40,6 +40,15 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
   const [editingComment, setEditingComment] = useState<PostComment | null>(null);
   const [editContent, setEditContent] = useState('');
   const [error, setError] = useState('');
+  
+  // @ mention functionality
+  const [mentionUsers, setMentionUsers] = useState<Array<{ id: number; username: string; role: string }>>([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionAnchorEl, setMentionAnchorEl] = useState<HTMLElement | null>(null);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const textFieldRef = useRef<HTMLDivElement>(null);
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -128,6 +137,80 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     return user && (user.id === comment.user_id || user.role === 'admin');
   };
 
+  // @ mention handling
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewComment(value);
+    
+    // Check for @ mentions
+    const cursorPos = e.target.selectionStart || 0;
+    setCursorPosition(cursorPos);
+    
+    const beforeCursor = value.substring(0, cursorPos);
+    const mentionMatch = beforeCursor.match(/@(\w*)$/);
+    
+    if (mentionMatch) {
+      const searchTerm = mentionMatch[1];
+      setMentionSearch(searchTerm);
+      setMentionAnchorEl(e.target);
+      setShowMentions(true);
+      searchUsers(searchTerm);
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  const searchUsers = async (search: string) => {
+    try {
+      const response = await apiService.getUsersForMentions(search);
+      setMentionUsers(response.users);
+    } catch (error) {
+      console.error('Failed to search users:', error);
+    }
+  };
+
+  const handleMentionSelect = (username: string) => {
+    const beforeAt = newComment.substring(0, cursorPosition).replace(/@\w*$/, '');
+    const afterAt = newComment.substring(cursorPosition);
+    const newValue = beforeAt + '@' + username + ' ' + afterAt;
+    
+    setNewComment(newValue);
+    setShowMentions(false);
+    
+    // Focus back to text field
+    if (textFieldRef.current) {
+      const input = textFieldRef.current.querySelector('input');
+      if (input) {
+        input.focus();
+        const newCursorPos = beforeAt.length + username.length + 2; // +2 for @ and space
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }
+  };
+
+  // Highlight @ mentions in comment text
+  const highlightMentions = (text: string) => {
+    const mentionRegex = /@(\w+)/g;
+    const parts = text.split(mentionRegex);
+    const result = [];
+    
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        // Regular text
+        result.push(parts[i]);
+      } else {
+        // Username (odd indices)
+        result.push(
+          <span key={i} style={{ color: '#1D9BF0', fontWeight: 600 }}>
+            @{parts[i]}
+          </span>
+        );
+      }
+    }
+    
+    return result;
+  };
+
   if (loading) {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
@@ -153,12 +236,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
         <Paper elevation={1} sx={{ p: 2, mb: 3, backgroundColor: '#F9FAFB' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
             <TextField
+              ref={textFieldRef}
               fullWidth
               multiline
               rows={2}
-              placeholder="Add a comment..."
+              placeholder="Add a comment... Use @ to mention users"
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={handleCommentChange}
               disabled={submitting}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -172,6 +256,33 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                 }
               }}
             />
+            
+            {/* @ Mention Dropdown */}
+            <Popper
+              open={showMentions && mentionUsers.length > 0}
+              anchorEl={mentionAnchorEl}
+              placement="bottom-start"
+              style={{ zIndex: 1300 }}
+            >
+              <MentionPaper sx={{ maxHeight: 200, overflow: 'auto', minWidth: 200 }}>
+                <MentionList>
+                  {mentionUsers.map((user) => (
+                    <MentionListItem
+                      key={user.id}
+                      button
+                      onClick={() => handleMentionSelect(user.username)}
+                      sx={{ py: 1 }}
+                    >
+                      <MentionListItemText
+                        primary={`@${user.username}`}
+                        secondary={user.role}
+                        primaryTypographyProps={{ fontWeight: 500 }}
+                      />
+                    </MentionListItem>
+                  ))}
+                </MentionList>
+              </MentionPaper>
+            </Popper>
             <Button
               variant="contained"
               onClick={handleSubmitComment}
@@ -266,7 +377,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                         </Box>
                       ) : (
                         <Typography variant="body2" sx={{ color: '#374151', whiteSpace: 'pre-wrap' }}>
-                          {comment.content}
+                          {highlightMentions(comment.content)}
                         </Typography>
                       )}
                       <Typography variant="caption" sx={{ color: '#9CA3AF', mt: 1, display: 'block' }}>
