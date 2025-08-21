@@ -58,8 +58,8 @@ class ThreadsIntelAutoSync {
                 throw new Exception('Authentication failed');
             }
             
-            // Trigger incremental sync
-            $result = $this->trigger_incremental_sync();
+            // Prefer direct ingest to avoid server-side WordPress dependencies
+            $result = $this->trigger_direct_ingest();
             
             if ($result) {
                 $this->log_message('Sync completed successfully: ' . json_encode($result));
@@ -150,6 +150,97 @@ class ThreadsIntelAutoSync {
             throw new Exception('Regular sync failed: ' . ($body['error'] ?? 'Unknown error'));
         }
         
+        return $body;
+    }
+
+    // New: Direct ingest using WordPress's own REST API as the data source
+    private function trigger_direct_ingest() {
+        if (!$this->auth_token) {
+            throw new Exception('No auth token available');
+        }
+
+        $wp_api_base = trailingslashit(get_site_url()) . 'wp-json/wp/v2';
+
+        // Fetch categories (handle pagination)
+        $categories = array();
+        $cat_page = 1;
+        do {
+            $cat_response = wp_remote_get(add_query_arg(array(
+                'per_page' => 100,
+                'page' => $cat_page
+            ), $wp_api_base . '/categories'));
+
+            if (is_wp_error($cat_response)) {
+                throw new Exception('Failed fetching categories: ' . $cat_response->get_error_message());
+            }
+
+            $cat_code = wp_remote_retrieve_response_code($cat_response);
+            if ($cat_code !== 200) {
+                $cat_body = wp_remote_retrieve_body($cat_response);
+                throw new Exception('Failed fetching categories: HTTP ' . $cat_code . ' ' . $cat_body);
+            }
+
+            $cat_batch = json_decode(wp_remote_retrieve_body($cat_response), true) ?: array();
+            $categories = array_merge($categories, $cat_batch);
+
+            $total_pages = intval(wp_remote_retrieve_header($cat_response, 'x-wp-totalpages'));
+            $cat_page++;
+        } while ($total_pages && $cat_page <= $total_pages);
+
+        // Fetch posts with embeds for author info (handle pagination)
+        $posts = array();
+        $post_page = 1;
+        do {
+            $post_response = wp_remote_get(add_query_arg(array(
+                'per_page' => 100,
+                'page' => $post_page,
+                '_embed' => 1
+            ), $wp_api_base . '/posts'));
+
+            if (is_wp_error($post_response)) {
+                throw new Exception('Failed fetching posts: ' . $post_response->get_error_message());
+            }
+
+            $post_code = wp_remote_retrieve_response_code($post_response);
+            if ($post_code !== 200) {
+                $post_body = wp_remote_retrieve_body($post_response);
+                throw new Exception('Failed fetching posts: HTTP ' . $post_code . ' ' . $post_body);
+            }
+
+            $post_batch = json_decode(wp_remote_retrieve_body($post_response), true) ?: array();
+            $posts = array_merge($posts, $post_batch);
+
+            $total_pages = intval(wp_remote_retrieve_header($post_response, 'x-wp-totalpages'));
+            $post_page++;
+        } while ($total_pages && $post_page <= $total_pages);
+
+        // Send to server for direct ingest
+        $payload = array(
+            'posts' => $posts,
+            'categories' => $categories,
+            'timestamp' => gmdate('c'),
+            'source' => 'wordpress-plugin-direct'
+        );
+
+        $response = wp_remote_post($this->vercel_api_base . '/admin/ingest-direct', array(
+            'timeout' => 120,
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->auth_token
+            ),
+            'body' => wp_json_encode($payload)
+        ));
+
+        if (is_wp_error($response)) {
+            throw new Exception('Direct ingest request failed: ' . $response->get_error_message());
+        }
+
+        $code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        if ($code !== 200) {
+            throw new Exception('Direct ingest failed: HTTP ' . $code . ' ' . ($body['error'] ?? 'Unknown error'));
+        }
+
         return $body;
     }
     
