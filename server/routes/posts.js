@@ -212,11 +212,10 @@ router.get('/',
         FROM posts p
         ${whereClause}
         ORDER BY p.id DESC
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        LIMIT $1 OFFSET $2
       `;
 
-      queryParams.push(limit, offset);
-      const postsResult = await pool.query(postsQuery, queryParams);
+      const postsResult = await pool.query(postsQuery, [limit, offset]);
 
       res.json({
         posts: postsResult.rows,
