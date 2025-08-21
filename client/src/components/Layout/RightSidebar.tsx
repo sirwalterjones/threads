@@ -120,41 +120,41 @@ const RightSidebar: React.FC = () => {
         }}
       >
         <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ p: 1.5, pb: 1 }}>
-            <Typography variant="h6" sx={{ 
+          <Box sx={{ p: 1, pb: 0.5 }}>
+            <Typography variant="body2" sx={{ 
               color: '#E7E9EA', 
               fontWeight: 700, 
-              fontSize: '20px',
+              fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
+              gap: 0.75,
               textAlign: 'center',
               justifyContent: 'center'
             }}>
-              <Schedule sx={{ color: '#1D9BF0' }} />
+              <Schedule sx={{ color: '#1D9BF0', fontSize: 16 }} />
               Recent Vector
             </Typography>
           </Box>
           
-          <List sx={{ py: 0, flex: 1, overflowY: 'auto' }}>
+          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto' }}>
             {recentThreads.map((thread) => (
               <ListItem key={thread.id} disablePadding>
                 <ListItemButton
                   onClick={() => handleThreadClick(thread.id)}
                   sx={{
-                    py: 2,
-                    px: 2,
+                    py: 0.75,
+                    px: 1,
                     '&:hover': {
                       backgroundColor: '#1C1F23'
                     }
                   }}
                 >
-                  <ListItemAvatar>
+                  <ListItemAvatar sx={{ minWidth: 36 }}>
                     <Avatar sx={{ 
-                      width: 32, 
-                      height: 32,
+                      width: 24, 
+                      height: 24,
                       backgroundColor: '#1D9BF0',
-                      fontSize: '12px'
+                      fontSize: '11px'
                     }}>
                       {thread.author_name[0]?.toUpperCase()}
                     </Avatar>
@@ -164,7 +164,7 @@ const RightSidebar: React.FC = () => {
                       <Typography sx={{ 
                         color: '#E7E9EA', 
                         fontWeight: 500, 
-                        fontSize: '15px',
+                        fontSize: '13px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
@@ -175,7 +175,7 @@ const RightSidebar: React.FC = () => {
                     secondary={
                       <Typography sx={{ 
                         color: '#71767B', 
-                        fontSize: '13px' 
+                        fontSize: '11px' 
                       }}>
                         @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
                       </Typography>
@@ -186,13 +186,14 @@ const RightSidebar: React.FC = () => {
             ))}
           </List>
           
-          <Box sx={{ p: 2, pt: 1.5 }}>
+          <Box sx={{ p: 1.25, pt: 1 }}>
             <Button
               fullWidth
               sx={{
                 color: '#1D9BF0',
                 textTransform: 'none',
                 fontWeight: 400,
+                fontSize: '12px',
                 justifyContent: 'center',
                 '&:hover': {
                   backgroundColor: 'transparent',
