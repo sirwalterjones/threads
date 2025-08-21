@@ -92,19 +92,18 @@ const NotificationBell: React.FC = () => {
 
   return (
     <>
-      {/* Debug: Show component is rendered */}
-      <Box sx={{ color: 'lime', fontSize: '10px', border: '1px solid lime', padding: '2px', margin: '2px' }}>
-        Bell Rendered!
-      </Box>
       <IconButton
         color="inherit"
         onClick={handleClick}
+        size="small"
         sx={{ 
           color: '#E7E9EA',
-          border: '3px solid red', // Debug border - thicker
-          backgroundColor: 'rgba(255, 0, 0, 0.3)', // Debug background - more visible
-          padding: '8px', // Debug padding
-          margin: '4px' // Debug margin
+          border: '2px solid red', // Debug border
+          backgroundColor: 'rgba(255, 0, 0, 0.2)', // Debug background
+          padding: '4px', // Compact padding
+          margin: '2px', // Compact margin
+          minWidth: '32px',
+          height: '32px'
         }}
       >
         <Badge badgeContent={unreadCount} color="error">

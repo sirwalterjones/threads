@@ -106,56 +106,66 @@ const Header: React.FC = () => {
           Vector
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'nowrap' }}>
           {/* Debug: Show user info */}
-          <Box sx={{ color: 'red', fontSize: '12px', border: '1px solid red', padding: '4px' }}>
+          <Box sx={{ color: 'red', fontSize: '10px', border: '1px solid red', padding: '2px', whiteSpace: 'nowrap' }}>
             User: {user ? `${user.username} (${user.role})` : 'null'}
           </Box>
-          {/* Debug: Show if NotificationBell should render */}
-          <Box sx={{ color: 'orange', fontSize: '10px', border: '1px solid orange', padding: '2px' }}>
-            Bell: {user ? 'SHOULD SHOW' : 'WONT SHOW'}
-          </Box>
+          
+          {/* Notification Bell - Always show if user exists */}
           {user && <NotificationBell />}
+          
+          {/* User Role Chip */}
           {user && (
-            <>
-              <Chip
-                label={user.role.toUpperCase()}
-                color={getRoleColor(user.role) as any}
-                variant="outlined"
-                size="small"
-                sx={{ color: 'text.primary', borderColor: 'divider', bgcolor: 'transparent' }}
-              />
-              {(user.role === 'admin' || user.role === 'edit') && (
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  size="small"
-                  onClick={() => setOpenNew(true)}
-                >
-                  New Post
-                </Button>
-              )}
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', color: 'common.white' }}>
-                  {user.username.charAt(0).toUpperCase()}
-                </Avatar>
-                <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                  {user.username}
-                </Typography>
-              </Box>
+            <Chip
+              label={user.role.toUpperCase()}
+              color={getRoleColor(user.role) as any}
+              variant="outlined"
+              size="small"
+              sx={{ color: 'text.primary', borderColor: 'divider', bgcolor: 'transparent', whiteSpace: 'nowrap' }}
+            />
+          )}
+          
+          {/* New Post Button */}
+          {user && (user.role === 'admin' || user.role === 'edit') && (
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => setOpenNew(true)}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              New Post
+            </Button>
+          )}
+          
+          {/* User Avatar and Name */}
+          {user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
+              <Avatar sx={{ width: 28, height: 28, bgcolor: 'secondary.main', color: 'common.white' }}>
+                {user.username.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.875rem' }}>
+                {user.username}
+              </Typography>
+            </Box>
+          )}
 
-              <IconButton
-                size="large"
-                edge="end"
-                aria-label="account menu"
-                aria-controls="account-menu"
-                aria-haspopup="true"
-                onClick={handleMenuOpen}
-                color="inherit"
-              >
-                <AccountCircle />
-              </IconButton>
+          {/* Account Menu Button */}
+          {user && (
+            <IconButton
+              size="medium"
+              edge="end"
+              aria-label="account menu"
+              aria-controls="account-menu"
+              aria-haspopup="true"
+              onClick={handleMenuOpen}
+              color="inherit"
+              sx={{ ml: 1 }}
+            >
+              <AccountCircle />
+            </IconButton>
+          )}
 
               <Menu
                 id="account-menu"
