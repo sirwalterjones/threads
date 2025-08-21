@@ -67,7 +67,15 @@ router.get('/no-auth', async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     
-    // Simple query without any authentication or filtering
+    // Test the EXACT same query as the main posts endpoint
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM posts p
+    `;
+    
+    const countResult = await pool.query(countQuery);
+    const total = parseInt(countResult.rows[0].total);
+    
     const postsQuery = `
       SELECT 
         p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
@@ -83,7 +91,8 @@ router.get('/no-auth', async (req, res) => {
     res.json({
       posts: postsResult.rows,
       count: postsResult.rows.length,
-      message: 'No auth test successful'
+      total,
+      message: 'No auth test successful - same query as main endpoint'
     });
   } catch (error) {
     console.error('No auth posts error:', error);
