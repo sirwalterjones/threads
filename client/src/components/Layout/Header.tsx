@@ -104,7 +104,7 @@ const Header: React.FC = () => {
           }}
           onClick={() => navigate('/')}
         >
-          Threads
+          Vector
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

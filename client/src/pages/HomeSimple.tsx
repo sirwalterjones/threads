@@ -363,7 +363,7 @@ const HomeSimple: React.FC = () => {
                 fontWeight: 300,
                 fontSize: { xs: '2.5rem', md: '3.5rem' }
               }}>
-                Search Threads
+                Search Vector
               </Typography>
               
               <Box sx={{ 

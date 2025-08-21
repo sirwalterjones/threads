@@ -132,7 +132,7 @@ const RightSidebar: React.FC = () => {
               justifyContent: 'center'
             }}>
               <Schedule sx={{ color: '#1D9BF0' }} />
-              Recent Threads
+              Recent Vector
             </Typography>
           </Box>
           

@@ -71,7 +71,7 @@ const Login: React.FC = () => {
               letterSpacing: '0.02em'
             }}
           >
-            Threads
+            Vector
           </Typography>
 
           {error && (

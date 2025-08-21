@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 700,
               fontSize: { xs: '2rem', md: '2.5rem' }
             }}>
-              Search Threads
+                              Search Vector
             </Typography>
             
             <Box sx={{ 
