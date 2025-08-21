@@ -321,7 +321,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                     <img
                       src={post.featured_media_url.startsWith('http') 
                         ? post.featured_media_url 
-                        : `https://cmansrms.us${post.featured_media_url}`}
+                        : `https://cso.vectoronline.us${post.featured_media_url}`}
                       alt="Featured media"
                       style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px' }}
                     />

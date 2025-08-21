@@ -574,7 +574,7 @@ const Dashboard: React.FC = () => {
                       <img 
                         src={post.featured_media_url.startsWith('http') 
                           ? post.featured_media_url 
-                          : `https://cmansrms.us${post.featured_media_url}`}
+                          : `https://cso.vectoronline.us${post.featured_media_url}`}
                         alt="Featured media"
                         style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
                       />
