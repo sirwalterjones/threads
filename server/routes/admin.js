@@ -1094,4 +1094,161 @@ router.get('/wordpress-retention-status',
   }
 );
 
+// Get expiring posts for the expiration management page
+router.get('/expiring-posts',
+  authenticateToken,
+  authorizeRole(['admin']),
+  async (req, res) => {
+    try {
+      const { page = 1, limit = 100, daysUntilExpiry = 30 } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      
+      const query = `
+        SELECT 
+          p.id,
+          p.title,
+          p.content,
+          p.excerpt,
+          p.slug,
+          p.wp_published_date,
+          p.retention_date,
+          p.author_name,
+          p.wp_author_id,
+          c.name as category_name,
+          c.slug as category_slug
+        FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.retention_date <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+        ORDER BY p.retention_date ASC
+        LIMIT $1 OFFSET $2
+      `;
+      
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM posts p
+        WHERE p.retention_date <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+      `;
+      
+      const [postsResult, countResult] = await Promise.all([
+        pool.query(query, [parseInt(limit), offset]),
+        pool.query(countQuery)
+      ]);
+      
+      const posts = postsResult.rows;
+      const totalCount = parseInt(countResult.rows[0].total);
+      const totalPages = Math.ceil(totalCount / parseInt(limit));
+      
+      res.json({
+        posts,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalCount,
+          hasNextPage: parseInt(page) < totalPages,
+          hasPreviousPage: parseInt(page) > 1
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error fetching expiring posts:', error);
+      res.status(500).json({
+        error: 'Failed to fetch expiring posts',
+        details: error.message
+      });
+    }
+  }
+);
+
+// Update retention date for a single post
+router.put('/posts/:id/retention',
+  authenticateToken,
+  authorizeRole(['admin']),
+  auditLog('update_post_retention'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { retentionDays } = req.body;
+      
+      if (!retentionDays || retentionDays < 1) {
+        return res.status(400).json({ error: 'Valid retention days required' });
+      }
+      
+      const query = `
+        UPDATE posts 
+        SET retention_date = NOW() + INTERVAL '${parseInt(retentionDays)} days'
+        WHERE id = $1
+        RETURNING id, title, retention_date
+      `;
+      
+      const result = await pool.query(query, [parseInt(id)]);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      
+      console.log(`Updated post ${id} retention to ${retentionDays} days`);
+      
+      res.json({
+        success: true,
+        message: 'Post retention updated successfully',
+        post: result.rows[0]
+      });
+      
+    } catch (error) {
+      console.error('Error updating post retention:', error);
+      res.status(500).json({
+        error: 'Failed to update post retention',
+        details: error.message
+      });
+    }
+  }
+);
+
+// Bulk update retention dates for multiple posts
+router.put('/posts/bulk-retention',
+  authenticateToken,
+  authorizeRole(['admin']),
+  auditLog('bulk_update_post_retention'),
+  async (req, res) => {
+    try {
+      const { postIds, retentionDays } = req.body;
+      
+      if (!postIds || !Array.isArray(postIds) || postIds.length === 0) {
+        return res.status(400).json({ error: 'Post IDs array required' });
+      }
+      
+      if (!retentionDays || retentionDays < 1) {
+        return res.status(400).json({ error: 'Valid retention days required' });
+      }
+      
+      const placeholders = postIds.map((_, index) => `$${index + 1}`).join(',');
+      
+      const query = `
+        UPDATE posts 
+        SET retention_date = NOW() + INTERVAL '${parseInt(retentionDays)} days'
+        WHERE id IN (${placeholders})
+        RETURNING id, title, retention_date
+      `;
+      
+      const result = await pool.query(query, postIds.map(id => parseInt(id)));
+      
+      console.log(`Bulk updated ${result.rowCount} posts retention to ${retentionDays} days`);
+      
+      res.json({
+        success: true,
+        message: `Updated ${result.rowCount} posts successfully`,
+        updatedCount: result.rowCount,
+        posts: result.rows
+      });
+      
+    } catch (error) {
+      console.error('Error bulk updating post retention:', error);
+      res.status(500).json({
+        error: 'Failed to bulk update post retention',
+        details: error.message
+      });
+    }
+  }
+);
+
 module.exports = router;
