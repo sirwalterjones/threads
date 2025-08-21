@@ -132,8 +132,8 @@ router.get('/',
       }
 
       if (category) {
-        whereConditions.push(`category_id = $${paramIndex}`);
-        queryParams.push(category);
+        whereConditions.push(`c.name ILIKE $${paramIndex}`);
+        queryParams.push(`%${category}%`);
         paramIndex++;
       }
 

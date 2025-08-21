@@ -86,7 +86,6 @@ const HomeSimple: React.FC = () => {
           page,
           limit: 12,
           search: searchTerm,
-          category: selectedCategory,
           author: authorFilter,
           dateFrom: dateFromFilter,
           dateTo: dateToFilter,
@@ -327,8 +326,11 @@ const HomeSimple: React.FC = () => {
     if (loading) return;
     if (posts.length === 0) return; // only auto-update after initial results exist
     const debounce = setTimeout(() => {
+      // Find the category name by ID for the backend
+      const categoryName = selectedCategory ? categories.find(c => c.id.toString() === selectedCategory)?.name : null;
+      
       loadData(1, {
-        ...(selectedCategory ? { category: selectedCategory } as any : {}),
+        ...(categoryName ? { category: categoryName } as any : {}),
         ...(authorFilter ? { author: authorFilter } as any : {}),
         ...(dateFromFilter ? { dateFrom: dateFromFilter } as any : {}),
         ...(dateToFilter ? { dateTo: dateToFilter } as any : {}),
@@ -341,18 +343,12 @@ const HomeSimple: React.FC = () => {
     }, 300);
     return () => clearTimeout(debounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, authorFilter, dateFromFilter, dateToFilter, origin, mineOnly, sortBy, sortOrder]);
+  }, [selectedCategory, authorFilter, dateFromFilter, dateToFilter, origin, mineOnly, sortBy, sortOrder, categories]);
 
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
-    // Find the category name by ID and send that to the backend
-    const category = categories.find(c => c.id.toString() === categoryId);
-    if (category && categoryId !== '') {
-      loadData(1, { category: category.name });
-    } else {
-      loadData(1, {}); // No category filter
-    }
+    // Don't call loadData here - let the useEffect handle it
   };
 
   const stripHtmlTags = (html: string) => {
