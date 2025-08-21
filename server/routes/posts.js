@@ -161,7 +161,7 @@ router.get('/:id',
         LEFT JOIN post_attachments pa ON p.id = pa.post_id
         LEFT JOIN files f ON pa.file_id = f.id
         WHERE p.id = $1
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false) OR c.id IS NULL' : ''}
         GROUP BY p.id, c.name, c.slug
       `, [id]);
 

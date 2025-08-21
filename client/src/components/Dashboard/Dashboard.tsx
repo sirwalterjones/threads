@@ -571,11 +571,18 @@ const Dashboard: React.FC = () => {
                     {highlightText(stripHtmlTags(post.title))}
                   </Typography>
                   
-                  {post.excerpt && (
-                    <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
-                      {highlightText(stripHtmlTags(post.excerpt).substring(0, 150))}...
-                    </Typography>
-                  )}
+                  {(() => {
+                    const raw = post.excerpt && post.excerpt.trim().length > 0 
+                      ? post.excerpt 
+                      : (post.content || '');
+                    const text = stripHtmlTags(raw);
+                    if (!text) return null;
+                    return (
+                      <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
+                        {highlightText(text.substring(0, 150))}...
+                      </Typography>
+                    );
+                  })()}
 
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                     {post.category_name && (
