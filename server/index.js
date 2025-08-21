@@ -91,6 +91,22 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Database test endpoint - no auth required
+app.get('/api/db-test', async (req, res) => {
+  try {
+    const { pool } = require('./config/database');
+    const result = await pool.query('SELECT id, title, author_name FROM posts LIMIT 5');
+    res.json({
+      message: 'Database connection working',
+      posts: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({ error: 'Database test failed', details: error.message });
+  }
+});
+
 // Get Vercel IP address
 app.get('/api/my-ip', async (req, res) => {
   try {
