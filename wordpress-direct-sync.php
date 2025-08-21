@@ -138,8 +138,8 @@ class ThreadsIntelDirectSync {
                 'status' => $post->post_status,
                 'author' => $post->post_author,
                 'author_name' => $author ? $author->display_name : 'Unknown',
-                'date' => $post->post_date,
-                'modified' => $post->post_modified,
+                'date' => $post->post_date_gmt, // Use GMT date to avoid timezone issues
+                'modified' => $post->post_modified_gmt, // Use GMT date to avoid timezone issues
                 'categories' => $category_ids,
                 'tags' => wp_get_post_tags($post->ID, array('fields' => 'ids')),
                 'featured_media' => get_post_thumbnail_id($post->ID),
