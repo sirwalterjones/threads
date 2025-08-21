@@ -29,7 +29,7 @@ const NotificationBell: React.FC = () => {
   const loadNotifications = async () => {
     try {
       const data = await apiService.getNotifications();
-      setNotifications(data);
+      setNotifications(data.notifications);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }
