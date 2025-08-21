@@ -325,7 +325,7 @@ class ApiService {
   // Get users for @ mentions
   async getUsersForMentions(search?: string): Promise<{ users: Array<{ id: number; username: string; role: string }> }> {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
-    const response = await axios.get(`${API_BASE_URL}/auth/users${params}`);
+    const response = await axios.get(`${API_BASE_URL}/auth/users/mentions${params}`);
     return response.data;
   }
 

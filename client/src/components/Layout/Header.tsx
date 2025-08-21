@@ -15,9 +15,7 @@ import {
   AccountCircle,
   ExitToApp,
   Settings,
-  Dashboard,
-  DarkMode,
-  LightMode
+  Dashboard
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -167,51 +165,49 @@ const Header: React.FC = () => {
             </IconButton>
           )}
 
-              <Menu
-                id="account-menu"
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                MenuListProps={{
-                  'aria-labelledby': 'account-button',
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              >
-                {(user.role === 'admin' || user.role === 'edit') && (
-                  <MenuItem onClick={handleDashboard}>
-                    <Dashboard sx={{ mr: 2 }} />
-                    Admin Dashboard
-                  </MenuItem>
-                )}
-                {(user.role === 'admin' || user.role === 'edit') && (
-                  <MenuItem onClick={() => { setOpenNew(true); handleMenuClose(); }}>
-                    <Dashboard sx={{ mr: 2 }} />
-                    New Post
-                  </MenuItem>
-                )}
-                <MenuItem onClick={handleProfile}>
-                  <Settings sx={{ mr: 2 }} />
-                  Profile Settings
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  <ExitToApp sx={{ mr: 2 }} />
-                  Logout
-                </MenuItem>
-              </Menu>
-            </>
-          )}
-
-          {!user && (
-            <Button
-              color="inherit"
-              onClick={() => navigate('/login')}
-              startIcon={<AccountCircle />}
-            >
-              Login
-            </Button>
-          )}
+          <Menu
+            id="account-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            MenuListProps={{
+              'aria-labelledby': 'account-button',
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            {(user?.role === 'admin' || user?.role === 'edit') && (
+              <MenuItem onClick={handleDashboard}>
+                <Dashboard sx={{ mr: 2 }} />
+                Admin Dashboard
+              </MenuItem>
+            )}
+            {(user?.role === 'admin' || user?.role === 'edit') && (
+              <MenuItem onClick={() => { setOpenNew(true); handleMenuClose(); }}>
+                <Dashboard sx={{ mr: 2 }} />
+                New Post
+              </MenuItem>
+            )}
+            <MenuItem onClick={handleProfile}>
+              <Settings sx={{ mr: 2 }} />
+              Profile Settings
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <ExitToApp sx={{ mr: 2 }} />
+              Logout
+            </MenuItem>
+          </Menu>
         </Box>
+
+        {!user && (
+          <Button
+            color="inherit"
+            onClick={() => navigate('/login')}
+            startIcon={<AccountCircle />}
+          >
+            Login
+          </Button>
+        )}
       </Toolbar>
       <NewPostModal open={openNew} onClose={()=>setOpenNew(false)} onCreated={()=>{ /* optionally refresh */ }} post={editingPost} />
     </AppBar>

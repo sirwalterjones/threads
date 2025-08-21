@@ -241,7 +241,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Get users for @ mention suggestions
-router.get('/users', authenticateToken, async (req, res) => {
+router.get('/users/mentions', authenticateToken, async (req, res) => {
   try {
     const { search } = req.query;
     let query = 'SELECT id, username, role FROM users WHERE is_active = true';
