@@ -36,7 +36,7 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting with proper Vercel proxy handling
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
@@ -45,6 +45,14 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For if available, otherwise fall back to req.ip
+    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+  },
+  skip: (req) => {
+    // Skip rate limiting for health checks and static assets
+    return req.path === '/health' || req.path.startsWith('/static/');
+  }
 });
 
 // Apply rate limiting only in production and only to API routes
