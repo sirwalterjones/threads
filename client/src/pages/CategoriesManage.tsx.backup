@@ -6,7 +6,9 @@ import {
   TextField, 
   Typography, 
   Alert, 
+  Grid,
   Chip,
+  Button,
   InputAdornment,
   IconButton,
   FormControl,
@@ -214,8 +216,8 @@ const CategoriesManage: React.FC = () => {
           </Box>
           
           {/* Sort Controls */}
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ minWidth: 200 }}>
+          <Grid container spacing={3} justifyContent="center">
+            <Grid item xs={6} sm={4} md={3}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#71767B' }}>Sort by</InputLabel>
                 <Select
@@ -234,8 +236,8 @@ const CategoriesManage: React.FC = () => {
                   <MenuItem value="created_at">Created Date</MenuItem>
                 </Select>
               </FormControl>
-            </Box>
-            <Box sx={{ minWidth: 200 }}>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#71767B' }}>Order</InputLabel>
                 <Select
@@ -253,8 +255,8 @@ const CategoriesManage: React.FC = () => {
                   <MenuItem value="desc">Descending</MenuItem>
                 </Select>
               </FormControl>
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
 
@@ -366,7 +368,7 @@ const CategoriesManage: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-        ))}
+        ))
       </Box>
     </Box>
   );
