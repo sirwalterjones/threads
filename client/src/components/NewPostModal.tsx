@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Stack, Chip, Alert, Divider, Paper, Typography } from '@mui/material';
 import DOMPurify from 'dompurify';
+import { Editor } from '@tinymce/tinymce-react';
 import apiService from '../services/api';
 import { Category } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +22,10 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setEditorRef(null);
+      return;
+    }
     apiService.getCategories().then(setCategories).catch(()=>{});
     if (post) {
       setTitle(post.title || '');
@@ -32,10 +36,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       setTitle(''); setContent(''); setExcerpt(''); setCategoryId('');
     }
   }, [open, post]);
-
-  // Remove TinyMCE completely to avoid API key issues
-
-  // Always use the textarea fallback instead of TinyMCE
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,9 +115,15 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     }
   };
 
+  const [editorRef, setEditorRef] = useState<any>(null);
+
   const insertHtml = (html: string) => {
     const safe = DOMPurify.sanitize(html);
-    setContent(prev => prev + safe);
+    if (editorRef) {
+      editorRef.insertContent(safe);
+    } else {
+      setContent(prev => prev + safe);
+    }
   };
 
   const generateExcerpt = (html: string) => {
@@ -174,6 +180,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       setExcerpt(''); 
       setCategoryId(''); 
       setUploads([]);
+      setEditorRef(null);
       
       onCreated?.();
       onClose();
@@ -290,25 +297,45 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
               border: '1px solid #D1D5DB',
               borderRadius: 2,
               backgroundColor: 'white',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              '& .tox-tinymce': {
+                borderRadius: '8px',
+                border: 'none'
+              },
+              '& .tox-editor-header': {
+                borderBottom: '1px solid #E5E7EB'
+              }
             }}
           >
-            <TextField
-              fullWidth
-              multiline
-              minRows={10}
-              placeholder="Write your thread content here..."
+            <Editor
+              tinymceScriptSrc="/tinymce/tinymce.min.js"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                },
-                '& .MuiInputBase-input': {
-                  fontSize: '14px',
-                  lineHeight: 1.6
+              onEditorChange={(value) => setContent(value)}
+              onInit={(evt, editor) => setEditorRef(editor)}
+              init={{
+                height: 400,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                skin: 'oxide',
+                content_css: 'default',
+                branding: false,
+                promotion: false,
+                resize: false,
+                statusbar: false,
+                placeholder: 'Write your thread content here...',
+                setup: (editor) => {
+                  editor.on('init', () => {
+                    editor.getContainer().style.transition = 'border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out';
+                  });
                 }
               }}
             />

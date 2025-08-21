@@ -55,14 +55,14 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     shape: { borderRadius: 16 }, // More rounded corners
     typography: {
       fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      h1: { fontWeight: 800, fontSize: '2.5rem', letterSpacing: '-0.025em' },
-      h2: { fontWeight: 700, fontSize: '2rem', letterSpacing: '-0.025em' },
-      h3: { fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.025em' },
-      h4: { fontWeight: 600, fontSize: '1.25rem', letterSpacing: '-0.025em' },
-      h5: { fontWeight: 600, fontSize: '1.125rem' },
-      h6: { fontWeight: 600, fontSize: '1rem' },
-      body1: { lineHeight: 1.75, fontSize: '1rem' },
-      body2: { lineHeight: 1.6, fontSize: '0.875rem' },
+      h1: { fontWeight: 800, fontSize: '1.125rem', letterSpacing: '-0.025em', textAlign: 'center' },
+      h2: { fontWeight: 700, fontSize: '1.125rem', letterSpacing: '-0.025em', textAlign: 'center' },
+      h3: { fontWeight: 700, fontSize: '1.125rem', letterSpacing: '-0.025em', textAlign: 'center' },
+      h4: { fontWeight: 600, fontSize: '1.125rem', letterSpacing: '-0.025em', textAlign: 'center' },
+      h5: { fontWeight: 600, fontSize: '1.125rem', textAlign: 'center' },
+      h6: { fontWeight: 600, fontSize: '1.125rem', textAlign: 'center' },
+      body1: { lineHeight: 1.75, fontSize: '0.875rem' },
+      body2: { lineHeight: 1.6, fontSize: '0.75rem' },
       button: { fontWeight: 500, textTransform: 'none' }
     },
     components: {

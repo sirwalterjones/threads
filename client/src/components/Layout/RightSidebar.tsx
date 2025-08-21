@@ -45,7 +45,7 @@ const RightSidebar: React.FC = () => {
       
       // Load recent threads
       const recentResponse = await apiService.getPosts({
-        limit: 3, // Reduced to 3 to avoid clutter
+        limit: 50, // Increased to show more threads in the full sidebar
         sortBy: 'wp_published_date',
         sortOrder: 'DESC'
       });
@@ -89,7 +89,7 @@ const RightSidebar: React.FC = () => {
     <Box sx={{ 
       position: 'sticky', 
       top: 0, 
-      pt: 2,
+      pt: 1.5,
       maxHeight: '100vh',
       overflowY: 'auto',
       '&::-webkit-scrollbar': {
@@ -106,39 +106,44 @@ const RightSidebar: React.FC = () => {
         background: '#3F4144',
       },
     }}>
-      {/* Recent Activity - Moved to Top */}
+      {/* Recent Threads - Full Height */}
       {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
-          mb: 4, 
+          mb: 2, 
           backgroundColor: '#16181C', 
           border: 'none',
-          borderRadius: 4
+          borderRadius: 4,
+          height: 'calc(100vh - 100px)',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <CardContent sx={{ p: 0 }}>
-          <Box sx={{ p: 2, pb: 1 }}>
+        <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ p: 1.5, pb: 1 }}>
             <Typography variant="h6" sx={{ 
               color: '#E7E9EA', 
               fontWeight: 700, 
               fontSize: '20px',
               display: 'flex',
               alignItems: 'center',
-              gap: 1
+              gap: 1,
+              textAlign: 'center',
+              justifyContent: 'center'
             }}>
               <Schedule sx={{ color: '#1D9BF0' }} />
               Recent Threads
             </Typography>
           </Box>
           
-          <List sx={{ py: 0 }}>
+          <List sx={{ py: 0, flex: 1, overflowY: 'auto' }}>
             {recentThreads.map((thread) => (
               <ListItem key={thread.id} disablePadding>
                 <ListItemButton
                   onClick={() => handleThreadClick(thread.id)}
                   sx={{
-                    py: 3,
-                    px: 4,
+                    py: 2,
+                    px: 2,
                     '&:hover': {
                       backgroundColor: '#1C1F23'
                     }
@@ -181,15 +186,14 @@ const RightSidebar: React.FC = () => {
             ))}
           </List>
           
-          <Box sx={{ p: 4, pt: 3 }}>
+          <Box sx={{ p: 2, pt: 1.5 }}>
             <Button
               fullWidth
               sx={{
                 color: '#1D9BF0',
                 textTransform: 'none',
                 fontWeight: 400,
-                justifyContent: 'flex-start',
-                pl: 0,
+                justifyContent: 'center',
                 '&:hover': {
                   backgroundColor: 'transparent',
                   textDecoration: 'underline'
@@ -197,253 +201,7 @@ const RightSidebar: React.FC = () => {
               }}
               onClick={() => navigate('/search')}
             >
-              Show more
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-      )}
-
-      {/* Search Box */}
-      <Card 
-        sx={{ 
-          mb: 4, 
-          backgroundColor: '#16181C', 
-          border: 'none',
-          borderRadius: 4
-        }}
-      >
-        <CardContent sx={{ p: 4 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#202327',
-              borderRadius: 10,
-              px: 4,
-              py: 2,
-              cursor: 'pointer',
-              '&:hover': {
-                backgroundColor: '#2C2F33'
-              }
-            }}
-            onClick={() => navigate('/search')}
-          >
-            <SearchIcon sx={{ color: '#71767B', mr: 2 }} />
-            <Typography sx={{ color: '#71767B', fontSize: '15px' }}>
-              Search Threads
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Trending Categories */}
-      {!loading && topCategories.length > 0 && (
-        <Card 
-          sx={{ 
-            mb: 4, 
-            backgroundColor: '#16181C', 
-            border: 'none',
-            borderRadius: 4
-          }}
-        >
-          <CardContent sx={{ p: 0 }}>
-            <Box sx={{ p: 4, pb: 3 }}>
-              <Typography variant="h6" sx={{ 
-                color: '#E7E9EA', 
-                fontWeight: 700, 
-                fontSize: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                <LocalFireDepartment sx={{ color: '#FF6B35' }} />
-                What's happening
-              </Typography>
-            </Box>
-            
-            <List sx={{ py: 0 }}>
-              {topCategories.map((category, index) => (
-              <ListItem key={category.id} disablePadding>
-                <ListItemButton
-                  onClick={() => handleCategoryClick(category.id)}
-                  sx={{
-                    py: 3,
-                    px: 4,
-                    '&:hover': {
-                      backgroundColor: '#1C1F23'
-                    }
-                  }}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography sx={{ 
-                        color: '#E7E9EA', 
-                        fontWeight: 700, 
-                        fontSize: '16px' 
-                      }}>
-                        {category.name}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography sx={{ 
-                        color: '#71767B', 
-                        fontSize: '14px' 
-                      }}>
-                        {category.post_count > 1000 
-                          ? `${(category.post_count / 1000).toFixed(1)}K threads`
-                          : `${category.post_count} threads`
-                        }
-                      </Typography>
-                    }
-                  />
-                  <Chip
-                    label={`#${index + 1}`}
-                    size="small"
-                    sx={{
-                      backgroundColor: '#1D9BF0',
-                      color: 'white',
-                      fontSize: '11px',
-                      height: '20px',
-                      minWidth: '24px'
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          
-          <Box sx={{ p: 4, pt: 3 }}>
-            <Button
-              fullWidth
-              sx={{
-                color: '#1D9BF0',
-                textTransform: 'none',
-                fontWeight: 400,
-                justifyContent: 'flex-start',
-                pl: 0,
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  textDecoration: 'underline'
-                }
-              }}
-              onClick={() => navigate('/categories')}
-            >
-              Show more
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-      )}
-
-      {/* Who to follow */}
-      {!loading && recentThreads.length > 0 && (
-      <Card 
-        sx={{ 
-          mb: 4, 
-          backgroundColor: '#16181C', 
-          border: 'none',
-          borderRadius: 4
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          <Box sx={{ p: 2, pb: 1 }}>
-            <Typography variant="h6" sx={{ 
-              color: '#E7E9EA', 
-              fontWeight: 700, 
-              fontSize: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <Group sx={{ color: '#1D9BF0' }} />
-              Active Contributors
-            </Typography>
-          </Box>
-          
-          <List sx={{ py: 0 }}>
-            {recentThreads
-              .reduce((unique: Post[], thread) => {
-                const exists = unique.find(t => t.author_name === thread.author_name);
-                if (!exists) unique.push(thread);
-                return unique;
-              }, [])
-              .slice(0, 3)
-              .map((thread) => (
-              <ListItem 
-                key={`author-${thread.author_name}`}
-                sx={{ py: 1.5, px: 2 }}
-              >
-                <ListItemAvatar>
-                  <Avatar sx={{ 
-                    width: 32, 
-                    height: 32,
-                    backgroundColor: '#1D9BF0',
-                    fontSize: '12px'
-                  }}>
-                    {thread.author_name[0]?.toUpperCase()}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Typography sx={{ 
-                      color: '#E7E9EA', 
-                      fontWeight: 700, 
-                      fontSize: '14px' 
-                    }}>
-                      {thread.author_name}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography sx={{ 
-                      color: '#71767B', 
-                      fontSize: '13px' 
-                    }}>
-                      @{thread.author_name.toLowerCase()}
-                    </Typography>
-                  }
-                />
-                <Button
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: '#536471',
-                    color: '#E7E9EA',
-                    borderRadius: 10,
-                    textTransform: 'none',
-                    minWidth: '60px',
-                    height: '28px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    '&:hover': {
-                      borderColor: '#E7E9EA',
-                      backgroundColor: 'rgba(231, 233, 234, 0.1)'
-                    }
-                  }}
-                >
-                  View
-                </Button>
-              </ListItem>
-            ))}
-          </List>
-          
-          <Box sx={{ p: 4, pt: 3 }}>
-            <Button
-              fullWidth
-              sx={{
-                color: '#1D9BF0',
-                textTransform: 'none',
-                fontWeight: 400,
-                justifyContent: 'flex-start',
-                pl: 0,
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  textDecoration: 'underline'
-                }
-              }}
-              onClick={() => navigate('/users')}
-            >
-              Show more
+              Show more threads
             </Button>
           </Box>
         </CardContent>
@@ -451,7 +209,7 @@ const RightSidebar: React.FC = () => {
       )}
 
       {/* Footer */}
-      <Box sx={{ px: 4, pb: 4 }}>
+      <Box sx={{ px: 2, pb: 2 }}>
         <Typography sx={{ 
           color: '#536471', 
           fontSize: '13px',

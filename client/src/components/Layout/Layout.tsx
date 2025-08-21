@@ -4,6 +4,7 @@ import { Menu as MenuIcon } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import NewPostModal from '../NewPostModal';
+import PostDetailModal from '../PostDetailModal';
 import apiService from '../../services/api';
 
 interface LayoutProps {
@@ -14,6 +15,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openNewPost, setOpenNewPost] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -35,6 +38,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
     window.addEventListener('open-new-post-modal', handler as any);
     return () => window.removeEventListener('open-new-post-modal', handler as any);
+  }, []);
+
+  // Listen for global open-post-detail events from right sidebar
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      const postId = e?.detail?.postId;
+      if (postId) {
+        setSelectedPostId(postId);
+        setModalOpen(true);
+      }
+    };
+    window.addEventListener('open-post-detail', handler as any);
+    return () => window.removeEventListener('open-post-detail', handler as any);
   }, []);
 
   const handleSidebarToggle = () => {
@@ -100,10 +116,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Right Sidebar - Suggestions & Trends */}
         <Box
           sx={{
-            width: { xs: 0, lg: '480px' },
-            minWidth: '480px',
+            width: { xs: 0, lg: '320px' },
+            minWidth: '320px',
             display: { xs: 'none', lg: 'block' },
-            p: 4,
+            p: 2,
             backgroundColor: '#000000'
           }}
         >
@@ -117,6 +133,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         onClose={() => setOpenNewPost(false)} 
         onCreated={() => { /* optionally refresh */ }} 
         post={editingPost} 
+      />
+      
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        postId={selectedPostId}
       />
     </Box>
   );
