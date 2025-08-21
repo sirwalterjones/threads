@@ -125,8 +125,9 @@ router.get('/',
 
       // Build search conditions
       if (search) {
-        whereConditions.push(`search_vector @@ plainto_tsquery('english', $${paramIndex})`);
-        queryParams.push(search);
+        // Use simple text search that actually works
+        whereConditions.push(`(p.title ILIKE $${paramIndex} OR p.content ILIKE $${paramIndex} OR p.author_name ILIKE $${paramIndex})`);
+        queryParams.push(`%${search}%`);
         paramIndex++;
       }
 
@@ -177,40 +178,35 @@ router.get('/',
       if (whereConditions.length > 0) {
         whereClause = `WHERE ${whereConditions.join(' AND ')}`;
       }
-      // Temporarily disable hidden category filter to debug
-      // if (whereConditions.length > 0) {
-      //   whereConditions.push(`(c.is_hidden IS NULL OR c.is_hidden = false)`);
-      //   whereClause = `WHERE ${whereConditions.join(' AND ')}`;
-      // } else if (req.user.role !== 'admin') {
-      //   whereClause = `WHERE (c.is_hidden IS NULL OR c.is_hidden = false)`;
-      // }
 
       // Validate sort parameters
       const allowedSortFields = ['title', 'wp_published_date', 'author_name', 'ingested_at'];
       const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'wp_published_date';
       const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-      // TEMP: Use exact same logic as posts query (no filtering)
+      // Build the main query with proper filtering
       const countQuery = `
         SELECT COUNT(*) as total
         FROM posts p
+        ${whereClause}
       `;
       
-      const countResult = await pool.query(countQuery, []);
+      const countResult = await pool.query(countQuery, queryParams);
       const total = parseInt(countResult.rows[0].total);
 
-      // TEMP: Use exact same query as debug endpoint to isolate the issue
+      // Build the posts query with proper filtering
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           p.metadata
         FROM posts p
+        ${whereClause}
         ORDER BY p.wp_published_date DESC, p.id DESC
-        LIMIT $1 OFFSET $2
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
 
-      const postsResult = await pool.query(postsQuery, [limit, offset]);
+      const postsResult = await pool.query(postsQuery, [...queryParams, limit, offset]);
 
       res.json({
         posts: postsResult.rows,
