@@ -111,13 +111,13 @@ const RightSidebar: React.FC = () => {
           mb: 2, 
           backgroundColor: '#16181C', 
           border: 'none',
-          borderRadius: 4,
+          borderRadius: 1,
           height: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column'
         }}
       >
-        <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <Box sx={{ p: 1, pb: 0.5 }}>
             <Typography variant="body2" sx={{ 
               color: '#E7E9EA', 
@@ -134,7 +134,7 @@ const RightSidebar: React.FC = () => {
             </Typography>
           </Box>
           
-          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto', maxHeight: '100%', pr: 1 }}>
+          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto', maxHeight: '100%', pr: 1, minHeight: 0 }}>
             {recentThreads.map((thread, index) => {
               const dt = new Date(thread.wp_published_date);
               const header = isToday(dt) ? 'Today' : (isYesterday(dt) ? 'Yesterday' : format(dt, 'MMM d'));
