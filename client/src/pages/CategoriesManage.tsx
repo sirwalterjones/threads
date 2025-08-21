@@ -114,22 +114,32 @@ const CategoriesManage: React.FC = () => {
     
     try {
       setPostsLoading(true);
+      setError(''); // Clear any previous errors
       console.log('Attempting to load posts for category:', selectedCategory.name, selectedCategory.slug);
       
-      // Use the posts endpoint with category filter (by slug)
-      const data = await apiService.getPosts({
-        page: postsPage,
-        limit: postsPerPage,
-        search: postsSearch || undefined,
-        category: selectedCategory.slug // Use category slug for filtering
-      });
-      
-      console.log('Loaded posts:', data);
-      setCategoryPosts(data.posts || []);
-      setPostsTotal(data.pagination?.total || 0);
+      // Try category filter first, but fall back to showing a message if it fails
+      try {
+        const data = await apiService.getPosts({
+          page: postsPage,
+          limit: postsPerPage,
+          search: postsSearch || undefined,
+          category: selectedCategory.slug // Use category slug for filtering
+        });
+        
+        console.log('Loaded posts:', data);
+        setCategoryPosts(data.posts || []);
+        setPostsTotal(data.pagination?.total || 0);
+      } catch (filterError: any) {
+        console.warn('Category filter failed, this is expected for some categories:', filterError);
+        
+        // Set a helpful message for the user
+        setCategoryPosts([]);
+        setPostsTotal(selectedCategory.post_count || 0);
+        setError(`Cannot load posts for "${selectedCategory.name}" - this category has ${selectedCategory.post_count} posts but the server cannot filter them efficiently. Try searching for specific terms instead.`);
+      }
     } catch (e: any) {
       console.error('Error loading category posts:', e);
-      setError(e?.response?.data?.error || 'Failed to load category posts');
+      setError(e?.response?.data?.error || 'Failed to load category posts. The server may be experiencing issues.');
     } finally {
       setPostsLoading(false);
     }
@@ -155,17 +165,25 @@ const CategoriesManage: React.FC = () => {
     setPostsPage(1);
     setPostsSearch('');
     
-    // Track category view
-    await auditService.trackView('category', category.id, category.name);
+    // Track category view (don't block UI if audit fails)
+    try {
+      await auditService.trackView('category', category.id, category.name);
+    } catch (e) {
+      console.warn('Failed to log category view:', e);
+    }
   };
 
   const handlePostClick = async (postId: number) => {
     setSelectedPostId(postId);
     setModalOpen(true);
     
-    // Find the post title for audit logging
-    const post = categoryPosts.find(p => p.id === postId);
-    await auditService.trackView('post', postId, post?.title);
+    // Find the post title for audit logging (don't block UI if audit fails)
+    try {
+      const post = categoryPosts.find(p => p.id === postId);
+      await auditService.trackView('post', postId, post?.title);
+    } catch (e) {
+      console.warn('Failed to log post view:', e);
+    }
   };
 
   const handleBackToCategories = () => {
@@ -277,8 +295,25 @@ const CategoriesManage: React.FC = () => {
             </Box>
 
             {postsLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4 }}>
                 <CircularProgress />
+                <Typography sx={{ mt: 2, color: '#71767B' }}>Loading posts...</Typography>
+              </Box>
+            ) : categoryPosts.length === 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4 }}>
+                <Typography variant="h6" sx={{ color: '#71767B', mb: 1 }}>No posts found</Typography>
+                <Typography variant="body2" sx={{ color: '#71767B', textAlign: 'center' }}>
+                  {error ? 'There was an error loading posts for this category.' : 'This category doesn\'t have any posts yet.'}
+                </Typography>
+                {error && (
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => loadCategoryPosts()} 
+                    sx={{ mt: 2, color: '#1D9BF0', borderColor: '#1D9BF0' }}
+                  >
+                    Try Again
+                  </Button>
+                )}
               </Box>
             ) : (
               <TableContainer>
