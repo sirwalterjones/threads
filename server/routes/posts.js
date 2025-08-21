@@ -10,45 +10,30 @@ router.get('/debug', async (req, res) => {
   try {
     console.log('Debug endpoint called - checking database content...');
     
-    // Check if posts table exists
-    const tableCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'posts'
-      );
-    `);
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
     
-    if (!tableCheck.rows[0].exists) {
-      return res.json({
-        error: 'Posts table does not exist',
-        tableExists: false
-      });
-    }
-    
-    // Get table structure
-    const structureResult = await pool.query(`
-      SELECT column_name, data_type, is_nullable
-      FROM information_schema.columns 
-      WHERE table_name = 'posts'
-      ORDER BY ordinal_position
-    `);
-    
-    // Simple query to see what's in the posts table
-    const result = await pool.query(`
+    // Test the same query as the main posts endpoint
+    const postsQuery = `
       SELECT 
-        id, wp_post_id, title, author_name, wp_published_date, 
-        ingested_at, category_id, status
-      FROM posts 
-      ORDER BY id DESC 
-      LIMIT 10
-    `);
+        p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
+        p.wp_published_date, p.ingested_at, p.retention_date, p.status,
+        p.metadata
+      FROM posts p
+      ORDER BY p.id DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const postsResult = await pool.query(postsQuery, [limit, offset]);
     
     res.json({
-      tableExists: true,
-      totalPosts: result.rows.length,
-      posts: result.rows,
-      tableStructure: structureResult.rows,
-      message: 'Debug query successful'
+      posts: postsResult.rows,
+      count: postsResult.rows.length,
+      message: 'Debug posts query successful',
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit)
+      }
     });
   } catch (error) {
     console.error('Debug endpoint error:', error);
