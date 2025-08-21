@@ -18,6 +18,7 @@ const mediaRoutes = require('./routes/media');
 const adminRoutes = require('./routes/admin'); // Use full PostgreSQL version
 const uploadsRoutes = require('./routes/uploads');
 const filesRoutes = require('./routes/files');
+const commentsRoutes = require('./routes/comments');
 
 const app = express();
 // Ensure Express uses X-Forwarded-* headers on Vercel to get real client IP
@@ -183,6 +184,7 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/comments', commentsRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {

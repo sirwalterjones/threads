@@ -154,6 +154,24 @@ if (USE_SQLITE) {
         )
       `);
 
+      // Comments table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id SERIAL PRIMARY KEY,
+          post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          is_edited BOOLEAN DEFAULT false
+        )
+      `);
+
+      // Create index for comments
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS comments_post_id_idx ON comments(post_id)
+      `);
+
       // Audit log table
       await pool.query(`
         CREATE TABLE IF NOT EXISTS audit_log (

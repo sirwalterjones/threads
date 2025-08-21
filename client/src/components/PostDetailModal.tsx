@@ -22,6 +22,7 @@ import {
 import { Post } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
 import AttachmentViewerModal from './AttachmentViewerModal';
+import Comments from './Comments/Comments';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
 
@@ -423,6 +424,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                 </Typography>
               </Box>
             )}
+
+            {/* Comments Section */}
+            <Comments postId={post.id} />
           </Box>
         )}
       </DialogContent>

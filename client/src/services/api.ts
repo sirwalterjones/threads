@@ -304,6 +304,27 @@ class ApiService {
     const response = await axios.post(`${API_BASE_URL}/audit/log`, event);
     return response.data;
   }
+
+  // Comment Management
+  async getComments(postId: number): Promise<{ comments: Comment[] }> {
+    const response = await axios.get(`${API_BASE_URL}/comments/post/${postId}`);
+    return response.data;
+  }
+
+  async createComment(postId: number, content: string): Promise<{ comment: Comment }> {
+    const response = await axios.post(`${API_BASE_URL}/comments`, { postId, content });
+    return response.data;
+  }
+
+  async updateComment(commentId: number, content: string): Promise<{ comment: Comment }> {
+    const response = await axios.put(`${API_BASE_URL}/comments/${commentId}`, { content });
+    return response.data;
+  }
+
+  async deleteComment(commentId: number): Promise<{ message: string }> {
+    const response = await axios.delete(`${API_BASE_URL}/comments/${commentId}`);
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();
