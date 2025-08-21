@@ -160,6 +160,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleSearch = async () => {
+    console.log('Search triggered with query:', searchQuery); // DEBUG
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
@@ -172,7 +173,9 @@ const Dashboard: React.FC = () => {
         sortBy: 'wp_published_date',
         sortOrder: 'DESC'
       };
+      console.log('Searching with filters:', filters); // DEBUG
       const response = await apiService.getPosts({ ...filters, limit: 20 });
+      console.log('Search response:', response); // DEBUG
       setSearchResults(response.posts);
     } catch (error) {
       console.error('Search failed:', error);
