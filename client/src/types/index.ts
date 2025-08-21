@@ -39,7 +39,7 @@ export interface Post {
   rank?: number;
 }
 
-export interface Comment {
+export interface PostComment {
   id: number;
   post_id: number;
   user_id: number;

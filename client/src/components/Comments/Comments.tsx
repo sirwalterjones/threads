@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import apiService from '../../services/api';
-import { Comment } from '../../types';
+import { PostComment } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface CommentsProps {
@@ -33,11 +33,11 @@ interface CommentsProps {
 }
 
 const Comments: React.FC<CommentsProps> = ({ postId }) => {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [editingComment, setEditingComment] = useState<Comment | null>(null);
+  const [editingComment, setEditingComment] = useState<PostComment | null>(null);
   const [editContent, setEditContent] = useState('');
   const [error, setError] = useState('');
   const { user } = useAuth();

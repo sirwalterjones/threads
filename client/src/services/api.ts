@@ -9,7 +9,8 @@ import {
   AuditLogEntry,
   PostFormData,
   CategoryFormData,
-  UserFormData
+  UserFormData,
+  PostComment
 } from '../types';
 
 export const API_BASE_URL = '/api';
@@ -306,17 +307,17 @@ class ApiService {
   }
 
   // Comment Management
-  async getComments(postId: number): Promise<{ comments: Comment[] }> {
+  async getComments(postId: number): Promise<{ comments: PostComment[] }> {
     const response = await axios.get(`${API_BASE_URL}/comments/post/${postId}`);
     return response.data;
   }
 
-  async createComment(postId: number, content: string): Promise<{ comment: Comment }> {
+  async createComment(postId: number, content: string): Promise<{ comment: PostComment }> {
     const response = await axios.post(`${API_BASE_URL}/comments`, { postId, content });
     return response.data;
   }
 
-  async updateComment(commentId: number, content: string): Promise<{ comment: Comment }> {
+  async updateComment(commentId: number, content: string): Promise<{ comment: PostComment }> {
     const response = await axios.put(`${API_BASE_URL}/comments/${commentId}`, { content });
     return response.data;
   }
