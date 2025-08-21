@@ -111,6 +111,10 @@ const Header: React.FC = () => {
           <Box sx={{ color: 'red', fontSize: '12px', border: '1px solid red', padding: '4px' }}>
             User: {user ? `${user.username} (${user.role})` : 'null'}
           </Box>
+          {/* Debug: Show if NotificationBell should render */}
+          <Box sx={{ color: 'orange', fontSize: '10px', border: '1px solid orange', padding: '2px' }}>
+            Bell: {user ? 'SHOULD SHOW' : 'WONT SHOW'}
+          </Box>
           {user && <NotificationBell />}
           {user && (
             <>

@@ -92,6 +92,10 @@ const NotificationBell: React.FC = () => {
 
   return (
     <>
+      {/* Debug: Show component is rendered */}
+      <Box sx={{ color: 'lime', fontSize: '10px', border: '1px solid lime', padding: '2px', margin: '2px' }}>
+        Bell Rendered!
+      </Box>
       <IconButton
         color="inherit"
         onClick={handleClick}
