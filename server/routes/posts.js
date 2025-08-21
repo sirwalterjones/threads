@@ -132,8 +132,14 @@ router.get('/',
         paramIndex++;
       }
 
-      const whereClause = whereConditions.length > 0 ? 
-        `WHERE ${whereConditions.join(' AND ')}` : '';
+      // Build the WHERE clause
+      let whereClause = '';
+      if (whereConditions.length > 0) {
+        whereConditions.push(`(c.is_hidden IS NULL OR c.is_hidden = false)`);
+        whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+      } else if (req.user.role !== 'admin') {
+        whereClause = `WHERE (c.is_hidden IS NULL OR c.is_hidden = false)`;
+      }
 
       // Validate sort parameters
       const allowedSortFields = ['title', 'wp_published_date', 'author_name', 'ingested_at'];
@@ -146,7 +152,6 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
@@ -177,7 +182,6 @@ router.get('/',
         LEFT JOIN post_attachments pa ON p.id = pa.post_id
         LEFT JOIN files f ON pa.file_id = f.id
         ${whereClause}
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
         GROUP BY p.id, c.name, c.slug
         ORDER BY p.id DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -276,7 +280,7 @@ router.get('/:id',
         LEFT JOIN post_attachments pa ON p.id = pa.post_id
         LEFT JOIN files f ON pa.file_id = f.id
         WHERE p.id = $1
-        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false) OR c.id IS NULL' : ''}
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
         GROUP BY p.id, c.name, c.slug
       `, [id]);
 

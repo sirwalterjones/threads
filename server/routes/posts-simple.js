@@ -75,8 +75,14 @@ router.get('/',
         paramIndex++;
       }
 
-      const whereClause = whereConditions.length > 0 ? 
-        `WHERE ${whereConditions.join(' AND ')}` : '';
+      // Build the WHERE clause
+      let whereClause = '';
+      if (whereConditions.length > 0) {
+        whereConditions.push(`(c.is_hidden IS NULL OR c.is_hidden = false)`);
+        whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+      } else if (req.user.role !== 'admin') {
+        whereClause = `WHERE (c.is_hidden IS NULL OR c.is_hidden = false)`;
+      }
 
       // Validate sort parameters
       const allowedSortFields = ['title', 'wp_published_date', 'author_name', 'ingested_at'];
@@ -89,8 +95,6 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' && whereConditions.length > 0 ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
-        ${req.user.role !== 'admin' && whereConditions.length === 0 ? 'WHERE (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
@@ -107,8 +111,6 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
-        ${req.user.role !== 'admin' && whereConditions.length > 0 ? 'AND (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
-        ${req.user.role !== 'admin' && whereConditions.length === 0 ? 'WHERE (c.is_hidden IS NULL OR c.is_hidden = false)' : ''}
         ORDER BY ${sortField} ${sortDirection}
         LIMIT ? OFFSET ?
       `;
