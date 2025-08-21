@@ -229,9 +229,9 @@ const HomeSimple: React.FC = () => {
     }
 
     if (isMyThreadsPath) {
-      nextOrigin = 'all'; // Show all origins, not just manual
+      nextOrigin = 'manual'; // Show only manually created posts, not WordPress posts
       nextMine = true;
-      setOrigin('all');
+      setOrigin('manual');
       setMineOnly(true);
     }
 
@@ -247,7 +247,7 @@ const HomeSimple: React.FC = () => {
     const isMyThreadsPath = location.pathname === '/my-threads';
     
     if (isMyThreadsPath) {
-      setOrigin('all'); // Show all origins, not just manual
+      setOrigin('manual'); // Show only manually created posts, not WordPress posts
       setMineOnly(true); // But only show user's own posts
       setCurrentPage(1);
     } else {
