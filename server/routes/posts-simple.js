@@ -89,6 +89,7 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
@@ -105,6 +106,7 @@ router.get('/',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
         ORDER BY ${sortField} ${sortDirection}
         LIMIT ? OFFSET ?
       `;
@@ -143,6 +145,7 @@ router.get('/:id',
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.id = ?
+        ${req.user.role !== 'admin' ? 'AND (c.is_hidden IS NULL OR c.is_hidden = 0)' : ''}
       `, [id]);
 
       if (result.rows.length === 0) {
