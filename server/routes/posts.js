@@ -19,7 +19,9 @@ router.get('/',
         dateFrom,
         dateTo,
         sortBy = 'wp_published_date',
-        sortOrder = 'DESC'
+        sortOrder = 'DESC',
+        origin,
+        mine
       } = req.query;
 
       const offset = (page - 1) * limit;
@@ -55,6 +57,23 @@ router.get('/',
       if (dateTo) {
         whereConditions.push(`wp_published_date <= $${paramIndex}`);
         queryParams.push(dateTo);
+        paramIndex++;
+      }
+
+      // Handle origin filter
+      if (origin === 'wordpress') {
+        whereConditions.push(`wp_post_id IS NOT NULL`);
+      } else if (origin === 'manual') {
+        whereConditions.push(`wp_post_id IS NULL`);
+      }
+
+      // Handle mine filter - only show posts created by current user
+      if (mine === 'true' && req.user) {
+        // For manual posts, check against the user who created them
+        // For WordPress posts, this would need to be handled differently
+        // For now, we'll filter based on author_name matching the current user's username
+        whereConditions.push(`author_name ILIKE $${paramIndex}`);
+        queryParams.push(`%${req.user.username}%`);
         paramIndex++;
       }
 
