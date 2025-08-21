@@ -206,7 +206,7 @@ router.get('/',
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           p.metadata
         FROM posts p
-        ORDER BY p.id DESC
+        ORDER BY p.wp_published_date DESC, p.id DESC
         LIMIT $1 OFFSET $2
       `;
 
