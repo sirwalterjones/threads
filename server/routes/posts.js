@@ -101,7 +101,7 @@ router.get('/no-auth', async (req, res) => {
 });
 
 // Get all posts with search and filtering - TEMP NO AUTH
-router.get('/main',
+router.get('/',
   async (req, res) => {
     try {
       const {
