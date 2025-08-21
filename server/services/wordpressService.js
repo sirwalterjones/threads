@@ -426,16 +426,45 @@ class WordPressService {
   }
 
   async ingestDirectData(posts, categories) {
+    const client = await pool.connect();
+    let categoriesIngested = 0;
+    let postsIngested = 0;
+    const errors = [];
+    
     try {
-      console.log(`Processing direct data: ${posts.length} posts, ${categories.length} categories`);
+      console.log(`🔍 Starting direct data processing: ${posts.length} posts, ${categories.length} categories`);
       
-      let categoriesIngested = 0;
-      let postsIngested = 0;
+      // Start transaction for data consistency
+      await client.query('BEGIN');
       
-      // Process categories first
-      for (const category of categories) {
+      // Validate input data first
+      if (!Array.isArray(posts)) {
+        throw new Error('Posts data must be an array');
+      }
+      if (!Array.isArray(categories)) {
+        throw new Error('Categories data must be an array');
+      }
+      
+      console.log('✅ Input validation passed');
+      
+      // Process categories first with validation
+      console.log('📂 Processing categories...');
+      for (const [index, category] of categories.entries()) {
         try {
-          await pool.query(`
+          // Validate required category fields
+          if (!category.id || typeof category.id !== 'number') {
+            throw new Error(`Category ${index}: Missing or invalid ID`);
+          }
+          if (!category.name || typeof category.name !== 'string') {
+            throw new Error(`Category ${category.id}: Missing or invalid name`);
+          }
+          if (!category.slug || typeof category.slug !== 'string') {
+            throw new Error(`Category ${category.id}: Missing or invalid slug`);
+          }
+          
+          console.log(`📂 Processing category: ${category.id} - ${category.name}`);
+          
+          const result = await client.query(`
             INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (wp_category_id)
@@ -445,40 +474,114 @@ class WordPressService {
               parent_id = EXCLUDED.parent_id,
               post_count = EXCLUDED.post_count,
               updated_at = NOW()
+            RETURNING id, wp_category_id
           `, [
             category.id,
-            category.name,
-            category.slug,
+            category.name.trim(),
+            category.slug.trim(),
             category.parent || null,
-            category.count || 0
+            parseInt(category.count) || 0
           ]);
+          
+          if (result.rowCount === 0) {
+            throw new Error(`Category ${category.id}: Database insertion failed - no rows affected`);
+          }
+          
+          console.log(`✅ Category processed: ${category.id} -> DB ID ${result.rows[0].id}`);
           categoriesIngested++;
         } catch (catError) {
-          console.error(`Error processing category ${category.id}:`, catError.message);
-          console.error('Category data:', category);
-          console.error('Full error:', catError);
+          const errorMsg = `Category ${category.id}: ${catError.message}`;
+          console.error(`❌ ${errorMsg}`);
+          console.error('Category data:', JSON.stringify(category, null, 2));
+          errors.push(errorMsg);
+          // Don't throw here - continue processing other categories
         }
       }
       
-      // Process posts
-      for (const post of posts) {
+      console.log(`📂 Categories processing complete: ${categoriesIngested}/${categories.length} processed`);
+      
+      // Process posts with validation
+      console.log('📄 Processing posts...');
+      for (const [index, post] of posts.entries()) {
         try {
+          // Validate required post fields
+          if (!post.id || typeof post.id !== 'number') {
+            throw new Error(`Post ${index}: Missing or invalid ID`);
+          }
+          
+          // Extract and validate title
+          let title = '';
+          if (post.title?.rendered) {
+            title = post.title.rendered;
+          } else if (typeof post.title === 'string') {
+            title = post.title;
+          } else {
+            throw new Error(`Post ${post.id}: Missing or invalid title`);
+          }
+          
+          // Extract and validate content
+          let content = '';
+          if (post.content?.rendered) {
+            content = post.content.rendered;
+          } else if (typeof post.content === 'string') {
+            content = post.content;
+          } else {
+            console.warn(`Post ${post.id}: No content provided, using empty string`);
+          }
+          
+          // Extract excerpt
+          let excerpt = '';
+          if (post.excerpt?.rendered) {
+            excerpt = post.excerpt.rendered;
+          } else if (typeof post.excerpt === 'string') {
+            excerpt = post.excerpt;
+          }
+          
+          // Validate other required fields
+          if (!post.slug || typeof post.slug !== 'string') {
+            throw new Error(`Post ${post.id}: Missing or invalid slug`);
+          }
+          if (!post.date) {
+            throw new Error(`Post ${post.id}: Missing date`);
+          }
+          
+          console.log(`📄 Processing post: ${post.id} - ${title.substring(0, 50)}...`);
+          
           const retentionDate = new Date();
           retentionDate.setDate(retentionDate.getDate() + parseInt(this.retentionDays));
 
           // Get category ID from our local database
           let categoryId = null;
-          if (post.categories && post.categories.length > 0) {
-            const categoryResult = await pool.query(
+          if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
+            console.log(`🔍 Looking up category ${post.categories[0]} for post ${post.id}`);
+            const categoryResult = await client.query(
               'SELECT id FROM categories WHERE wp_category_id = $1',
               [post.categories[0]]
             );
             if (categoryResult.rows.length > 0) {
               categoryId = categoryResult.rows[0].id;
+              console.log(`✅ Found category ID ${categoryId} for WP category ${post.categories[0]}`);
+            } else {
+              console.warn(`⚠️ Category ${post.categories[0]} not found in database`);
             }
           }
 
-          await pool.query(`
+          // Validate and parse dates
+          let publishedDate, modifiedDate;
+          try {
+            publishedDate = new Date(post.date);
+            modifiedDate = new Date(post.modified || post.date);
+            if (isNaN(publishedDate.getTime())) {
+              throw new Error('Invalid published date');
+            }
+            if (isNaN(modifiedDate.getTime())) {
+              throw new Error('Invalid modified date');
+            }
+          } catch (dateError) {
+            throw new Error(`Post ${post.id}: Date parsing failed - ${dateError.message}`);
+          }
+
+          const result = await client.query(`
             INSERT INTO posts (
               wp_post_id, title, content, excerpt, slug, status,
               wp_author_id, author_name, wp_published_date, wp_modified_date,
@@ -494,58 +597,101 @@ class WordPressService {
               category_id = EXCLUDED.category_id,
               metadata = EXCLUDED.metadata,
               updated_at = NOW()
+            RETURNING id, wp_post_id
           `, [
             post.id,
-            post.title?.rendered || post.title,
-            post.content?.rendered || post.content,
-            post.excerpt?.rendered || post.excerpt,
-            post.slug,
-            post.status,
-            post.author,
+            title.trim(),
+            content,
+            excerpt,
+            post.slug.trim(),
+            post.status || 'publish',
+            post.author || 1,
             post.author_name || 'Unknown',
-            new Date(post.date),
-            new Date(post.modified),
+            publishedDate,
+            modifiedDate,
             retentionDate,
             categoryId,
             JSON.stringify({
-              featured_media: post.featured_media,
-              tags: post.tags,
-              sticky: post.sticky,
-              format: post.format
+              featured_media: post.featured_media || 0,
+              tags: post.tags || [],
+              sticky: post.sticky || false,
+              format: post.format || 'standard'
             })
           ]);
 
+          if (result.rowCount === 0) {
+            throw new Error(`Post ${post.id}: Database insertion failed - no rows affected`);
+          }
+          
+          console.log(`✅ Post processed: ${post.id} -> DB ID ${result.rows[0].id}`);
           postsIngested++;
+          
         } catch (postError) {
-          console.error(`Error processing post ${post.id}:`, postError.message);
+          const errorMsg = `Post ${post.id || index}: ${postError.message}`;
+          console.error(`❌ ${errorMsg}`);
           console.error('Post data:', JSON.stringify(post, null, 2));
           console.error('Full error:', postError);
-          console.error('Stack:', postError.stack);
+          errors.push(errorMsg);
+          // Don't throw here - continue processing other posts
         }
       }
       
+      console.log(`📄 Posts processing complete: ${postsIngested}/${posts.length} processed`);
+      
       // Update category post counts
       if (postsIngested > 0) {
-        await pool.query(`
+        console.log('🔄 Updating category post counts...');
+        const updateResult = await client.query(`
           UPDATE categories 
           SET post_count = (
             SELECT COUNT(*) FROM posts WHERE posts.category_id = categories.id
           ),
           updated_at = NOW()
         `);
+        console.log(`✅ Updated post counts for ${updateResult.rowCount} categories`);
       }
       
-      console.log(`Direct ingest complete: ${categoriesIngested} categories, ${postsIngested} posts`);
+      // Commit transaction
+      await client.query('COMMIT');
+      console.log('✅ Transaction committed successfully');
       
-      return {
+      // Verify the data was actually inserted
+      console.log('🔍 Verifying insertions...');
+      const verifyResult = await client.query('SELECT COUNT(*) as total FROM posts');
+      const totalPosts = parseInt(verifyResult.rows[0].total);
+      console.log(`📊 Total posts in database: ${totalPosts}`);
+      
+      const result = {
         categoriesIngested,
         postsIngested,
+        totalPostsInDB: totalPosts,
+        errors: errors.length > 0 ? errors : undefined,
         timestamp: new Date(),
         type: 'direct'
       };
+      
+      console.log(`🎉 Direct ingest complete: ${categoriesIngested} categories, ${postsIngested} posts processed`);
+      
+      if (errors.length > 0) {
+        console.warn(`⚠️ ${errors.length} errors occurred during processing`);
+      }
+      
+      return result;
+      
     } catch (error) {
-      console.error('Direct ingest failed:', error);
+      // Rollback transaction on error
+      try {
+        await client.query('ROLLBACK');
+        console.log('🔄 Transaction rolled back');
+      } catch (rollbackError) {
+        console.error('❌ Rollback failed:', rollbackError);
+      }
+      
+      console.error('❌ Direct ingest failed:', error);
+      console.error('❌ Stack trace:', error.stack);
       throw error;
+    } finally {
+      client.release();
     }
   }
 
