@@ -62,6 +62,7 @@ if (USE_SQLITE) {
           slug VARCHAR(200) NOT NULL,
           parent_id INTEGER REFERENCES categories(id),
           post_count INTEGER DEFAULT 0,
+          is_hidden BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )

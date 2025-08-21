@@ -13,7 +13,7 @@ router.get('/',
 
       const baseSelect = `
         SELECT 
-          c.id, c.name, c.slug, c.post_count, c.created_at,
+          c.id, c.name, c.slug, c.post_count, c.created_at, c.is_hidden,
           p.name as parent_name,
           CASE WHEN EXISTS(SELECT 1 FROM categories child WHERE child.parent_id = c.id) 
                THEN 1 ELSE 0 END as has_children
@@ -52,7 +52,7 @@ router.get('/:id',
       
       const categoryResult = await pool.query(`
         SELECT 
-          c.id, c.name, c.slug, c.post_count, c.created_at,
+          c.id, c.name, c.slug, c.post_count, c.created_at, c.is_hidden,
           p.name as parent_name
         FROM categories c
         LEFT JOIN categories p ON c.parent_id = p.id
@@ -267,6 +267,68 @@ router.delete('/:id',
     } catch (error) {
       console.error('Error deleting category:', error);
       res.status(500).json({ error: 'Failed to delete category' });
+    }
+  }
+);
+
+// Hide category from public view
+router.put('/:id/hide', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('hide_category', 'categories'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if category exists
+      const existingCategory = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
+      if (existingCategory.rows.length === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      // Update category to be hidden
+      const result = await pool.query(`
+        UPDATE categories 
+        SET is_hidden = true, updated_at = NOW()
+        WHERE id = $1
+        RETURNING *
+      `, [id]);
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error hiding category:', error);
+      res.status(500).json({ error: 'Failed to hide category' });
+    }
+  }
+);
+
+// Show category to public view
+router.put('/:id/show', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('show_category', 'categories'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if category exists
+      const existingCategory = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
+      if (existingCategory.rows.length === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      // Update category to be visible
+      const result = await pool.query(`
+        UPDATE categories 
+        SET is_hidden = false, updated_at = NOW()
+        WHERE id = $1
+        RETURNING *
+      `, [id]);
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error showing category:', error);
+      res.status(500).json({ error: 'Failed to show category' });
     }
   }
 );
