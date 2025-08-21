@@ -188,6 +188,7 @@ router.get('/',
       const countQuery = `
         SELECT COUNT(*) as total
         FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
       `;
       
@@ -199,8 +200,9 @@ router.get('/',
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
-          p.metadata
+          p.metadata, c.name as category_name, c.slug as category_slug
         FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
         ORDER BY p.wp_published_date DESC, p.id DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

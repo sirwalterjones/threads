@@ -248,6 +248,72 @@ const Dashboard: React.FC = () => {
 
       {/* Dashboard Stats Cards removed */}
 
+      {/* Category Filter Buttons */}
+      {searchResults.length === 0 && (
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ 
+            color: '#E7E9EA', 
+            mb: 3,
+            fontWeight: 600
+          }}>
+            Filter by Category
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: 2,
+            flexWrap: 'wrap'
+          }}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setSearchResults([]);
+                setSearchQuery('');
+              }}
+              sx={{
+                borderRadius: '20px',
+                backgroundColor: '#1D9BF0',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#1A8CD8'
+                }
+              }}
+            >
+              All Posts
+            </Button>
+            
+            {stats?.topCategories?.slice(0, 8).map((category) => (
+              <Button
+                key={category.name}
+                variant="outlined"
+                onClick={() => {
+                  const filters = {
+                    category: category.name,
+                    sortBy: 'wp_published_date',
+                    sortOrder: 'DESC' as const
+                  };
+                  apiService.getPosts({ ...filters, limit: 20 }).then(response => {
+                    setSearchResults(response.posts);
+                    setSearchQuery(`category:${category.name}`);
+                  });
+                }}
+                sx={{
+                  borderRadius: '20px',
+                  borderColor: '#1D9BF0',
+                  color: '#1D9BF0',
+                  '&:hover': {
+                    backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                  }
+                }}
+              >
+                {category.name}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+      )}
+
       {/* Central Search Bar - Primary Focus */}
       {searchResults.length === 0 && (
         <Box sx={{ 
