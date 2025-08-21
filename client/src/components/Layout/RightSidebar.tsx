@@ -89,20 +89,7 @@ const RightSidebar: React.FC = () => {
       top: 0, 
       pt: 1.5,
       maxHeight: '100vh',
-      overflowY: 'auto',
-      '&::-webkit-scrollbar': {
-        width: '8px',
-      },
-      '&::-webkit-scrollbar-track': {
-        background: '#16181C',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        background: '#2F3336',
-        borderRadius: '4px',
-      },
-      '&::-webkit-scrollbar-thumb:hover': {
-        background: '#3F4144',
-      },
+      overflow: 'visible'
     }}>
       {/* Recent Threads - Full Height */}
       {!loading && recentThreads.length > 0 && (
@@ -111,7 +98,7 @@ const RightSidebar: React.FC = () => {
           mb: 2, 
           backgroundColor: '#16181C', 
           border: 'none',
-          borderRadius: 1,
+          borderRadius: 0,
           height: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column'
@@ -134,7 +121,19 @@ const RightSidebar: React.FC = () => {
             </Typography>
           </Box>
           
-          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto', maxHeight: '100%', pr: 1, minHeight: 0 }}>
+          <List dense sx={{ 
+            py: 0, 
+            flex: 1, 
+            overflowY: 'auto', 
+            maxHeight: '100%', 
+            pr: 1, 
+            minHeight: 0,
+            WebkitOverflowScrolling: 'touch',
+            '&::-webkit-scrollbar': { width: '8px' },
+            '&::-webkit-scrollbar-track': { background: '#16181C' },
+            '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
+            '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
+          }}>
             {recentThreads.map((thread, index) => {
               const dt = new Date(thread.wp_published_date);
               const header = isToday(dt) ? 'Today' : (isYesterday(dt) ? 'Yesterday' : format(dt, 'MMM d'));
