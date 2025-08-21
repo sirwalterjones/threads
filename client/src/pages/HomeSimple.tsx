@@ -346,7 +346,13 @@ const HomeSimple: React.FC = () => {
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
-    loadData(1, { category: categoryId });
+    // Find the category name by ID and send that to the backend
+    const category = categories.find(c => c.id.toString() === categoryId);
+    if (category && categoryId !== '') {
+      loadData(1, { category: category.name });
+    } else {
+      loadData(1, {}); // No category filter
+    }
   };
 
   const stripHtmlTags = (html: string) => {
