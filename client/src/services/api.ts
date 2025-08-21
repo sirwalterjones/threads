@@ -177,6 +177,16 @@ class ApiService {
     await axios.delete(`${API_BASE_URL}/categories/${id}`);
   }
 
+  async hideCategoryFromPublic(id: number): Promise<Category> {
+    const response: AxiosResponse<Category> = await axios.put(`${API_BASE_URL}/categories/${id}/hide`);
+    return response.data;
+  }
+
+  async showCategoryToPublic(id: number): Promise<Category> {
+    const response: AxiosResponse<Category> = await axios.put(`${API_BASE_URL}/categories/${id}/show`);
+    return response.data;
+  }
+
   async updateCategoryCounts(): Promise<{ totalPosts: number }> {
     const response = await axios.post(`${API_BASE_URL}/categories/update-counts`);
     return response.data;

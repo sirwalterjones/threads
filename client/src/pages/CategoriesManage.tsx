@@ -9,33 +9,27 @@ import {
   Grid,
   Chip,
   Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
   InputAdornment,
   IconButton,
-  Pagination,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import { 
   Search as SearchIcon, 
   Clear as ClearIcon, 
-  ArrowBack as BackIcon,
   Folder as CategoryIcon,
-  Article as PostIcon
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import auditService from '../services/auditService';
-import { Category, Post } from '../types';
+import { Category } from '../types';
 import { format } from 'date-fns';
-import PostDetailModal from '../components/PostDetailModal';
+import { useAuth } from '../contexts/AuthContext';
 
 const CategoriesManage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -46,17 +40,9 @@ const CategoriesManage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'name' | 'post_count' | 'created_at'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
-  // Category detail view
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [categoryPosts, setCategoryPosts] = useState<Post[]>([]);
-  const [postsLoading, setPostsLoading] = useState(false);
-  const [postsPage, setPostsPage] = useState(1);
-  const [postsTotal, setPostsTotal] = useState(0);
-  const [postsSearch, setPostsSearch] = useState('');
-  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const postsPerPage = 25;
+  // Category visibility management
+  const [updatingCategory, setUpdatingCategory] = useState<number | null>(null);
+  const { user } = useAuth();
 
   const loadCategories = async () => {
     try {
@@ -73,7 +59,8 @@ const CategoriesManage: React.FC = () => {
   const filterAndSortCategories = React.useCallback(() => {
     console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder);
     
-    let filtered = [...categories];
+    // Start with visible categories based on user role
+    let filtered = getVisibleCategories(categories);
 
     if (searchQuery && searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -107,70 +94,45 @@ const CategoriesManage: React.FC = () => {
 
     console.log('Final filtered categories:', filtered.length);
     setFilteredCategories(filtered);
-  }, [categories, searchQuery, sortBy, sortOrder]);
+  }, [categories, searchQuery, sortBy, sortOrder, user]);
 
-  const loadCategoryPosts = React.useCallback(async () => {
-    if (!selectedCategory) return;
+  const handleToggleCategoryVisibility = async (category: Category, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent card click
     
-    try {
-      setPostsLoading(true);
-      setError(''); // Clear any previous errors
-      console.log('Attempting to load posts for category:', selectedCategory.name, selectedCategory.slug);
-      
-      // Try category filter with timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 8000)
-      );
-      
-      try {
-        const dataPromise = apiService.getPosts({
-          page: postsPage,
-          limit: postsPerPage,
-          search: postsSearch || undefined,
-          category: selectedCategory.slug // Use category slug for filtering
-        });
-        
-        const data = await Promise.race([dataPromise, timeoutPromise]);
-        console.log('Loaded posts:', data);
-        setCategoryPosts((data as any).posts || []);
-        setPostsTotal((data as any).pagination?.total || 0);
-      } catch (filterError: any) {
-        console.warn('Category filter failed (timeout or server error):', filterError);
-        
-        // Set a helpful message for the user
-        setCategoryPosts([]);
-        setPostsTotal(selectedCategory.post_count || 0);
-        
-        if (filterError.message === 'Request timeout') {
-          setError(`Loading posts for "${selectedCategory.name}" timed out. This category has ${selectedCategory.post_count} posts but they cannot be loaded efficiently. The server needs optimization for large categories.`);
-        } else {
-          setError(`Cannot load posts for "${selectedCategory.name}" - this category has ${selectedCategory.post_count} posts but the server cannot filter them efficiently. Try using the main search with the category name "${selectedCategory.name}" instead.`);
-        }
-        
-        // Try to load some sample posts to show something useful
-        try {
-          console.log('Attempting to load sample posts as fallback...');
-          const fallbackData = await apiService.getPosts({
-            page: 1,
-            limit: 10,
-            search: selectedCategory.name.split('-')[0] // Use part of category name as search
-          });
-          
-          if (fallbackData.posts && fallbackData.posts.length > 0) {
-            setCategoryPosts(fallbackData.posts);
-            setError(prev => prev + ` Showing ${fallbackData.posts.length} sample posts that may match this category.`);
-          }
-        } catch (fallbackError) {
-          console.warn('Fallback search also failed:', fallbackError);
-        }
-      }
-    } catch (e: any) {
-      console.error('Error loading category posts:', e);
-      setError(e?.response?.data?.error || 'Failed to load category posts. The server may be experiencing issues.');
-    } finally {
-      setPostsLoading(false);
+    if (!user || user.role !== 'admin') {
+      setError('Only administrators can hide/show categories');
+      return;
     }
-  }, [selectedCategory, postsPage, postsPerPage, postsSearch]);
+
+    try {
+      setUpdatingCategory(category.id);
+      setError('');
+
+      let updatedCategory: Category;
+      if (category.is_hidden) {
+        updatedCategory = await apiService.showCategoryToPublic(category.id);
+      } else {
+        updatedCategory = await apiService.hideCategoryFromPublic(category.id);
+      }
+
+      // Update the categories list with the new visibility state
+      setCategories(prev => 
+        prev.map(cat => cat.id === category.id ? updatedCategory : cat)
+      );
+
+      // Track the action
+      await auditService.trackEdit('category', category.id, {
+        visibility: updatedCategory.is_hidden ? 'hidden' : 'visible',
+        name: category.name
+      });
+
+    } catch (e: any) {
+      console.error('Error toggling category visibility:', e);
+      setError(e?.response?.data?.error || 'Failed to update category visibility');
+    } finally {
+      setUpdatingCategory(null);
+    }
+  };
 
   useEffect(() => {
     loadCategories();
@@ -180,59 +142,21 @@ const CategoriesManage: React.FC = () => {
     filterAndSortCategories();
   }, [filterAndSortCategories]);
 
-  useEffect(() => {
-    if (selectedCategory) {
-      console.log('Loading posts for category:', selectedCategory.name, selectedCategory.id);
-      loadCategoryPosts();
-    }
-  }, [selectedCategory, loadCategoryPosts]);
 
-  const handleCategoryClick = async (category: Category) => {
-    setSelectedCategory(category);
-    setPostsPage(1);
-    setPostsSearch('');
-    
-    // Track category view (don't block UI if audit fails)
-    try {
-      await auditService.trackView('category', category.id, category.name);
-    } catch (e) {
-      console.warn('Failed to log category view:', e);
+  // Filter categories based on user role and visibility
+  const getVisibleCategories = (categories: Category[]) => {
+    if (!user || user.role !== 'admin') {
+      // Non-admin users only see non-hidden categories
+      return categories.filter(cat => !cat.is_hidden);
     }
-  };
-
-  const handlePostClick = async (postId: number) => {
-    setSelectedPostId(postId);
-    setModalOpen(true);
-    
-    // Find the post title for audit logging (don't block UI if audit fails)
-    try {
-      const post = categoryPosts.find(p => p.id === postId);
-      await auditService.trackView('post', postId, post?.title);
-    } catch (e) {
-      console.warn('Failed to log post view:', e);
-    }
-  };
-
-  const handleBackToCategories = () => {
-    setSelectedCategory(null);
-    setCategoryPosts([]);
-    setPostsPage(1);
-    setPostsSearch('');
+    // Admin users see all categories
+    return categories;
   };
 
   const clearSearch = () => {
     setSearchQuery('');
   };
 
-  const clearPostsSearch = () => {
-    setPostsSearch('');
-    setPostsPage(1);
-  };
-
-  const handlePostsSearch = () => {
-    setPostsPage(1);
-    loadCategoryPosts();
-  };
 
   if (loading) {
     return (
@@ -242,180 +166,6 @@ const CategoriesManage: React.FC = () => {
     );
   }
 
-  // Category Detail View
-  if (selectedCategory) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handleBackToCategories} sx={{ mr: 2, color: '#E7E9EA' }}>
-            <BackIcon />
-          </IconButton>
-          <CategoryIcon sx={{ mr: 2, color: '#1D9BF0' }} />
-          <Box>
-            <Typography variant="h4" sx={{ color: '#E7E9EA', fontWeight: 700 }}>
-              {selectedCategory.name}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#71767B' }}>
-              {selectedCategory.post_count || 0} posts • Created {format(new Date(selectedCategory.created_at), 'MMM dd, yyyy')}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Posts Search */}
-        <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Search posts in this category"
-                value={postsSearch}
-                onChange={(e) => setPostsSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handlePostsSearch()}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#71767B' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: postsSearch && (
-                    <InputAdornment position="end">
-                      <IconButton onClick={clearPostsSearch} size="small">
-                        <ClearIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  sx: { color: '#E7E9EA' }
-                }}
-                sx={{ 
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#2F3336' },
-                    '&:hover fieldset': { borderColor: '#1D9BF0' },
-                    '&.Mui-focused fieldset': { borderColor: '#1D9BF0' }
-                  },
-                  '& .MuiInputLabel-root': { color: '#71767B' }
-                }}
-              />
-              <Button
-                variant="contained"
-                onClick={handlePostsSearch}
-                sx={{ 
-                  backgroundColor: '#1D9BF0', 
-                  '&:hover': { backgroundColor: '#1A8CD8' },
-                  minWidth: '100px'
-                }}
-              >
-                Search
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Posts Table */}
-        <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-          <CardContent sx={{ p: 0 }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid #2F3336' }}>
-              <Typography variant="h6" sx={{ color: '#E7E9EA', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PostIcon />
-                Posts ({postsTotal})
-              </Typography>
-            </Box>
-
-            {postsLoading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4 }}>
-                <CircularProgress />
-                <Typography sx={{ mt: 2, color: '#71767B' }}>Loading posts...</Typography>
-              </Box>
-            ) : categoryPosts.length === 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4 }}>
-                <Typography variant="h6" sx={{ color: '#71767B', mb: 1 }}>No posts found</Typography>
-                <Typography variant="body2" sx={{ color: '#71767B', textAlign: 'center' }}>
-                  {error ? 'There was an error loading posts for this category.' : 'This category doesn\'t have any posts yet.'}
-                </Typography>
-                {error && (
-                  <Button 
-                    variant="outlined" 
-                    onClick={() => loadCategoryPosts()} 
-                    sx={{ mt: 2, color: '#1D9BF0', borderColor: '#1D9BF0' }}
-                  >
-                    Try Again
-                  </Button>
-                )}
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: '#1C1F23' }}>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 600 }}>Title</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 600 }}>Author</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 600 }}>Published</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 600 }}>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {categoryPosts.map((post) => (
-                      <TableRow 
-                        key={post.id}
-                        onClick={() => handlePostClick(post.id)}
-                        sx={{ 
-                          '&:hover': { backgroundColor: '#1C1F23' },
-                          cursor: 'pointer',
-                          borderBottom: '1px solid #2F3336'
-                        }}
-                      >
-                        <TableCell sx={{ color: '#E7E9EA' }}>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {post.title}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#71767B' }}>
-                            {post.excerpt?.substring(0, 100)}...
-                          </Typography>
-                        </TableCell>
-                        <TableCell sx={{ color: '#71767B' }}>
-                          {post.author_name}
-                        </TableCell>
-                        <TableCell sx={{ color: '#71767B' }}>
-                          {format(new Date(post.wp_published_date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={post.status}
-                            size="small"
-                            color={post.status === 'publish' ? 'success' : 'default'}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-
-            {/* Pagination */}
-            {Math.ceil(postsTotal / postsPerPage) > 1 && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Pagination
-                  count={Math.ceil(postsTotal / postsPerPage)}
-                  page={postsPage}
-                  onChange={(_, value) => setPostsPage(value)}
-                  color="primary"
-                />
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Post Detail Modal */}
-        <PostDetailModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          postId={selectedPostId}
-        />
-      </Box>
-    );
-  }
 
   // Categories List View
   return (
@@ -527,13 +277,12 @@ const CategoriesManage: React.FC = () => {
         {filteredCategories.map((category) => (
           <Card 
             key={category.id}
-            onClick={() => handleCategoryClick(category)}
             sx={{ 
               backgroundColor: '#16181C', 
               border: '1px solid #2F3336',
               borderRadius: 2,
-              cursor: 'pointer',
               transition: 'all 0.2s ease',
+              opacity: category.is_hidden ? 0.6 : 1,
               '&:hover': {
                 backgroundColor: '#1C1F23',
                 borderColor: '#1D9BF0',
@@ -545,13 +294,22 @@ const CategoriesManage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                 <CategoryIcon sx={{ color: '#1D9BF0', mt: 0.5 }} />
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6" sx={{ 
-                    color: '#E7E9EA', 
-                    fontWeight: 600, 
-                    mb: 1 
-                  }}>
-                    {category.name}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Typography variant="h6" sx={{ 
+                      color: '#E7E9EA', 
+                      fontWeight: 600
+                    }}>
+                      {category.name}
+                    </Typography>
+                    {category.is_hidden && (
+                      <Chip
+                        label="Hidden"
+                        size="small"
+                        color="warning"
+                        sx={{ fontSize: '10px', height: '20px' }}
+                      />
+                    )}
+                  </Box>
                   
                   <Typography variant="body2" sx={{ 
                     color: '#71767B', 
@@ -561,7 +319,7 @@ const CategoriesManage: React.FC = () => {
                     {category.parent_name ? `Parent: ${category.parent_name}` : 'Top-level category'} • Created {format(new Date(category.created_at), 'MMM dd, yyyy')}
                   </Typography>
                   
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                     <Chip
                       label={`${category.post_count || 0} posts`}
                       size="small"
@@ -581,12 +339,37 @@ const CategoriesManage: React.FC = () => {
                         fontSize: '12px'
                       }}
                     />
+                    
+                    {/* Visibility Toggle for Admins */}
+                    {user && user.role === 'admin' && (
+                      <Tooltip title={category.is_hidden ? 'Show category to public' : 'Hide category from public'}>
+                        <IconButton
+                          onClick={(e) => handleToggleCategoryVisibility(category, e)}
+                          disabled={updatingCategory === category.id}
+                          size="small"
+                          sx={{
+                            color: category.is_hidden ? '#71767B' : '#1D9BF0',
+                            '&:hover': {
+                              backgroundColor: category.is_hidden ? '#2F3336' : '#1D9BF020'
+                            }
+                          }}
+                        >
+                          {updatingCategory === category.id ? (
+                            <CircularProgress size={16} sx={{ color: '#71767B' }} />
+                          ) : category.is_hidden ? (
+                            <VisibilityOffIcon fontSize="small" />
+                          ) : (
+                            <VisibilityIcon fontSize="small" />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </Box>
               </Box>
             </CardContent>
           </Card>
-        ))}
+        ))
       </Box>
     </Box>
   );

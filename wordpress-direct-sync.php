@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 
 class ThreadsIntelDirectSync {
     
-    private $vercel_api_base = 'https://threads-8qfennhvr-walter-jones-projects.vercel.app/api';
+    private $vercel_api_base = 'https://cso.threadsonline.us/api';
     private $admin_username = 'admin';
     private $admin_password = 'admin123456';
     private $auth_token = null;
@@ -28,7 +28,17 @@ class ThreadsIntelDirectSync {
         add_action('threads_intel_direct_sync_hook', array($this, 'perform_direct_sync'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('wp_ajax_threads_intel_direct_sync', array($this, 'manual_sync_ajax'));
+        add_action('wp_ajax_threads_intel_reschedule', array($this, 'reschedule_ajax'));
         add_action('save_post', array($this, 'trigger_immediate_sync'), 10, 1);
+        add_filter('cron_schedules', array($this, 'add_cron_schedules'));
+    }
+    
+    public function add_cron_schedules($schedules) {
+        $schedules['fiveminutes'] = array(
+            'interval' => 300, // 5 minutes in seconds
+            'display' => __('Every 5 Minutes')
+        );
+        return $schedules;
     }
     
     public function schedule_sync() {
@@ -225,15 +235,41 @@ class ThreadsIntelDirectSync {
             
             <div class="card">
                 <h2>Sync Status</h2>
-                <p><strong>Next scheduled sync:</strong> <?php echo date('Y-m-d H:i:s', wp_next_scheduled('threads_intel_direct_sync_hook')); ?></p>
+                <?php
+                $next_sync = wp_next_scheduled('threads_intel_direct_sync_hook');
+                $cron_schedules = wp_get_schedules();
+                ?>
+                <p><strong>Next scheduled sync:</strong> 
+                    <?php if ($next_sync): ?>
+                        <?php echo date('Y-m-d H:i:s', $next_sync); ?> 
+                        (<?php echo human_time_diff($next_sync); ?> from now)
+                    <?php else: ?>
+                        <span style="color: red;">Not scheduled! Please reactivate the plugin.</span>
+                    <?php endif; ?>
+                </p>
+                <p><strong>Cron schedule:</strong> 
+                    <?php if (isset($cron_schedules['fiveminutes'])): ?>
+                        Every 5 minutes (<?php echo $cron_schedules['fiveminutes']['interval']; ?> seconds)
+                    <?php else: ?>
+                        <span style="color: red;">5-minute schedule not found!</span>
+                    <?php endif; ?>
+                </p>
                 <p><strong>Recent posts (last 24h):</strong> <?php echo count($this->get_recent_posts()); ?> posts</p>
+                <p><strong>WordPress cron status:</strong> 
+                    <?php if (defined('DISABLE_WP_CRON') && DISABLE_WP_CRON): ?>
+                        <span style="color: orange;">WP Cron is disabled - using system cron</span>
+                    <?php else: ?>
+                        <span style="color: green;">WP Cron is enabled</span>
+                    <?php endif; ?>
+                </p>
                 <p><strong>Last sync log:</strong></p>
                 <textarea readonly style="width: 100%; height: 200px;"><?php echo esc_textarea(get_option('threads_intel_direct_sync_log', 'No logs yet')); ?></textarea>
             </div>
             
             <div class="card">
-                <h2>Manual Sync</h2>
+                <h2>Manual Actions</h2>
                 <button id="manual-sync-btn" class="button button-primary">Send Recent Posts Now</button>
+                <button id="reschedule-btn" class="button button-secondary" style="margin-left: 10px;">Reschedule Cron Job</button>
                 <div id="sync-result" style="margin-top: 10px;"></div>
             </div>
         </div>
@@ -268,6 +304,38 @@ class ThreadsIntelDirectSync {
                 btn.textContent = 'Send Recent Posts Now';
             });
         });
+        
+        document.getElementById('reschedule-btn').addEventListener('click', function() {
+            const btn = this;
+            const result = document.getElementById('sync-result');
+            
+            btn.disabled = true;
+            btn.textContent = 'Rescheduling...';
+            result.innerHTML = '<p>Rescheduling cron job...</p>';
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'action=threads_intel_reschedule&_ajax_nonce=<?php echo wp_create_nonce('threads_intel_reschedule'); ?>'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    result.innerHTML = '<div class="notice notice-success"><p>' + data.data + '</p></div>';
+                    // Refresh the page to show updated schedule
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    result.innerHTML = '<div class="notice notice-error"><p>Reschedule failed: ' + data.data + '</p></div>';
+                }
+            })
+            .catch(error => {
+                result.innerHTML = '<div class="notice notice-error"><p>Error: ' + error.message + '</p></div>';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Reschedule Cron Job';
+            });
+        });
         </script>
         <?php
     }
@@ -282,6 +350,31 @@ class ThreadsIntelDirectSync {
         try {
             $this->perform_direct_sync();
             wp_send_json_success('Direct sync completed');
+        } catch (Exception $e) {
+            wp_send_json_error($e->getMessage());
+        }
+    }
+    
+    public function reschedule_ajax() {
+        check_ajax_referer('threads_intel_reschedule');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+        
+        try {
+            // Clear existing schedule
+            wp_clear_scheduled_hook('threads_intel_direct_sync_hook');
+            
+            // Reschedule
+            $scheduled = wp_schedule_event(time(), 'fiveminutes', 'threads_intel_direct_sync_hook');
+            
+            if ($scheduled === false) {
+                wp_send_json_error('Failed to schedule cron job');
+            } else {
+                $next_run = wp_next_scheduled('threads_intel_direct_sync_hook');
+                wp_send_json_success('Cron job rescheduled. Next run: ' . date('Y-m-d H:i:s', $next_run));
+            }
         } catch (Exception $e) {
             wp_send_json_error($e->getMessage());
         }

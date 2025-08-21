@@ -229,9 +229,9 @@ const HomeSimple: React.FC = () => {
     }
 
     if (isMyThreadsPath) {
-      nextOrigin = 'manual';
+      nextOrigin = 'all'; // Show all origins, not just manual
       nextMine = true;
-      setOrigin('manual');
+      setOrigin('all');
       setMineOnly(true);
     }
 
@@ -247,18 +247,18 @@ const HomeSimple: React.FC = () => {
     const isMyThreadsPath = location.pathname === '/my-threads';
     
     if (isMyThreadsPath) {
-      setOrigin('manual');
-      setMineOnly(true);
+      setOrigin('all'); // Show all origins, not just manual
+      setMineOnly(true); // But only show user's own posts
       setCurrentPage(1);
     } else {
       // Reset filters when leaving My Threads page
-      if (origin === 'manual' && mineOnly) {
+      if (mineOnly) {
         setOrigin('all');
         setMineOnly(false);
         setCurrentPage(1);
       }
     }
-  }, [location.pathname, origin, mineOnly]); // Listen for path changes
+  }, [location.pathname, mineOnly]); // Listen for path changes
 
   const handleSearch = async () => {
     const parsed = parseAdvancedQuery();

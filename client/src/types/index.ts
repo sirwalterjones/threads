@@ -51,6 +51,7 @@ export interface Category {
   has_children?: boolean;
   created_at: string;
   updated_at?: string;
+  is_hidden?: boolean;
 }
 
 export interface SearchFilters {
