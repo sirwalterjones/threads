@@ -36,8 +36,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/index.html",
-      "status": 200
+      "dest": "/client/build/index.html"
     }
   ],
   "env": {

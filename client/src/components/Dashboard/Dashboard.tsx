@@ -287,439 +287,438 @@ const Dashboard: React.FC = () => {
                     fontSize: '20px',
                     height: '56px',
                     border: '1px solid #2F3336',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      borderColor: '#1D9BF0'
-                    },
-                    '&.Mui-focused': {
-                      borderColor: '#1D9BF0',
-                      backgroundColor: '#000000'
-                    },
-                    '& fieldset': {
-                      border: 'none'
-                    },
-                    '& input': {
-                      padding: '16px 24px 16px 60px',
-                      fontSize: '20px',
-                      color: '#E7E9EA',
-                      '&::placeholder': {
-                        color: '#71767B',
-                        opacity: 1
-                      }
-                    }
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      left: 20, 
-                      zIndex: 1,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <SearchIcon sx={{ color: '#71767B', fontSize: 24 }} />
-                    </Box>
-                  ),
-                  endAdornment: searchQuery && (
-                    <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
-                      <IconButton 
-                        onClick={handleClearSearch}
-                        sx={{ 
-                          color: '#6B7280',
-                          '&:hover': { color: '#374151' }
-                        }}
-                      >
-                        <ClearIcon />
-                      </IconButton>
-                    </Box>
-                  )
-                }}
-              />
-              
+              '&:hover': {
+                borderColor: '#1D9BF0'
+              },
+              '&.Mui-focused': {
+                borderColor: '#1D9BF0',
+                backgroundColor: '#000000'
+              },
+              '& fieldset': {
+                border: 'none'
+              },
+              '& input': {
+                padding: '16px 24px 16px 60px',
+                fontSize: '20px',
+                color: '#E7E9EA',
+                '&::placeholder': {
+                  color: '#71767B',
+                  opacity: 1
+                }
+              }
+            }
+          }}
+          InputProps={{
+            startAdornment: (
               <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                gap: 2, 
-                mt: 4 
+                position: 'absolute', 
+                left: 20, 
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center'
               }}>
-                <Button 
-                  variant="contained" 
-                  onClick={handleSearch}
-                  disabled={searchLoading || !searchQuery.trim()}
-                  size="large"
-                  sx={{ 
-                    borderRadius: '50px',
-                    backgroundColor: '#1D9BF0',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    px: 6,
-                    py: 1.5,
-                    textTransform: 'none',
-                    border: '1px solid #1D9BF0',
-                    '&:hover': {
-                      backgroundColor: '#1A8CD8'
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#2F3336',
-                      color: '#71767B',
-                      borderColor: '#2F3336'
-                    },
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
-                  Search
-                </Button>
-                
-                <Button 
-                  variant="contained" 
-                  onClick={handleClearSearch}
-                  disabled={!searchQuery && searchResults.length === 0}
-                  size="large"
-                  sx={{ 
-                    borderRadius: '25px',
-                    backgroundColor: '#000000',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    px: 3,
-                    py: 1.5,
-                    textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    '&:hover': {
-                      backgroundColor: '#1F2937',
-                      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
-                      transform: 'translateY(-1px)'
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#E5E7EB',
-                      color: '#9CA3AF',
-                      boxShadow: 'none'
-                    },
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Clear
-                </Button>
+                <SearchIcon sx={{ color: '#71767B', fontSize: 24 }} />
               </Box>
-            </Box>
-          </Box>
+            ),
+            endAdornment: searchQuery && (
+              <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                <IconButton 
+                  onClick={handleClearSearch}
+                  sx={{ 
+                    color: '#6B7280',
+                    '&:hover': { color: '#374151' }
+                  }}
+                >
+                  <ClearIcon />
+                </IconButton>
+              </Box>
+            )
+          }}
+        />
+        
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          gap: 2, 
+          mt: 4 
+        }}>
+          <Button 
+            variant="contained" 
+            onClick={handleSearch}
+            disabled={searchLoading || !searchQuery.trim()}
+            size="large"
+            sx={{ 
+              borderRadius: '50px',
+              backgroundColor: '#1D9BF0',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 700,
+              px: 6,
+              py: 1.5,
+              textTransform: 'none',
+              border: '1px solid #1D9BF0',
+              '&:hover': {
+                backgroundColor: '#1A8CD8'
+              },
+              '&:disabled': {
+                backgroundColor: '#2F3336',
+                color: '#71767B',
+                borderColor: '#2F3336'
+              },
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+            Search
+          </Button>
+          
+          <Button 
+            variant="contained" 
+            onClick={handleClearSearch}
+            disabled={!searchQuery && searchResults.length === 0}
+            size="large"
+            sx={{ 
+              borderRadius: '25px',
+              backgroundColor: '#000000',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 500,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              '&:hover': {
+                backgroundColor: '#1F2937',
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                transform: 'translateY(-1px)'
+              },
+              '&:disabled': {
+                backgroundColor: '#E5E7EB',
+                color: '#9CA3AF',
+                boxShadow: 'none'
+              },
+              transition: 'all 0.2s ease'
+            }}
+          >
+            Clear
+          </Button>
         </Box>
-      )}
+      </Box>
+    </Box>
+  </Box>
+)}
 
-      {/* Search Results Section */}
-      {searchResults.length > 0 && (
-        <Box sx={{ mb: 4 }}>
-          {/* Compact Search Bar Above Results */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            mb: 4,
-            gap: 2,
-            flexWrap: 'wrap'
-          }}>
-            <Box sx={{ 
-              position: 'relative',
-              width: '100%',
-              maxWidth: '500px'
-            }}>
-              <TextField
-                fullWidth
+{/* Search Results Section */}
+{searchResults.length > 0 && (
+  <Box sx={{ mb: 4 }}>
+    {/* Compact Search Bar Above Results */}
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      mb: 4,
+      gap: 2,
+      flexWrap: 'wrap'
+    }}>
+      <Box sx={{ 
+        position: 'relative',
+        width: '100%',
+        maxWidth: '500px'
+      }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder=""
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={handleKeyPress}
+          size="small"
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '25px',
+              backgroundColor: 'white',
+              fontSize: '14px',
+              height: '44px',
+              boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.2)',
+              border: '1px solid #E5E7EB',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
+                borderColor: '#D1D5DB'
+              },
+              '&.Mui-focused': {
+                boxShadow: '0 10px 30px -8px rgba(59, 130, 246, 0.15)',
+                borderColor: '#3B82F6'
+              },
+              '& input': {
+                padding: '12px 16px 12px 45px',
+                fontSize: '14px',
+                color: '#1F2937',
+                '&::placeholder': {
+                  color: '#9CA3AF',
+                  opacity: 1
+                }
+              }
+            }
+          }}
+          InputProps={{
+            startAdornment: (
+              <Box sx={{ 
+                position: 'absolute', 
+                left: 16, 
+                zIndex: 1,
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <SearchIcon sx={{ color: '#6B7280', fontSize: 18 }} />
+              </Box>
+            )
+          }}
+        />
+      </Box>
+      
+      <Button 
+        variant="contained" 
+        onClick={handleSearch}
+        disabled={searchLoading || !searchQuery.trim()}
+        sx={{ 
+          borderRadius: '20px',
+          backgroundColor: '#000000',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 600,
+          px: 3,
+          py: 1,
+          textTransform: 'none',
+          minWidth: 'auto',
+          height: '44px',
+          '&:hover': {
+            backgroundColor: '#1F2937'
+          },
+          '&:disabled': {
+            backgroundColor: '#E5E7EB',
+            color: '#9CA3AF'
+          }
+        }}
+      >
+        {searchLoading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
+        Search
+      </Button>
+      
+      <Button 
+        variant="outlined" 
+        onClick={handleClearSearch}
+        sx={{ 
+          borderRadius: '20px',
+          borderColor: '#000000',
+          color: '#000000',
+          backgroundColor: 'white',
+          fontSize: '14px',
+          fontWeight: 500,
+          px: 3,
+          py: 1,
+          textTransform: 'none',
+          minWidth: 'auto',
+          height: '44px',
+          '&:hover': {
+            borderColor: '#1F2937',
+            backgroundColor: '#F9FAFB',
+            color: '#1F2937'
+          }
+        }}
+      >
+        Reset
+      </Button>
+    </Box>
+
+    {/* Results Header */}
+    <Typography variant="h5" sx={{ 
+      color: '#1F2937', 
+      mb: 3, 
+      textAlign: 'center',
+      fontWeight: 600 
+    }}>
+      Search Results ({searchResults.length})
+    </Typography>
+
+    {/* Results Grid */}
+    <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
+      {searchResults.map((post) => (
+        <Card
+          key={post.id}
+          sx={{
+            cursor: 'pointer',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            backgroundColor: 'white',
+            border: '1px solid #E5E7EB',
+            borderRadius: 3,
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            },
+          }}
+          onClick={() => handlePostClick(post.id)}
+        >
+          <CardContent>
+            {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
+            {post.attachments && post.attachments.length > 0 ? (
+              <MediaGallery attachments={post.attachments} maxHeight={180} />
+            ) : (() => {
+              const imageUrls = extractImageUrls(post.content).slice(0, 5);
+              if (imageUrls.length === 0) return null;
+              return (
+                <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                  {imageUrls.map((url, idx) => (
+                    <img
+                      key={idx}
+                      src={resolveContentImageUrl(url)}
+                      alt={`Post image ${idx + 1}`}
+                      style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                      onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                    />
+                  ))}
+                </Box>
+              );
+            })()}
+            
+            <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
+              {highlightText(stripHtmlTags(post.title))}
+            </Typography>
+            
+            {(() => {
+              const raw = post.excerpt && post.excerpt.trim().length > 0 
+                ? post.excerpt 
+                : (post.content || '');
+              const text = stripHtmlTags(raw);
+              if (!text) return null;
+              return (
+                <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
+                  {highlightText(text.substring(0, 150))}...
+                </Typography>
+              );
+            })()}
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+              {post.category_name && (
+                <Chip 
+                  size="small" 
+                  label={post.category_name} 
+                  color="primary"
+                  variant="outlined"
+                />
+              )}
+              <Chip 
+                size="small" 
+                label={post.author_name} 
                 variant="outlined"
-                placeholder=""
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                size="small"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '25px',
-                    backgroundColor: 'white',
-                    fontSize: '14px',
-                    height: '44px',
-                    boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.2)',
-                    border: '1px solid #E5E7EB',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
-                      borderColor: '#D1D5DB'
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: '0 10px 30px -8px rgba(59, 130, 246, 0.15)',
-                      borderColor: '#3B82F6'
-                    },
-                    '& input': {
-                      padding: '12px 16px 12px 45px',
-                      fontSize: '14px',
-                      color: '#1F2937',
-                      '&::placeholder': {
-                        color: '#9CA3AF',
-                        opacity: 1
-                      }
-                    }
-                  }
+                sx={{ 
+                  borderColor: '#E5E7EB',
+                  color: '#6B7280'
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      left: 16, 
-                      zIndex: 1,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <SearchIcon sx={{ color: '#6B7280', fontSize: 18 }} />
-                    </Box>
-                  )
+              />
+              <Chip 
+                size="small" 
+                label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                variant="outlined"
+                sx={{ 
+                  borderColor: '#E5E7EB',
+                  color: '#6B7280'
                 }}
               />
             </Box>
-            
-            <Button 
-              variant="contained" 
-              onClick={handleSearch}
-              disabled={searchLoading || !searchQuery.trim()}
-              sx={{ 
-                borderRadius: '20px',
-                backgroundColor: '#000000',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                minWidth: 'auto',
-                height: '44px',
-                '&:hover': {
-                  backgroundColor: '#1F2937'
-                },
-                '&:disabled': {
-                  backgroundColor: '#E5E7EB',
-                  color: '#9CA3AF'
-                }
-              }}
-            >
-              {searchLoading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
-              Search
-            </Button>
-            
-            <Button 
-              variant="outlined" 
-              onClick={handleClearSearch}
-              sx={{ 
-                borderRadius: '20px',
-                borderColor: '#000000',
-                color: '#000000',
-                backgroundColor: 'white',
-                fontSize: '14px',
-                fontWeight: 500,
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                minWidth: 'auto',
-                height: '44px',
-                '&:hover': {
-                  borderColor: '#1F2937',
-                  backgroundColor: '#F9FAFB',
-                  color: '#1F2937'
-                }
-              }}
-            >
-              Reset
-            </Button>
-          </Box>
 
-          {/* Results Header */}
-          <Typography variant="h5" sx={{ 
-            color: '#1F2937', 
-            mb: 3, 
-            textAlign: 'center',
-            fontWeight: 600 
-          }}>
-            Search Results ({searchResults.length})
-          </Typography>
+            {/* Media attachments preview */}
+            {post.featured_media_url && (
+              <Box sx={{ mb: 2 }}>
+                <img 
+                  src={post.featured_media_url.startsWith('http') 
+                    ? post.featured_media_url 
+                    : `https://cso.vectoronline.us${post.featured_media_url}`}
+                  alt="Featured media"
+                  style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                />
+              </Box>
+            )}
 
-          {/* Results Grid */}
-          <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
-            {searchResults.map((post) => (
-              <Card
-                key={post.id}
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  backgroundColor: 'white',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: 3,
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                  },
-                }}
-                onClick={() => handlePostClick(post.id)}
-              >
-                <CardContent>
-                  {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
-                  {post.attachments && post.attachments.length > 0 ? (
-                    <MediaGallery attachments={post.attachments} maxHeight={180} />
-                  ) : (() => {
-                    const imageUrls = extractImageUrls(post.content).slice(0, 5);
-                    if (imageUrls.length === 0) return null;
-                    return (
-                      <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
-                        {imageUrls.map((url, idx) => (
-                          <img
-                            key={idx}
-                            src={resolveContentImageUrl(url)}
-                            alt={`Post image ${idx + 1}`}
-                            style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
-                            onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
-                          />
-                        ))}
-                      </Box>
-                    );
-                  })()}
-                  
-                  <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
-                    {highlightText(stripHtmlTags(post.title))}
-                  </Typography>
-                  
-                  {(() => {
-                    const raw = post.excerpt && post.excerpt.trim().length > 0 
-                      ? post.excerpt 
-                      : (post.content || '');
-                    const text = stripHtmlTags(raw);
-                    if (!text) return null;
-                    return (
-                      <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
-                        {highlightText(text.substring(0, 150))}...
-                      </Typography>
-                    );
-                  })()}
-
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {post.category_name && (
-                      <Chip 
-                        size="small" 
-                        label={post.category_name} 
-                        color="primary"
-                        variant="outlined"
-                      />
-                    )}
-                    <Chip 
-                      size="small" 
-                      label={post.author_name} 
-                      variant="outlined"
-                      sx={{ 
-                        borderColor: '#E5E7EB',
-                        color: '#6B7280'
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {(() => {
+                const contentText = stripHtmlTags(post.content || '');
+                const contentCount = countMatches(contentText, searchQuery);
+                const showCount = contentCount > 0;
+                
+                return showCount ? (
+                  <Badge badgeContent={contentCount} color="secondary">
+                    <Button
+                      startIcon={<Visibility />}
+                      size="small"
+                      variant="contained"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePostClick(post.id);
                       }}
-                    />
-                    <Chip 
-                      size="small" 
-                      label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
-                      variant="outlined"
-                      sx={{ 
-                        borderColor: '#E5E7EB',
-                        color: '#6B7280'
+                      sx={{
+                        backgroundColor: '#000000',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#1F2937'
+                        }
                       }}
-                    />
-                  </Box>
-
-                  {/* Media attachments preview */}
-                  {post.featured_media_url && (
-                    <Box sx={{ mb: 2 }}>
-                      <img 
-                        src={post.featured_media_url.startsWith('http') 
-                          ? post.featured_media_url 
-                          : `https://cso.vectoronline.us${post.featured_media_url}`}
-                        alt="Featured media"
-                        style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
-                      />
-                    </Box>
-                  )}
-
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {(() => {
-                      const contentText = stripHtmlTags(post.content || '');
-                      const contentCount = countMatches(contentText, searchQuery);
-                      const showCount = contentCount > 0;
-                      
-                      return showCount ? (
-                        <Badge badgeContent={contentCount} color="secondary">
-                          <Button
-                            startIcon={<Visibility />}
-                            size="small"
-                            variant="contained"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePostClick(post.id);
-                            }}
-                            sx={{
-                              backgroundColor: '#000000',
-                              color: 'white',
-                              '&:hover': {
-                                backgroundColor: '#1F2937'
-                              }
-                            }}
-                          >
-                            View Details
-                          </Button>
-                        </Badge>
-                      ) : (
-                        <Button
-                          startIcon={<Visibility />}
-                          size="small"
-                          variant="contained"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePostClick(post.id);
-                          }}
-                          sx={{
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            '&:hover': {
-                              backgroundColor: '#1F2937'
-                            }
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      );
-                    })()}
-                    {!post.wp_post_id && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
-                          window.dispatchEvent(evt);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </Box>
-      )}
-
-
-      {/* Post Detail Modal */}
-      <PostDetailModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        postId={selectedPostId}
-        highlightTerms={modalHighlightTerms}
-      />
+                    >
+                      View Details
+                    </Button>
+                  </Badge>
+                ) : (
+                  <Button
+                    startIcon={<Visibility />}
+                    size="small"
+                    variant="contained"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePostClick(post.id);
+                    }}
+                    sx={{
+                      backgroundColor: '#000000',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#1F2937'
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                );
+              })()}
+              {!post.wp_post_id && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
+                    window.dispatchEvent(evt);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      ))}
     </Box>
-  );
+  </Box>
+)}
+
+
+{/* Post Detail Modal */}
+<PostDetailModal
+  open={modalOpen}
+  onClose={() => setModalOpen(false)}
+  postId={selectedPostId}
+  highlightTerms={modalHighlightTerms}
+/>
+</Box>
+);
 };
 
 export default Dashboard;
