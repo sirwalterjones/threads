@@ -177,17 +177,18 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 3, borderBottom: '1px solid #2F3336' }}>
+      <Box sx={{ p: 3, borderBottom: '1px solid #2F3336', textAlign: 'center' }}>
         <Typography
           variant="h4"
           sx={{
             fontWeight: 700,
             color: '#E7E9EA',
             fontSize: '1.875rem',
-            letterSpacing: '-0.025em'
+            letterSpacing: '-0.025em',
+            textAlign: 'center'
           }}
         >
-          𝕏
+          VECTOR
         </Typography>
       </Box>
 
