@@ -381,6 +381,18 @@ const HomeSimple: React.FC = () => {
     }
   };
 
+  const resolveContentImageUrl = (rawUrl: string): string => {
+    if (!rawUrl) return rawUrl;
+    const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
+    let absolute = rawUrl;
+    if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
+    else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+    const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+    const shouldUseDirect = absolute.includes('cmansrms.us');
+    return shouldUseDirect ? absolute : `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+  };
+
   const countMatches = (text: string, terms: string[]) => {
     if (!text || !terms.length) return 0;
     const plain = stripHtmlTags(text);
@@ -889,7 +901,7 @@ const HomeSimple: React.FC = () => {
                                 {imageUrls.map((url, idx) => (
                                   <img
                                     key={idx}
-                                    src={url}
+                                    src={resolveContentImageUrl(url)}
                                     alt={`Post image ${idx + 1}`}
                                     style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
                                     onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}

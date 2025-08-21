@@ -32,7 +32,7 @@ import {
   Add as AddIcon
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
-import apiService from '../../services/api';
+import apiService, { API_BASE_URL } from '../../services/api';
 import { DashboardStats as ApiDashboardStats, Post, SearchFilters } from '../../types';
 import { format } from 'date-fns';
 import PostDetailModal from '../PostDetailModal';
@@ -74,6 +74,18 @@ const Dashboard: React.FC = () => {
         })
         .filter(Boolean);
     } catch { return []; }
+  };
+
+  const resolveContentImageUrl = (rawUrl: string): string => {
+    if (!rawUrl) return rawUrl;
+    const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
+    let absolute = rawUrl;
+    if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
+    else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+    const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+    const shouldUseDirect = absolute.includes('cmansrms.us');
+    return shouldUseDirect ? absolute : `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
   };
 
   const highlightText = (input: string) => {
@@ -560,7 +572,7 @@ const Dashboard: React.FC = () => {
                         {imageUrls.map((url, idx) => (
                           <img
                             key={idx}
-                            src={url}
+                            src={resolveContentImageUrl(url)}
                             alt={`Post image ${idx + 1}`}
                             style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
                             onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
