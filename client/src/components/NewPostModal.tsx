@@ -331,8 +331,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   'alignright alignjustify | bullist numlist outdent indent | ' +
                   'removeformat | help',
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                skin: false,
-                content_css: false,
+                // Use local skins to avoid remote fetches
+                skin_url: '/tinymce/skins/ui/oxide',
+                content_css: '/tinymce/skins/content/default/content.min.css',
                 branding: false,
                 promotion: false,
                 resize: false,
