@@ -443,8 +443,11 @@ class WordPressService {
       
       console.log('✅ Input validation passed');
       
-      // Process categories first with validation
+      // Process categories first with validation - handle parent relationships properly
       console.log('📂 Processing categories...');
+      
+      // First pass: Insert/update categories without parent relationships
+      console.log('📂 First pass: Insert categories without parent relationships...');
       for (const [index, category] of categories.entries()) {
         try {
           // Validate required category fields
@@ -462,19 +465,17 @@ class WordPressService {
           
           const result = await client.query(`
             INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
-            VALUES ($1, $2, $3, $4, $5)
+            VALUES ($1, $2, $3, NULL, $4)
             ON CONFLICT (wp_category_id)
             DO UPDATE SET
               name = EXCLUDED.name,
               slug = EXCLUDED.slug,
-              parent_id = EXCLUDED.parent_id,
               post_count = EXCLUDED.post_count
             RETURNING id, wp_category_id
           `, [
             category.id,
             category.name.trim(),
             category.slug.trim(),
-            category.parent || null,
             parseInt(category.count) || 0
           ]);
           
@@ -492,6 +493,41 @@ class WordPressService {
           // Don't throw here - continue processing other categories
         }
       }
+      
+      // Second pass: Update parent relationships now that all categories exist
+      console.log('📂 Second pass: Setting up parent relationships...');
+      let parentLinksSet = 0;
+      for (const category of categories) {
+        if (category.parent && category.parent !== 0) {
+          try {
+            console.log(`🔗 Setting parent ${category.parent} for category ${category.id}`);
+            
+            // Find the local ID of the parent category
+            const parentResult = await client.query(
+              'SELECT id FROM categories WHERE wp_category_id = $1',
+              [category.parent]
+            );
+            
+            if (parentResult.rows.length > 0) {
+              const parentLocalId = parentResult.rows[0].id;
+              await client.query(
+                'UPDATE categories SET parent_id = $1 WHERE wp_category_id = $2',
+                [parentLocalId, category.id]
+              );
+              parentLinksSet++;
+              console.log(`✅ Parent relationship set: ${category.id} -> parent ${category.parent} (local ID ${parentLocalId})`);
+            } else {
+              console.warn(`⚠️ Parent category ${category.parent} not found for category ${category.id}`);
+            }
+          } catch (parentError) {
+            const errorMsg = `Category ${category.id}: Parent relationship error - ${parentError.message}`;
+            console.error(`❌ ${errorMsg}`);
+            errors.push(errorMsg);
+          }
+        }
+      }
+      
+      console.log(`📂 Parent relationships set: ${parentLinksSet}`);
       
       console.log(`📂 Categories processing complete: ${categoriesIngested}/${categories.length} processed`);
       
