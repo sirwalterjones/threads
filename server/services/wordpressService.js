@@ -455,6 +455,8 @@ class WordPressService {
           categoriesIngested++;
         } catch (catError) {
           console.error(`Error processing category ${category.id}:`, catError.message);
+          console.error('Category data:', category);
+          console.error('Full error:', catError);
         }
       }
       
@@ -516,6 +518,9 @@ class WordPressService {
           postsIngested++;
         } catch (postError) {
           console.error(`Error processing post ${post.id}:`, postError.message);
+          console.error('Post data:', JSON.stringify(post, null, 2));
+          console.error('Full error:', postError);
+          console.error('Stack:', postError.stack);
         }
       }
       
