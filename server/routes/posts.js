@@ -81,7 +81,7 @@ router.get('/',
       // Get posts with attachments
       const postsQuery = `
         SELECT 
-          p.id, p.wp_post_id, p.title, p.excerpt, p.author_name,
+          p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           c.name as category_name, c.slug as category_slug,
           ${search ? "ts_rank(search_vector, plainto_tsquery('english', $1)) as rank," : ''}

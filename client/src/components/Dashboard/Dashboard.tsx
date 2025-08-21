@@ -60,7 +60,19 @@ const Dashboard: React.FC = () => {
       const div = document.createElement('div');
       div.innerHTML = html;
       const imgs = Array.from(div.querySelectorAll('img'));
-      return imgs.map(img => (img.getAttribute('src') || '').trim()).filter(Boolean);
+      return imgs
+        .map(img => {
+          let src = (img.getAttribute('src') || '').trim();
+          if (!src) src = (img.getAttribute('data-src') || '').trim();
+          if (!src) {
+            const srcset = (img.getAttribute('srcset') || '').trim();
+            if (srcset) {
+              src = srcset.split(',')[0].trim().split(' ')[0];
+            }
+          }
+          return src;
+        })
+        .filter(Boolean);
     } catch { return []; }
   };
 

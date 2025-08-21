@@ -336,7 +336,18 @@ const HomeSimple: React.FC = () => {
       div.innerHTML = html;
       const imgs = Array.from(div.querySelectorAll('img'));
       return imgs
-        .map(img => (img.getAttribute('src') || '').trim())
+        .map(img => {
+          let src = (img.getAttribute('src') || '').trim();
+          if (!src) src = (img.getAttribute('data-src') || '').trim();
+          if (!src) {
+            const srcset = (img.getAttribute('srcset') || '').trim();
+            if (srcset) {
+              // Take the first candidate URL
+              src = srcset.split(',')[0].trim().split(' ')[0];
+            }
+          }
+          return src;
+        })
         .filter(src => !!src);
     } catch {
       return [];

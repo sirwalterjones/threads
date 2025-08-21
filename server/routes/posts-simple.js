@@ -98,7 +98,7 @@ router.get('/',
       // Get posts
       const postsQuery = `
         SELECT 
-          p.id, p.wp_post_id, p.title, p.excerpt, p.content, p.author_name,
+          p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date,
           p.featured_media_url, p.attachments,
           c.name as category_name, c.slug as category_slug,
