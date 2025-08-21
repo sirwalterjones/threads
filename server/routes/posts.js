@@ -190,14 +190,13 @@ router.get('/',
       const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'wp_published_date';
       const sortDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-      // Get total count
+      // TEMP: Use exact same logic as posts query (no filtering)
       const countQuery = `
         SELECT COUNT(*) as total
         FROM posts p
-        ${whereClause}
       `;
       
-      const countResult = await pool.query(countQuery, queryParams);
+      const countResult = await pool.query(countQuery, []);
       const total = parseInt(countResult.rows[0].total);
 
       // TEMP: Use exact same query as debug endpoint to isolate the issue
