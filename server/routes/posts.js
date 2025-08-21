@@ -122,7 +122,7 @@ router.get('/',
         mine
       } = req.query;
 
-      const offset = (page - 1) * limit;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
       let whereConditions = [];
       let queryParams = [];
       let paramIndex = 1;
@@ -242,7 +242,7 @@ router.get('/',
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
-        queryParams: queryParams
+        queryParams: queryParams || 'undefined'
       });
       res.status(500).json({ 
         error: 'Failed to fetch posts',
