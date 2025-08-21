@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [mineOnly, setMineOnly] = useState(false);
+
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [manualPosts, setManualPosts] = useState<Post[]>([]);
@@ -188,8 +188,7 @@ const Dashboard: React.FC = () => {
       const filters: SearchFilters = {
         search: searchQuery,
         sortBy: 'wp_published_date',
-        sortOrder: 'DESC',
-        ...(mineOnly ? { mine: true } : {})
+        sortOrder: 'DESC'
       };
       console.log('Searching with filters:', filters); // DEBUG
       const response = await apiService.getPosts({ ...filters, limit: 20 });
@@ -238,7 +237,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: 'relative', overflow: 'hidden', width: '100%' }}>
       {/* Add Thread above Search Header */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
         <Button
@@ -248,8 +247,8 @@ const Dashboard: React.FC = () => {
           size="medium"
           sx={{
             borderRadius: '999px',
-            backgroundColor: '#000000',
-            color: 'white',
+            backgroundColor: '#1D9BF0',
+            color: 'black',
             fontSize: '14px',
             fontWeight: 700,
             px: 3,
@@ -257,7 +256,7 @@ const Dashboard: React.FC = () => {
             textTransform: 'none',
             boxShadow: '0 6px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(29, 155, 240, 0.45)',
             '&:hover': {
-              backgroundColor: '#1F2937',
+              backgroundColor: '#1A8CD8',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(29, 155, 240, 0.65)'
             },
           }}
@@ -271,21 +270,14 @@ const Dashboard: React.FC = () => {
       {/* Manual Posts Grid - Show when no search results */}
       {searchResults.length === 0 && manualPosts.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ 
-            color: '#E7E9EA', 
-            mb: 3, 
-            fontWeight: 600,
-            textAlign: 'center'
-          }}>
-            Your Recent Posts
-          </Typography>
           
           <Box sx={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: 3,
-            maxWidth: '1200px', 
-            mx: 'auto' 
+            maxWidth: '100%', 
+            mx: 'auto',
+            overflow: 'hidden'
           }}>
             {manualPosts.map((post) => (
               <Box key={post.id}>
@@ -457,18 +449,6 @@ const Dashboard: React.FC = () => {
               }}>
                 Search Vector
               </Typography>
-              
-              {mineOnly && (
-                <Typography variant="body1" sx={{ 
-                  color: '#1D9BF0', 
-                  textAlign: 'center', 
-                  mb: 4,
-                  fontWeight: 600,
-                  fontSize: '1.1rem'
-                }}>
-                  Showing only your manually created posts
-                </Typography>
-              )}
             
             <Box sx={{ 
               position: 'relative',
@@ -476,35 +456,6 @@ const Dashboard: React.FC = () => {
               maxWidth: '700px',
               margin: '0 auto'
             }}>
-              {/* My Posts Toggle */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <Button
-                  variant={mineOnly ? 'contained' : 'outlined'}
-                  onClick={() => {
-                    const next = !mineOnly;
-                    setMineOnly(next);
-                    if (next) {
-                      handleSearch();
-                    }
-                  }}
-                  sx={{
-                    borderRadius: '20px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    borderColor: mineOnly ? 'transparent' : '#1D9BF0',
-                    backgroundColor: mineOnly ? '#1D9BF0' : 'transparent',
-                    color: mineOnly ? 'white' : '#1D9BF0',
-                    '&:hover': {
-                      backgroundColor: mineOnly ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)'
-                    }
-                  }}
-                >
-                  {mineOnly ? 'All Posts' : 'My Posts Only'}
-                </Button>
-              </Box>
-              
               <TextField
                 fullWidth
                 variant="outlined"
