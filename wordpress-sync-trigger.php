@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 
 class ThreadsIntelAutoSync {
     
-    private $vercel_api_base = 'https://threads-8qfennhvr-walter-jones-projects.vercel.app/api';
+    private $vercel_api_base = 'https://cso.vectoronline.us/api';
     private $admin_username = 'admin';
     private $admin_password = 'admin123456';
     private $auth_token = null;

@@ -2,7 +2,7 @@
 
 const axios = require('axios');
 
-const VERCEL_API_BASE = 'https://cso.threadsonline.us/api';
+const VERCEL_API_BASE = 'https://cso.vectoronline.us/api';
 const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTU1NjUwMDQsImV4cCI6MTc1NTY1MTQwNH0.Y2oFC36ZqBh3uomWr91U7qo2GjwpRsY_F14tkYLlqOY';
 
 console.log('🔧 DIRECT CATEGORY ASSIGNMENT FIX');

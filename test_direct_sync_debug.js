@@ -2,7 +2,7 @@
 
 const axios = require('axios');
 
-const API_BASE = 'https://cso.threadsonline.us/api';
+const API_BASE = 'https://cso.vectoronline.us/api';
 
 async function testDirectSync() {
   try {

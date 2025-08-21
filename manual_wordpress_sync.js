@@ -3,7 +3,7 @@
 const axios = require('axios');
 
 const WORDPRESS_URL = 'https://cmansrms.us/wp-json/wp/v2';
-const API_BASE = 'https://cso.threadsonline.us/api';
+const API_BASE = 'https://cso.vectoronline.us/api';
 
 async function manualWordPressSync() {
   try {

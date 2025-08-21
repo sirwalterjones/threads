@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 
 class ThreadsIntelDirectSync {
     
-    private $vercel_api_base = 'https://cso.threadsonline.us/api';
+    private $vercel_api_base = 'https://cso.vectoronline.us/api';
     private $admin_username = 'admin';
     private $admin_password = 'admin123456';
     private $auth_token = null;

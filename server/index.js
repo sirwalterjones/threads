@@ -29,7 +29,7 @@ const wpService = new WordPressService();
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://your-vercel-app.vercel.app', 'https://your-custom-domain.com'] 
+    ? [process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cso.vectoronline.us', 'https://cso.vectoronline.us'] 
     : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'],
   credentials: true
 }));
