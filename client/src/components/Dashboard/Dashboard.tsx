@@ -267,6 +267,79 @@ const Dashboard: React.FC = () => {
 
       {/* Dashboard Stats Cards removed */}
 
+      {/* Search Bar */}
+      <Box sx={{ mb: 4, px: 3 }}>
+        <Box sx={{ 
+          position: 'relative',
+          width: '100%',
+          maxWidth: '700px',
+          margin: '0 auto'
+        }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search your threads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '50px',
+                backgroundColor: '#16181C',
+                fontSize: '18px',
+                height: '50px',
+                border: '1px solid #2F3336',
+                '&:hover': {
+                  borderColor: '#1D9BF0'
+                },
+                '&.Mui-focused': {
+                  borderColor: '#1D9BF0',
+                  backgroundColor: '#000000'
+                },
+                '& fieldset': {
+                  border: 'none'
+                },
+                '& input': {
+                  padding: '12px 24px 12px 50px',
+                  fontSize: '18px',
+                  color: '#E7E9EA',
+                  '&::placeholder': {
+                    color: '#71767B',
+                    opacity: 1
+                  }
+                }
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <Box sx={{ 
+                  position: 'absolute', 
+                  left: 20, 
+                  zIndex: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
+                </Box>
+              ),
+              endAdornment: searchQuery && (
+                <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                  <IconButton 
+                    onClick={handleClearSearch}
+                    sx={{ 
+                      color: '#6B7280',
+                      '&:hover': { color: '#374151' }
+                    }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                </Box>
+              )
+            }}
+          />
+        </Box>
+      </Box>
+
       {/* Manual Posts Grid - Show when no search results */}
       {searchResults.length === 0 && manualPosts.length > 0 && (
         <Box sx={{ mb: 4, px: 3 }}>
