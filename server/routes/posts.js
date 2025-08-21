@@ -162,14 +162,15 @@ router.get('/main',
       }
 
       // Handle mine filter - only show posts created by current user
-      if (mine === 'true' && req.user) {
-        // For manual posts, check against the user who created them
-        // For WordPress posts, this would need to be handled differently
-        // For now, we'll filter based on author_name matching the current user's username
-        whereConditions.push(`author_name ILIKE $${paramIndex}`);
-        queryParams.push(`%${req.user.username}%`);
-        paramIndex++;
-      }
+      // TEMP: Disable mine filter since auth is disabled
+      // if (mine === 'true' && req.user) {
+      //   // For manual posts, check against the user who created them
+      //   // For WordPress posts, this would need to be handled differently
+      //   // For now, we'll filter based on author_name matching the current user's username
+      //   whereConditions.push(`author_name ILIKE $${paramIndex}`);
+      //   queryParams.push(`%${req.user.username}%`);
+      //   paramIndex++;
+      // }
 
       // Build the WHERE clause
       let whereClause = '';
