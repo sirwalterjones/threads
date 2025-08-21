@@ -47,7 +47,15 @@ const RightSidebar: React.FC = () => {
         sortBy: 'wp_published_date',
         sortOrder: 'DESC'
       });
-      setRecentThreads(recentResponse.posts);
+      
+      // Sort posts by published date (newest first) since backend sorting is temporarily disabled
+      const sortedPosts = recentResponse.posts.sort((a, b) => {
+        const dateA = new Date(a.wp_published_date || a.ingested_at || 0);
+        const dateB = new Date(b.wp_published_date || b.ingested_at || 0);
+        return dateB.getTime() - dateA.getTime(); // Newest first
+      });
+      
+      setRecentThreads(sortedPosts);
 
       // Load top categories
       const categoriesResponse = await apiService.getCategories();
