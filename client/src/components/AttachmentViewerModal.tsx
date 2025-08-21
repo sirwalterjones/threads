@@ -27,24 +27,37 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
   if (!attachment) return null;
 
   const rawUrl = attachment.url;
-  const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
   
-  // Handle relative URLs by making them absolute
-  let absoluteUrl = rawUrl;
-  if (rawUrl.startsWith('/')) {
-    absoluteUrl = `${remoteBase}${rawUrl}`;
-  } else if (!rawUrl.startsWith('http')) {
-    absoluteUrl = `${remoteBase}/${rawUrl}`;
+  // Check if this is our own uploaded file (from /api/files/) or a WordPress file
+  const isOwnUploadedFile = rawUrl.includes('/api/files/') || rawUrl.startsWith(`${API_BASE_URL}/files/`);
+  
+  let finalUrl: string;
+  
+  if (isOwnUploadedFile) {
+    // For our own uploaded files, use the URL directly - no proxy needed
+    finalUrl = rawUrl;
+  } else {
+    // For WordPress/remote files, use the existing proxy logic
+    const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
+    
+    // Handle relative URLs by making them absolute
+    let absoluteUrl = rawUrl;
+    if (rawUrl.startsWith('/')) {
+      absoluteUrl = `${remoteBase}${rawUrl}`;
+    } else if (!rawUrl.startsWith('http')) {
+      absoluteUrl = `${remoteBase}/${rawUrl}`;
+    }
+    
+    const authToken = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+    const tokenQuery = authToken ? `&t=${encodeURIComponent(authToken)}` : '';
+    const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
+    
+    // For now, use direct URLs for all cmansrms.us content since proxy is having issues
+    const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us');
+    finalUrl = shouldUseDirectUrl ? absoluteUrl : proxyUrl;
   }
   
-  const authToken = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
-  const tokenQuery = authToken ? `&t=${encodeURIComponent(authToken)}` : '';
-  const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absoluteUrl)}${tokenQuery}`;
-  const remoteUrl = absoluteUrl;
-  
-  // For now, use direct URLs for all cmansrms.us content since proxy is having issues
-  const shouldUseDirectUrl = absoluteUrl.includes('cmansrms.us');
-  const finalUrl = shouldUseDirectUrl ? absoluteUrl : proxyUrl;
+  const remoteUrl = isOwnUploadedFile ? rawUrl : finalUrl;
 
   const mime = attachment.mime_type || '';
   const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(rawUrl) || mime.startsWith('image/');
@@ -65,7 +78,9 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           <img
             src={finalUrl}
             onError={(e) => { 
-              if (!shouldUseDirectUrl) {
+              // For uploaded files, no fallback needed as they should work directly
+              // For WordPress files, fallback to remoteUrl if proxy fails
+              if (!isOwnUploadedFile && finalUrl !== remoteUrl) {
                 (e.currentTarget as HTMLImageElement).src = remoteUrl; 
               }
             }}
@@ -123,13 +138,13 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
         {isVideo && (
           <video controls style={{ width: '100%' }}>
             <source src={finalUrl} />
-            {!shouldUseDirectUrl && <source src={remoteUrl} />}
+            {!isOwnUploadedFile && finalUrl !== remoteUrl && <source src={remoteUrl} />}
           </video>
         )}
         {isAudio && (
           <audio controls style={{ width: '100%' }}>
             <source src={finalUrl} />
-            {!shouldUseDirectUrl && <source src={remoteUrl} />}
+            {!isOwnUploadedFile && finalUrl !== remoteUrl && <source src={remoteUrl} />}
           </audio>
         )}
         {!isImage && !isPdf && !isVideo && !isAudio && (

@@ -74,7 +74,8 @@ class ThreadsIntelAutoSync {
     
     private function authenticate() {
         $response = wp_remote_post($this->vercel_api_base . '/auth/login', array(
-            'timeout' => 30,
+            'timeout' => 60,
+            'sslverify' => false,
             'headers' => array('Content-Type' => 'application/json'),
             'body' => json_encode(array(
                 'username' => $this->admin_username,
@@ -103,7 +104,8 @@ class ThreadsIntelAutoSync {
         
         // Try incremental sync first
         $response = wp_remote_post($this->vercel_api_base . '/admin/ingest-wordpress-incremental', array(
-            'timeout' => 60,
+            'timeout' => 120,
+            'sslverify' => false,
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->auth_token
@@ -132,7 +134,8 @@ class ThreadsIntelAutoSync {
     
     private function trigger_regular_sync() {
         $response = wp_remote_post($this->vercel_api_base . '/admin/ingest-wordpress', array(
-            'timeout' => 120,
+            'timeout' => 180,
+            'sslverify' => false,
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->auth_token
@@ -223,7 +226,8 @@ class ThreadsIntelAutoSync {
         );
 
         $response = wp_remote_post($this->vercel_api_base . '/admin/ingest-direct', array(
-            'timeout' => 120,
+            'timeout' => 180,
+            'sslverify' => false,
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->auth_token
