@@ -120,11 +120,11 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     setEditContent('');
   };
 
-  const canEditComment = (comment: Comment) => {
+  const canEditComment = (comment: PostComment) => {
     return user && (user.id === comment.user_id || user.role === 'admin');
   };
 
-  const canDeleteComment = (comment: Comment) => {
+  const canDeleteComment = (comment: PostComment) => {
     return user && (user.id === comment.user_id || user.role === 'admin');
   };
 
