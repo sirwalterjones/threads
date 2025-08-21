@@ -390,4 +390,43 @@ router.delete('/:id',
   }
 );
 
+// Get all authors with post counts
+router.get('/authors',
+  authenticateToken,
+  authorizeRole(['view', 'edit', 'admin']),
+  async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          author_name,
+          COUNT(*) as post_count,
+          COUNT(CASE WHEN wp_post_id IS NOT NULL THEN 1 END) as wordpress_posts,
+          COUNT(CASE WHEN wp_post_id IS NULL THEN 1 END) as manual_posts
+        FROM posts 
+        WHERE author_name IS NOT NULL AND author_name != ''
+        GROUP BY author_name 
+        ORDER BY post_count DESC
+      `;
+      
+      const result = await pool.query(query);
+      
+      res.json({
+        authors: result.rows.map(row => ({
+          name: row.author_name,
+          totalPosts: parseInt(row.post_count),
+          wordpressPosts: parseInt(row.wordpress_posts),
+          manualPosts: parseInt(row.manual_posts)
+        }))
+      });
+      
+    } catch (error) {
+      console.error('Error fetching authors:', error);
+      res.status(500).json({
+        error: 'Failed to fetch authors',
+        details: error.message
+      });
+    }
+  }
+);
+
 module.exports = router;
