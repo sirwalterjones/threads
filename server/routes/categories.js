@@ -24,9 +24,9 @@ router.get('/',
       const filteredWhere = `
         WHERE (
           (NOT EXISTS(SELECT 1 FROM categories child WHERE child.parent_id = c.id)) 
-          OR (c.parent_id IS NULL AND c.post_count > 0 AND NOT EXISTS(SELECT 1 FROM categories child WHERE child.parent_id = c.id))
+          OR (c.parent_id IS NULL AND NOT EXISTS(SELECT 1 FROM categories child WHERE child.parent_id = c.id))
         )
-        AND c.post_count > 0
+        AND c.is_hidden = false
       `;
 
       const orderBy = `ORDER BY COALESCE(p.name, c.name), c.name`;
