@@ -266,6 +266,19 @@ class ApiService {
     });
     return response.data;
   }
+
+  // Enhanced Audit Logging
+  async logAuditEvents(events: any[]): Promise<{ success: boolean }> {
+    const response = await axios.post(`${API_BASE_URL}/audit/bulk`, {
+      events
+    });
+    return response.data;
+  }
+
+  async logAuditEvent(event: any): Promise<{ success: boolean }> {
+    const response = await axios.post(`${API_BASE_URL}/audit/log`, event);
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();

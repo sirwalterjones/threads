@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import { Post, Category, SearchFilters } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
+import auditService from '../services/auditService';
 import { format } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import PostDetailModal from '../components/PostDetailModal';
@@ -259,11 +260,17 @@ const HomeSimple: React.FC = () => {
     }
   }, [location.pathname, origin, mineOnly]); // Listen for path changes
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const parsed = parseAdvancedQuery();
     const q = parsed.remainingQuery;
     setSearchTerm(q);
     setCurrentPage(1);
+    
+    // Track search activity
+    if (q && q.trim()) {
+      await auditService.trackSearch(q, 0); // Will update with results count later
+    }
+    
     loadData(1, {
       search: q,
       ...(origin !== 'all' ? { origin } as any : {}),
@@ -277,15 +284,26 @@ const HomeSimple: React.FC = () => {
     }
   };
 
-  const handlePostClick = (postId: number) => {
+  const handlePostClick = async (postId: number) => {
     setSelectedPostId(postId);
     setModalOpen(true);
+    
+    // Find the post title for audit logging
+    const post = posts.find(p => p.id === postId);
+    await auditService.trackView('post', postId, post?.title);
   };
 
   const handleDelete = async (postId: number) => {
     if (!window.confirm('Delete this post? This action cannot be undone.')) return;
     try {
+      // Find the post title for audit logging
+      const post = posts.find(p => p.id === postId);
+      
       await apiService.deletePost(postId);
+      
+      // Track deletion
+      await auditService.trackDelete('post', postId, post?.title);
+      
       // Reload current page
       loadData(currentPage);
     } catch (e:any) {

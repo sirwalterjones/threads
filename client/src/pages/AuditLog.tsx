@@ -158,7 +158,7 @@ const AuditLog: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ color: '#1F2937', fontWeight: 600 }}>
+        <Typography variant="h4" sx={{ color: '#E7E9EA', fontWeight: 700 }}>
           Audit Log
         </Typography>
         <Button
@@ -178,7 +178,7 @@ const AuditLog: React.FC = () => {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       {/* Search and Filter Section */}
-      <Card sx={{ mb: 3, backgroundColor: 'white', border: '1px solid #E5E7EB' }}>
+      <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
         <CardContent>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 4 }}>

@@ -3,6 +3,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, M
 import DOMPurify from 'dompurify';
 import { Editor } from '@tinymce/tinymce-react';
 import apiService from '../services/api';
+import auditService from '../services/auditService';
 import { Category } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -170,8 +171,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       
       if (post) {
         await apiService.updatePost(post.id, payload);
+        // Track edit
+        await auditService.trackEdit('post', post.id, { title, content, excerpt });
       } else {
-        await apiService.createPost(payload);
+        const result = await apiService.createPost(payload);
+        // Track creation
+        await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt });
       }
       
       // Reset form

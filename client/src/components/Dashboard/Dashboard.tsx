@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 700,
               fontSize: { xs: '2rem', md: '2.5rem' }
             }}>
-              What's happening?
+              Search Threads
             </Typography>
             
             <Box sx={{ 

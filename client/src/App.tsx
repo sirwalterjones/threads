@@ -11,9 +11,8 @@ import CategoriesManage from './pages/CategoriesManage';
 import UsersManage from './pages/UsersManage';
 import AuditLog from './pages/AuditLog';
 import PostExpiration from './pages/PostExpiration';
-import SystemTools from './pages/SystemTools';
+import DataManagement from './pages/DataManagement';
 import Profile from './pages/Profile';
-import NewPost from './pages/NewPost';
 import { CircularProgress, Box } from '@mui/material';
 
 // Theme is now controlled by ThemeModeProvider
@@ -84,11 +83,8 @@ const AppRoutes: React.FC = () => {
                 <Route path="/users" element={<UsersManage />} />
                 <Route path="/expiration" element={<PostExpiration />} />
                 <Route path="/audit" element={<AuditLog />} />
-                <Route path="/tools" element={<SystemTools />} />
-                <Route path="/sync" element={<SystemTools />} />
-                <Route path="/purge" element={<SystemTools />} />
+                <Route path="/data-management" element={<DataManagement />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<SystemTools />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>
             </Layout>

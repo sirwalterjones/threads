@@ -18,10 +18,6 @@ import {
   Category as CategoryIcon,
   People as PeopleIcon,
   Settings as SettingsIcon,
-  TableChart as TableIcon,
-  Person as PersonIcon,
-  Login as LoginIcon,
-  AppRegistration as RegisterIcon,
   History as AuditIcon,
   AccessTime as ExpirationIcon,
   ExitToApp as LogoutIcon
@@ -61,24 +57,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     handleMenuClose();
   };
 
-  const adminPages = [
+  const mainPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
     { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
-    { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] },
-    { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
-    { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['admin'] }
-  ];
-
-  const authPages = [
-    { text: 'Login', icon: <LoginIcon />, path: '/login', roles: ['view', 'edit', 'admin'] },
-    { text: 'Register', icon: <RegisterIcon />, path: '/register', roles: ['admin'] }
+    { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] }
   ];
 
   const contentPages = [
     { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
-    { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
-    { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] }
+    { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] }
+  ];
+
+  const systemAdminPages = [
+    { text: 'Data Management', icon: <SettingsIcon />, path: '/data-management', roles: ['admin'] },
+    { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
+    { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
+    { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }
   ];
 
   const handleNavigation = (path: string) => {
@@ -131,9 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 sx={{
                   mx: 2,
                   borderRadius: 25,
-                  mb: 1,
-                  px: 3,
-                  py: 1.5,
+                  mb: 0.5,
+                  px: 2,
+                  py: 1,
                   backgroundColor: 'transparent',
                   color: isActive(item.path) ? '#E7E9EA' : '#71767B',
                   '&:hover': {
@@ -145,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 <ListItemIcon
                   sx={{
                     color: isActive(item.path) ? '#E7E9EA' : '#71767B',
-                    minWidth: 48
+                    minWidth: 36
                   }}
                 >
                   {item.icon}
@@ -153,8 +147,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 <ListItemText
                   primary={item.text}
                   primaryTypographyProps={{
-                    fontSize: '20px',
-                    fontWeight: isActive(item.path) ? 700 : 400
+                    fontSize: '12px',
+                    fontWeight: isActive(item.path) ? 600 : 400
                   }}
                 />
               </ListItemButton>
@@ -216,17 +210,21 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           background: '#3F4144',
         },
       }}>
-        {renderNavSection('', adminPages)}
+        {renderNavSection('', mainPages)}
         
         {user && ['edit', 'admin'].includes(user.role) && (
           <>
             <Divider sx={{ backgroundColor: '#2F3336', mx: 2, my: 2 }} />
-            {renderNavSection('', contentPages)}
+            {renderNavSection('Content', contentPages, '#9CA3AF')}
           </>
         )}
         
-        <Divider sx={{ backgroundColor: '#2F3336', mx: 2, my: 2 }} />
-        {renderNavSection('', authPages)}
+        {user && user.role === 'admin' && (
+          <>
+            <Divider sx={{ backgroundColor: '#2F3336', mx: 2, my: 2 }} />
+            {renderNavSection('System Admin', systemAdminPages, '#9CA3AF')}
+          </>
+        )}
       </Box>
 
       {/* User Info at Bottom */}
@@ -268,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 <Typography variant="body2" sx={{ 
                   color: '#E7E9EA', 
                   fontWeight: 700,
-                  fontSize: '15px',
+                  fontSize: '14px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
@@ -277,7 +275,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 </Typography>
                 <Typography variant="caption" sx={{ 
                   color: '#71767B', 
-                  fontSize: '15px'
+                  fontSize: '12px'
                 }}>
                   @{user.username.toLowerCase()}
                 </Typography>

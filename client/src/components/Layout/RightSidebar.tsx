@@ -208,20 +208,6 @@ const RightSidebar: React.FC = () => {
       </Card>
       )}
 
-      {/* Footer */}
-      <Box sx={{ px: 2, pb: 2 }}>
-        <Typography sx={{ 
-          color: '#536471', 
-          fontSize: '13px',
-          lineHeight: 1.3
-        }}>
-          Terms of Service Privacy Policy Cookie Policy
-          <br />
-          Accessibility Ads info More
-          <br />
-          © 2025 Threads Intel System
-        </Typography>
-      </Box>
     </Box>
   );
 };

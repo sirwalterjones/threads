@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType } from '../types';
 import apiService from '../services/api';
+import auditService from '../services/auditService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -50,6 +51,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(response.token);
       apiService.setToken(response.token);
       localStorage.setItem('token', response.token);
+      
+      // Track successful login
+      await auditService.trackLogin(username);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -58,11 +62,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const currentUser = user?.username;
+    
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
     apiService.clearToken();
+    
+    // Track logout
+    if (currentUser) {
+      await auditService.trackLogout(currentUser);
+    }
   };
 
   const value: AuthContextType = {
