@@ -20,6 +20,8 @@ const uploadsRoutes = require('./routes/uploads');
 const filesRoutes = require('./routes/files');
 
 const app = express();
+// Ensure Express uses X-Forwarded-* headers on Vercel to get real client IP
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 5050;
 
 // Initialize WordPress service

@@ -94,6 +94,8 @@ const auditLog = (action, tableName = null) => {
             durationMs: Date.now() - startedAt,
             userAgent: req.headers['user-agent'],
             referer: req.headers['referer'] || req.headers['referrer'] || null,
+            ip: req.ip,
+            forwardedFor: req.headers['x-forwarded-for'] || null,
           };
 
           const payload = req.method !== 'GET' ? req.body : null;
@@ -108,7 +110,7 @@ const auditLog = (action, tableName = null) => {
               req.params.id || null,
               null, // old_values not captured generically
               JSON.stringify({ body: payload, meta, response: responseSummary }),
-              req.ip,
+              (req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip),
             ]
           ).catch((error) => {
             console.error('Audit log error:', error);

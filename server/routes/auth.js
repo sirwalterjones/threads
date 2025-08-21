@@ -117,7 +117,9 @@ router.post('/register',
 );
 
 // Login
-router.post('/login', async (req, res) => {
+const { auditLog } = require('../middleware/auth');
+
+router.post('/login', auditLog('LOGIN', 'auth'), async (req, res) => {
   try {
     const { username, password } = req.body;
 
