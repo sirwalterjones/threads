@@ -15,7 +15,6 @@ import {
   TableCell,
   TableBody,
   TableContainer,
-  Paper,
   InputAdornment,
   IconButton,
   Pagination,
@@ -59,20 +58,6 @@ const CategoriesManage: React.FC = () => {
 
   const postsPerPage = 25;
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortCategories();
-  }, [categories, searchQuery, sortBy, sortOrder]);
-
-  useEffect(() => {
-    if (selectedCategory) {
-      loadCategoryPosts();
-    }
-  }, [selectedCategory, postsPage, postsSearch]);
-
   const loadCategories = async () => {
     try {
       setLoading(true);
@@ -85,34 +70,18 @@ const CategoriesManage: React.FC = () => {
     }
   };
 
-  const loadCategoryPosts = async () => {
-    if (!selectedCategory) return;
+  const filterAndSortCategories = React.useCallback(() => {
+    console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder);
     
-    try {
-      setPostsLoading(true);
-      const data = await apiService.getCategoryPosts(selectedCategory.id, {
-        page: postsPage,
-        limit: postsPerPage,
-        search: postsSearch || undefined
-      });
-      setCategoryPosts(data.posts);
-      setPostsTotal(data.total);
-    } catch (e: any) {
-      setError(e?.response?.data?.error || 'Failed to load category posts');
-    } finally {
-      setPostsLoading(false);
-    }
-  };
+    let filtered = [...categories];
 
-  const filterAndSortCategories = () => {
-    let filtered = categories;
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(cat => 
         cat.name.toLowerCase().includes(query) ||
         cat.slug.toLowerCase().includes(query)
       );
+      console.log('After search filter:', filtered.length);
     }
 
     filtered.sort((a, b) => {
@@ -136,8 +105,50 @@ const CategoriesManage: React.FC = () => {
       return 0;
     });
 
+    console.log('Final filtered categories:', filtered.length);
     setFilteredCategories(filtered);
-  };
+  }, [categories, searchQuery, sortBy, sortOrder]);
+
+  const loadCategoryPosts = React.useCallback(async () => {
+    if (!selectedCategory) return;
+    
+    try {
+      setPostsLoading(true);
+      console.log('Attempting to load posts for category:', selectedCategory.name, selectedCategory.slug);
+      
+      // Use the posts endpoint with category filter (by slug)
+      const data = await apiService.getPosts({
+        page: postsPage,
+        limit: postsPerPage,
+        search: postsSearch || undefined,
+        category: selectedCategory.slug // Use category slug for filtering
+      });
+      
+      console.log('Loaded posts:', data);
+      setCategoryPosts(data.posts || []);
+      setPostsTotal(data.pagination?.total || 0);
+    } catch (e: any) {
+      console.error('Error loading category posts:', e);
+      setError(e?.response?.data?.error || 'Failed to load category posts');
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [selectedCategory, postsPage, postsPerPage, postsSearch]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    filterAndSortCategories();
+  }, [filterAndSortCategories]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      console.log('Loading posts for category:', selectedCategory.name, selectedCategory.id);
+      loadCategoryPosts();
+    }
+  }, [selectedCategory, loadCategoryPosts]);
 
   const handleCategoryClick = async (category: Category) => {
     setSelectedCategory(category);

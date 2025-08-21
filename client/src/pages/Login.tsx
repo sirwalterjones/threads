@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Container,
-  Paper,
   TextField,
   Button,
   Typography,
@@ -42,62 +41,56 @@ const Login: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'background.default',
+        backgroundColor: '#000000',
         px: 2
       }}
     >
-      <Container component="main" maxWidth="sm">
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            padding: { xs: 3, sm: 5 }, 
-            width: '100%',
+      <Container component="main" maxWidth="xs">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: 4,
+            backgroundColor: '#1a1a1a',
             borderRadius: 3,
-            backdropFilter: 'blur(12px)',
-            border: '1px solid',
-            borderColor: 'divider'
+            border: '1px solid #333',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
           }}
         >
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Typography 
-              component="h1" 
-              variant="h3" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 800,
-                background: 'linear-gradient(135deg, #1E88E5 0%, #42A5F5 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 1
-              }}
-            >
-              Threads
-            </Typography>
-            <Typography 
-              variant="h6" 
-              color="text.secondary"
-              sx={{ fontWeight: 400 }}
-            >
-              Connect. Share. Discover.
-            </Typography>
-          </Box>
+          <Typography 
+            component="h1" 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 600,
+              color: '#ffffff',
+              mb: 4,
+              textAlign: 'center'
+            }}
+          >
+            Threads
+          </Typography>
 
           {error && (
             <Alert 
               severity="error" 
               sx={{ 
                 mb: 3,
+                width: '100%',
+                backgroundColor: '#2d1b1b',
+                color: '#ff6b6b',
+                border: '1px solid #ff6b6b',
                 borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'error.light'
+                '& .MuiAlert-icon': {
+                  color: '#ff6b6b'
+                }
               }}
             >
               {error}
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
             <TextField
               margin="normal"
               required
@@ -110,7 +103,28 @@ const Login: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
-              sx={{ mb: 2.5 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#2a2a2a',
+                  color: '#ffffff',
+                  '& fieldset': {
+                    borderColor: '#444'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#666'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#ffffff'
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#aaa'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#ffffff'
+                }
+              }}
             />
             <TextField
               margin="normal"
@@ -124,7 +138,28 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-              sx={{ mb: 3 }}
+              sx={{ 
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#2a2a2a',
+                  color: '#ffffff',
+                  '& fieldset': {
+                    borderColor: '#444'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#666'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#ffffff'
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#aaa'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#ffffff'
+                }
+              }}
             />
             <Button
               type="submit"
@@ -133,23 +168,25 @@ const Login: React.FC = () => {
               size="large"
               sx={{ 
                 mt: 1, 
-                mb: 3,
                 py: 1.5,
                 fontSize: '1rem',
-                fontWeight: 600
+                fontWeight: 600,
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0'
+                },
+                '&:disabled': {
+                  backgroundColor: '#666',
+                  color: '#999'
+                }
               }}
               disabled={loading || !username || !password}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+              {loading ? <CircularProgress size={24} sx={{ color: '#000000' }} /> : 'Sign In'}
             </Button>
           </Box>
-
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Access is restricted to authorized personnel only.
-            </Typography>
-          </Box>
-        </Paper>
+        </Box>
       </Container>
     </Box>
   );
