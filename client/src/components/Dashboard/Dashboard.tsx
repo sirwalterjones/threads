@@ -204,34 +204,27 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Floating Add Thread Button */}
-      <Box sx={{ 
-        position: 'fixed', 
-        bottom: 24, 
-        right: 24, 
-        zIndex: 1000 
-      }}>
+      {/* Add Thread above Search Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
         <Button
           variant="contained"
           onClick={handleAddThread}
           startIcon={<AddIcon />}
-          size="large"
+          size="medium"
           sx={{
-            borderRadius: '50px',
+            borderRadius: '999px',
             backgroundColor: '#000000',
             color: 'white',
-            fontSize: '16px',
-            fontWeight: 600,
+            fontSize: '14px',
+            fontWeight: 700,
             px: 3,
-            py: 1.5,
+            py: 1,
             textTransform: 'none',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4), 0 0 18px rgba(29, 155, 240, 0.45)',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(29, 155, 240, 0.45)',
             '&:hover': {
               backgroundColor: '#1F2937',
-              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5), 0 0 22px rgba(29, 155, 240, 0.65)',
-              transform: 'translateY(-2px)'
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(29, 155, 240, 0.65)'
             },
-            transition: 'all 0.3s ease'
           }}
         >
           Add Thread
