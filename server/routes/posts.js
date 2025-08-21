@@ -3,6 +3,8 @@ const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
+console.log('Posts router loaded successfully');
+
 // Debug endpoint to check database content - no auth required
 router.get('/debug', async (req, res) => {
   try {
@@ -76,6 +78,7 @@ router.get('/test', async (req, res) => {
 // No auth posts endpoint for debugging
 router.get('/no-auth', async (req, res) => {
   try {
+    console.log('No-auth endpoint called');
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     
