@@ -3,6 +3,21 @@ const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
+// Simple test endpoint - no auth required
+router.get('/test', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, title, author_name FROM posts LIMIT 5');
+    res.json({
+      message: 'Test endpoint working',
+      posts: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ error: 'Test endpoint failed', details: error.message });
+  }
+});
+
 // Get all posts with search and filtering (SQLite compatible)
 router.get('/', 
   authenticateToken, 
