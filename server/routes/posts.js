@@ -100,11 +100,8 @@ router.get('/no-auth', async (req, res) => {
   }
 });
 
-// Get all posts with search and filtering
-router.get('/', 
-  authenticateToken, 
-  authorizeRole(['view', 'edit', 'admin']), 
-  auditLog('view_posts', 'posts'),
+// Get all posts with search and filtering - TEMP NO AUTH
+router.get('/main',
   async (req, res) => {
     try {
       const {
