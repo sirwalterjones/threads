@@ -3,6 +3,34 @@ const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
+// Debug endpoint to check database content
+router.get('/debug', async (req, res) => {
+  try {
+    // Simple query to see what's in the posts table
+    const result = await pool.query(`
+      SELECT 
+        id, wp_post_id, title, author_name, wp_published_date, 
+        ingested_at, category_id, status
+      FROM posts 
+      ORDER BY id DESC 
+      LIMIT 10
+    `);
+    
+    res.json({
+      totalPosts: result.rows.length,
+      posts: result.rows,
+      message: 'Debug query successful'
+    });
+  } catch (error) {
+    console.error('Debug query error:', error);
+    res.status(500).json({ 
+      error: 'Debug query failed', 
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Get all posts with search and filtering
 router.get('/', 
   authenticateToken, 
