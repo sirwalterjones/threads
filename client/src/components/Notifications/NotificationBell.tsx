@@ -97,8 +97,10 @@ const NotificationBell: React.FC = () => {
         onClick={handleClick}
         sx={{ 
           color: '#E7E9EA',
-          border: '1px solid red', // Debug border
-          backgroundColor: 'rgba(255, 0, 0, 0.1)' // Debug background
+          border: '3px solid red', // Debug border - thicker
+          backgroundColor: 'rgba(255, 0, 0, 0.3)', // Debug background - more visible
+          padding: '8px', // Debug padding
+          margin: '4px' // Debug margin
         }}
       >
         <Badge badgeContent={unreadCount} color="error">

@@ -21,14 +21,12 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useThemeMode } from '../../contexts/ThemeModeContext';
 import NewPostModal from '../NewPostModal';
 import NotificationBell from '../Notifications/NotificationBell';
 import apiService from '../../services/api';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
-  const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openNew, setOpenNew] = useState(false);
@@ -109,11 +107,8 @@ const Header: React.FC = () => {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton color="inherit" onClick={toggle} aria-label="toggle theme">
-            {mode === 'light' ? <DarkMode /> : <LightMode />}
-          </IconButton>
           {/* Debug: Show user info */}
-          <Box sx={{ color: 'red', fontSize: '12px' }}>
+          <Box sx={{ color: 'red', fontSize: '12px', border: '1px solid red', padding: '4px' }}>
             User: {user ? `${user.username} (${user.role})` : 'null'}
           </Box>
           {user && <NotificationBell />}
