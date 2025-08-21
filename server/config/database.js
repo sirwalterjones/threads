@@ -95,6 +95,23 @@ if (USE_SQLITE) {
         CREATE INDEX IF NOT EXISTS posts_search_idx ON posts USING GIN(search_vector)
       `);
 
+      // Create additional performance indexes
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS posts_title_idx ON posts USING GIN(to_tsvector('english', title))
+      `);
+      
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS posts_author_idx ON posts(author_name)
+      `);
+      
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS posts_date_idx ON posts(wp_published_date DESC)
+      `);
+      
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS posts_category_idx ON posts(category_id)
+      `);
+
       // Create search vector trigger
       await pool.query(`
         CREATE OR REPLACE FUNCTION update_search_vector() RETURNS TRIGGER AS $$
