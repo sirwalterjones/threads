@@ -239,7 +239,7 @@ const Dashboard: React.FC = () => {
   return (
     <Box sx={{ position: 'relative', overflow: 'hidden', width: '100%' }}>
       {/* Add Thread above Search Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 4 }}>
         <Button
           variant="contained"
           onClick={handleAddThread}
@@ -269,12 +269,12 @@ const Dashboard: React.FC = () => {
 
       {/* Manual Posts Grid - Show when no search results */}
       {searchResults.length === 0 && manualPosts.length > 0 && (
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, px: 3 }}>
           
           <Box sx={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 3,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 2,
             maxWidth: '100%', 
             mx: 'auto',
             overflow: 'hidden'
@@ -587,6 +587,133 @@ const Dashboard: React.FC = () => {
           </Button>
         </Box>
       </Box>
+    </Box>
+  </Box>
+)}
+
+{/* Manual Posts Grid - Show when no search results */}
+{searchResults.length === 0 && manualPosts.length > 0 && (
+  <Box sx={{ mb: 4, px: 3 }}>
+    <Box sx={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+      gap: 2,
+      maxWidth: '100%', 
+      mx: 'auto',
+      overflow: 'hidden'
+    }}>
+      {manualPosts.map((post) => (
+        <Box key={post.id}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              backgroundColor: '#16181C',
+              border: '1px solid #2F3336',
+              borderRadius: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              },
+            }}
+            onClick={() => handlePostClick(post.id)}
+          >
+            <CardContent>
+              {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
+              {post.attachments && post.attachments.length > 0 ? (
+                <MediaGallery attachments={post.attachments} maxHeight={120} />
+              ) : (() => {
+                const imageUrls = extractImageUrls(post.content).slice(0, 3);
+                if (imageUrls.length === 0) return null;
+                return (
+                  <Box sx={{ mb: 1, display: 'flex', gap: 0.5, overflowX: 'auto', pb: 0.5 }}>
+                    {imageUrls.map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={resolveContentImageUrl(url)}
+                        alt={`Post image ${idx + 1}`}
+                        style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: '4px', flex: '0 0 auto' }}
+                        onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                      />
+                    ))}
+                  </Box>
+                );
+              })()}
+              
+              <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
+                {highlightText(stripHtmlTags(post.title))}
+              </Typography>
+              
+              {(() => {
+                const raw = post.excerpt && post.excerpt.trim().length > 0 
+                  ? post.excerpt 
+                  : (post.content || '');
+                const text = stripHtmlTags(raw);
+                if (!text) return null;
+                return (
+                  <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
+                    {highlightText(text.substring(0, 80))}...
+                  </Typography>
+                );
+              })()}
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                {post.category_name && (
+                  <Chip 
+                    size="small" 
+                    label={post.category_name} 
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                )}
+                <Chip 
+                  size="small" 
+                  label={post.author_name} 
+                  variant="outlined"
+                  sx={{ 
+                    borderColor: '#E5E7EB',
+                    color: '#6B7280',
+                    fontSize: '0.75rem'
+                  }}
+                />
+                <Chip 
+                  size="small" 
+                  label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                  variant="outlined"
+                  sx={{ 
+                    borderColor: '#E5E7EB',
+                    color: '#6B7280',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  startIcon={<Visibility />}
+                  size="small"
+                  variant="contained"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePostClick(post.id);
+                  }}
+                  sx={{
+                    backgroundColor: '#10B981',
+                    '&:hover': { backgroundColor: '#059669' },
+                    fontSize: '0.75rem',
+                    py: 0.5,
+                    px: 1.5
+                  }}
+                >
+                  View
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+      ))}
     </Box>
   </Box>
 )}

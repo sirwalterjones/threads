@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -15,7 +15,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Popper
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -264,24 +265,23 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               placement="bottom-start"
               style={{ zIndex: 1300 }}
             >
-              <MentionPaper sx={{ maxHeight: 200, overflow: 'auto', minWidth: 200 }}>
-                <MentionList>
+              <Paper sx={{ maxHeight: 200, overflow: 'auto', minWidth: 200 }}>
+                <List>
                   {mentionUsers.map((user) => (
-                    <MentionListItem
+                    <ListItem
                       key={user.id}
-                      button
                       onClick={() => handleMentionSelect(user.username)}
-                      sx={{ py: 1 }}
+                      sx={{ py: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#F3F4F6' } }}
                     >
-                      <MentionListItemText
+                      <ListItemText
                         primary={`@${user.username}`}
                         secondary={user.role}
                         primaryTypographyProps={{ fontWeight: 500 }}
                       />
-                    </MentionListItem>
+                    </ListItem>
                   ))}
-                </MentionList>
-              </MentionPaper>
+                </List>
+              </Paper>
             </Popper>
             <Button
               variant="contained"
