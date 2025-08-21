@@ -135,11 +135,15 @@ router.get('/',
       // Build the WHERE clause
       let whereClause = '';
       if (whereConditions.length > 0) {
-        whereConditions.push(`(c.is_hidden IS NULL OR c.is_hidden = false)`);
         whereClause = `WHERE ${whereConditions.join(' AND ')}`;
-      } else if (req.user.role !== 'admin') {
-        whereClause = `WHERE (c.is_hidden IS NULL OR c.is_hidden = false)`;
       }
+      // Temporarily disable hidden category filter to debug
+      // if (whereConditions.length > 0) {
+      //   whereConditions.push(`(c.is_hidden IS NULL OR c.is_hidden = false)`);
+      //   whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+      // } else if (req.user.role !== 'admin') {
+      //   whereClause = `WHERE (c.is_hidden IS NULL OR c.is_hidden = false)`;
+      // }
 
       // Validate sort parameters
       const allowedSortFields = ['title', 'wp_published_date', 'author_name', 'ingested_at'];
