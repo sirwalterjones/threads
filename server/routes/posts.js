@@ -169,39 +169,20 @@ router.get('/',
       const countQuery = `
         SELECT COUNT(*) as total
         FROM posts p
-        LEFT JOIN categories c ON p.category_id = c.id
         ${whereClause}
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
       const total = parseInt(countResult.rows[0].total);
 
-      // Get posts with proper joins
+      // Get posts with simplified query for debugging
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
-          c.name as category_name, c.slug as category_slug,
-          p.metadata,
-          COALESCE(
-            json_agg(
-              json_build_object(
-                'id', f.id,
-                'filename', f.filename,
-                'original_name', f.original_name,
-                'mime_type', f.mime_type,
-                'file_size', f.file_size,
-                'uploaded_at', f.uploaded_at
-              ) ORDER BY f.uploaded_at
-            ) FILTER (WHERE f.id IS NOT NULL), 
-            '[]'::json
-          ) as attachments
+          p.metadata
         FROM posts p
-        LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN post_attachments pa ON p.id = pa.post_id
-        LEFT JOIN files f ON pa.file_id = f.id
         ${whereClause}
-        GROUP BY p.id, c.name, c.slug
         ORDER BY p.id DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
