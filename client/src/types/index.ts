@@ -62,6 +62,7 @@ export interface SearchFilters {
   dateTo?: string;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
+  mine?: boolean;
 }
 
 export interface PaginationData {

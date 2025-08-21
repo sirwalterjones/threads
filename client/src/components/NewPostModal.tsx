@@ -116,6 +116,10 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     }
   };
 
+  const handleRemoveAttachment = (index: number) => {
+    setUploads(prev => prev.filter((_, i) => i !== index));
+  };
+
   const [editorRef, setEditorRef] = useState<any>(null);
 
   const insertHtml = (html: string) => {
@@ -433,6 +437,24 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                       Insert Image
                     </Button>
                   )}
+                  <Button 
+                    size="small" 
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleRemoveAttachment(i)}
+                    sx={{ 
+                      fontSize: '12px', 
+                      borderRadius: 1,
+                      borderColor: '#EF4444',
+                      color: '#EF4444',
+                      '&:hover': { 
+                        backgroundColor: '#FEF2F2',
+                        borderColor: '#DC2626'
+                      }
+                    }}
+                  >
+                    Remove
+                  </Button>
                 </Box>
               ))}
             </Stack>

@@ -47,6 +47,8 @@ const Dashboard: React.FC = () => {
   const [mineOnly, setMineOnly] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [manualPosts, setManualPosts] = useState<Post[]>([]);
+  const [manualPostsLoading, setManualPostsLoading] = useState(false);
 
   // Utility functions for text processing
   const stripHtmlTags = (html: string) => {
@@ -148,11 +150,25 @@ const Dashboard: React.FC = () => {
     loadDashboardData();
   }, []);
 
+  const loadManualPosts = async () => {
+    try {
+      setManualPostsLoading(true);
+      const response = await apiService.getPosts({ mine: true, limit: 12, sortBy: 'ingested_at', sortOrder: 'DESC' });
+      setManualPosts(response.posts);
+    } catch (error) {
+      console.error('Failed to load manual posts:', error);
+    } finally {
+      setManualPostsLoading(false);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const dashboardStats = await apiService.getDashboardStats();
       setStats(dashboardStats);
+      // Also load manual posts
+      await loadManualPosts();
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
