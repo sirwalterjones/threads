@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
-const { auditLog } = require('../middleware/auditLog');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 
 // Get comments for a post
 router.get('/post/:postId', async (req, res) => {
