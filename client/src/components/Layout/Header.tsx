@@ -104,14 +104,13 @@ const Header: React.FC = () => {
           Vector
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'nowrap' }}>
-          {/* Debug: Show user info */}
-          <Box sx={{ color: 'red', fontSize: '10px', border: '1px solid red', padding: '2px', whiteSpace: 'nowrap' }}>
-            User: {user ? `${user.username} (${user.role})` : 'null'}
-          </Box>
-          
-          {/* Notification Bell - Always show if user exists */}
-          {user && <NotificationBell />}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>
+          {/* Notification Bell - Give it dedicated space */}
+          {user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
+              <NotificationBell />
+            </Box>
+          )}
           
           {/* User Role Chip */}
           {user && (
