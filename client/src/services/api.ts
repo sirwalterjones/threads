@@ -153,6 +153,16 @@ class ApiService {
     return response.data;
   }
 
+  async getCategoryPosts(categoryId: number, filters?: { page?: number; limit?: number; search?: string }): Promise<{ posts: Post[]; total: number; page: number; limit: number }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.search) params.append('search', filters.search);
+    
+    const response = await axios.get(`${API_BASE_URL}/categories/${categoryId}/posts?${params.toString()}`);
+    return response.data;
+  }
+
   async createCategory(categoryData: CategoryFormData): Promise<Category> {
     const response: AxiosResponse<Category> = await axios.post(`${API_BASE_URL}/categories`, categoryData);
     return response.data;

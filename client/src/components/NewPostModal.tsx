@@ -318,6 +318,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
               onEditorChange={(value) => setContent(value)}
               onInit={(evt, editor) => setEditorRef(editor)}
               init={{
+                license_key: 'gpl',
                 height: 400,
                 menubar: false,
                 plugins: [
