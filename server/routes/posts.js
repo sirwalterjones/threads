@@ -73,6 +73,36 @@ router.get('/test', async (req, res) => {
   }
 });
 
+// No auth posts endpoint for debugging
+router.get('/no-auth', async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    // Simple query without any authentication or filtering
+    const postsQuery = `
+      SELECT 
+        p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
+        p.wp_published_date, p.ingested_at, p.retention_date, p.status,
+        p.metadata
+      FROM posts p
+      ORDER BY p.id DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const postsResult = await pool.query(postsQuery, [limit, offset]);
+    
+    res.json({
+      posts: postsResult.rows,
+      count: postsResult.rows.length,
+      message: 'No auth test successful'
+    });
+  } catch (error) {
+    console.error('No auth posts error:', error);
+    res.status(500).json({ error: 'No auth posts failed', details: error.message });
+  }
+});
+
 // Get all posts with search and filtering
 router.get('/', 
   authenticateToken, 
