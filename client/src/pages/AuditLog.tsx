@@ -179,7 +179,7 @@ const AuditLog: React.FC = () => {
 
       {/* Search and Filter Section */}
       <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-        <CardContent>
+        <CardContent sx={{ color: '#E7E9EA' }}>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField
@@ -189,29 +189,46 @@ const AuditLog: React.FC = () => {
                 placeholder="Search users, actions, IPs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                InputLabelProps={{ sx: { color: '#9CA3AF' } }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#6B7280' }} />
+                      <SearchIcon sx={{ color: '#9CA3AF' }} />
                     </InputAdornment>
                   ),
                   endAdornment: searchQuery && (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setSearchQuery('')} size="small">
+                      <IconButton onClick={() => setSearchQuery('')} size="small" sx={{ color: '#E5E7EB' }}>
                         <ClearIcon />
                       </IconButton>
                     </InputAdornment>
                   )
                 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#0F1115',
+                    color: '#E7E9EA',
+                    '& fieldset': { borderColor: '#2F3336' },
+                    '&:hover fieldset': { borderColor: '#3B82F6' },
+                    '&.Mui-focused fieldset': { borderColor: '#3B82F6' }
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#9CA3AF'
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#E7E9EA'
+                  }
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
               <FormControl fullWidth>
-                <InputLabel>Action</InputLabel>
+                <InputLabel sx={{ color: '#9CA3AF' }}>Action</InputLabel>
                 <Select
                   value={actionFilter}
                   onChange={(e) => setActionFilter(e.target.value)}
                   label="Action"
+                  sx={{ color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }}
                 >
                   <MenuItem value="">All Actions</MenuItem>
                   {uniqueActions.map(action => (
@@ -222,11 +239,12 @@ const AuditLog: React.FC = () => {
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
               <FormControl fullWidth>
-                <InputLabel>User</InputLabel>
+                <InputLabel sx={{ color: '#9CA3AF' }}>User</InputLabel>
                 <Select
                   value={userFilter}
                   onChange={(e) => setUserFilter(e.target.value)}
                   label="User"
+                  sx={{ color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }}
                 >
                   <MenuItem value="">All Users</MenuItem>
                   {uniqueUsers.map(user => (

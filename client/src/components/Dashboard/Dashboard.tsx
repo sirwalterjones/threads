@@ -54,6 +54,16 @@ const Dashboard: React.FC = () => {
     return div.textContent || div.innerText || '';
   };
 
+  const extractImageUrls = (html?: string): string[] => {
+    if (!html) return [];
+    try {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const imgs = Array.from(div.querySelectorAll('img'));
+      return imgs.map(img => (img.getAttribute('src') || '').trim()).filter(Boolean);
+    } catch { return []; }
+  };
+
   const highlightText = (input: string) => {
     if (!searchQuery.trim()) return input;
     const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
@@ -524,10 +534,24 @@ const Dashboard: React.FC = () => {
                 onClick={() => handlePostClick(post.id)}
               >
                 <CardContent>
-                  {/* Media Gallery */}
-                  {post.attachments && post.attachments.length > 0 && (
+                  {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
+                  {post.attachments && post.attachments.length > 0 ? (
                     <MediaGallery attachments={post.attachments} maxHeight={180} />
-                  )}
+                  ) : (() => {
+                    const imageUrls = extractImageUrls(post.content);
+                    if (imageUrls.length === 0) return null;
+                    const first = imageUrls[0];
+                    return (
+                      <Box sx={{ mb: 2 }}>
+                        <img
+                          src={first}
+                          alt="Post media"
+                          style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
+                          onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                        />
+                      </Box>
+                    );
+                  })()}
                   
                   <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
                     {highlightText(stripHtmlTags(post.title))}

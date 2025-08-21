@@ -328,6 +328,21 @@ const HomeSimple: React.FC = () => {
     return div.textContent || div.innerText || '';
   };
 
+  // Extract image URLs from HTML content (used for WP-ingested posts)
+  const extractImageUrls = (html?: string): string[] => {
+    if (!html) return [];
+    try {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const imgs = Array.from(div.querySelectorAll('img'));
+      return imgs
+        .map(img => (img.getAttribute('src') || '').trim())
+        .filter(src => !!src);
+    } catch {
+      return [];
+    }
+  };
+
   const countMatches = (text: string, terms: string[]) => {
     if (!text || !terms.length) return 0;
     const plain = stripHtmlTags(text);
@@ -809,10 +824,24 @@ const HomeSimple: React.FC = () => {
                     onClick={() => handlePostClick(post.id)}
                   >
                     <CardContent>
-                      {/* Media Gallery */}
-                      {post.attachments && post.attachments.length > 0 && (
+                      {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */
+                      {post.attachments && post.attachments.length > 0 ? (
                         <MediaGallery attachments={post.attachments} maxHeight={180} />
-                      )}
+                      ) : (() => {
+                        const imageUrls = extractImageUrls(post.content);
+                        if (imageUrls.length === 0) return null;
+                        const first = imageUrls[0];
+                        return (
+                          <Box sx={{ mb: 2 }}>
+                            <img
+                              src={first}
+                              alt="Post media"
+                              style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
+                              onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                            />
+                          </Box>
+                        );
+                      })()}
                       
                       <Typography variant="h6" component="h2" gutterBottom>
                         {highlightText(stripHtmlTags(post.title))}
