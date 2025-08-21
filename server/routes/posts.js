@@ -210,23 +210,23 @@ router.get('/',
             (SELECT json_agg(
               json_build_object(
                 'id', pa.id,
-                'filename', f.original_name,
-                'mime_type', f.mime_type,
-                'url', CONCAT('/api/files/', f.id, '/', f.filename)
-              )
-            ) FROM post_attachments pa 
-             JOIN files f ON pa.file_id = f.id 
-             WHERE pa.post_id = p.id), 
-            '[]'::json
-          ) as attachments
-        FROM posts p
-        LEFT JOIN categories c ON p.category_id = c.id
-        ${whereClause}
-        ORDER BY p.wp_published_date DESC, p.id DESC
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
+              'filename', f.original_name,
+              'mime_type', f.mime_type,
+              'url', CONCAT('/api/files/', f.id, '/', f.filename)
+            )
+          ) FROM post_attachments pa 
+           JOIN files f ON pa.file_id = f.id 
+           WHERE pa.post_id = p.id), 
+          '[]'::json
+        ) as attachments
+      FROM posts p
+      LEFT JOIN categories c ON p.category_id = c.id
+      ${whereClause}
+      ORDER BY p.wp_published_date DESC, p.id DESC
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+    `;
 
-      const postsResult = await pool.query(postsQuery, [...queryParams, limit, offset]);
+    const postsResult = await pool.query(postsQuery, [...queryParams, parseInt(limit), parseInt(offset)]);
 
       res.json({
         posts: postsResult.rows,
