@@ -8,8 +8,6 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  ListItemAvatar,
-  Avatar,
   Chip,
   Divider,
   Button,
@@ -136,7 +134,7 @@ const RightSidebar: React.FC = () => {
             </Typography>
           </Box>
           
-          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto' }}>
+          <List dense sx={{ py: 0, flex: 1, overflowY: 'auto', maxHeight: '100%', pr: 1 }}>
             {recentThreads.map((thread) => (
               <ListItem key={thread.id} disablePadding>
                 <ListItemButton
@@ -149,16 +147,6 @@ const RightSidebar: React.FC = () => {
                     }
                   }}
                 >
-                  <ListItemAvatar sx={{ minWidth: 36 }}>
-                    <Avatar sx={{ 
-                      width: 24, 
-                      height: 24,
-                      backgroundColor: '#1D9BF0',
-                      fontSize: '11px'
-                    }}>
-                      {thread.author_name[0]?.toUpperCase()}
-                    </Avatar>
-                  </ListItemAvatar>
                   <ListItemText
                     primary={
                       <Typography sx={{ 
