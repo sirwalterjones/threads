@@ -331,8 +331,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   'alignright alignjustify | bullist numlist outdent indent | ' +
                   'removeformat | help',
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                skin: 'oxide',
-                content_css: 'default',
+                skin: false,
+                content_css: false,
                 branding: false,
                 promotion: false,
                 resize: false,
