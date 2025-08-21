@@ -128,24 +128,17 @@ class ThreadsIntelDirectSync {
             // Get author info
             $author = get_userdata($post->post_author);
             
-            // Extract actual date from post content if available
-            $content = apply_filters('the_content', $post->post_content);
-            $actual_date = $this->extract_date_from_content($content);
-            
-            // Use extracted date if found, otherwise fall back to WordPress date
-            $post_date = $actual_date ? $actual_date : $post->post_date_gmt;
-            
             // Format post data similar to WordPress REST API
             $formatted_posts[] = array(
                 'id' => $post->ID,
                 'title' => array('rendered' => $post->post_title),
-                'content' => array('rendered' => $content),
+                'content' => array('rendered' => apply_filters('the_content', $post->post_content)),
                 'excerpt' => array('rendered' => $post->post_excerpt),
                 'slug' => $post->post_name,
                 'status' => $post->post_status,
                 'author' => $post->post_author,
                 'author_name' => $author ? $author->display_name : 'Unknown',
-                'date' => $post_date, // Use extracted date or GMT date
+                'date' => $post->post_date_gmt, // Use WordPress creation date
                 'modified' => $post->post_modified_gmt, // Use GMT date to avoid timezone issues
                 'categories' => $category_ids,
                 'tags' => wp_get_post_tags($post->ID, array('fields' => 'ids')),
@@ -156,35 +149,6 @@ class ThreadsIntelDirectSync {
         }
         
         return $formatted_posts;
-    }
-    
-    private function extract_date_from_content($content) {
-        // Look for various date patterns in the content
-        $patterns = array(
-            // "Date of Report: August 21, 2025" or "Date: 08/21/2025"
-            '/<strong>Date of Report<\/strong>.*?([A-Z][a-z]+ \d{1,2}, \d{4})/i',
-            '/<b>Date:<\/b>.*?(\d{2}\/\d{2}\/\d{4})/i',
-            '/<strong>Date<\/strong>.*?([A-Z][a-z]+ \d{1,2}, \d{4})/i',
-            // Look for dates at the beginning of content
-            '/^.*?([A-Z][a-z]+ \d{1,2}, \d{4})/i',
-            // Look for MM/DD/YYYY format
-            '/(\d{2}\/\d{2}\/\d{4})/',
-        );
-        
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $content, $matches)) {
-                $date_string = $matches[1];
-                
-                // Try to parse the date
-                $timestamp = strtotime($date_string);
-                if ($timestamp !== false) {
-                    // Convert to GMT format that matches WordPress
-                    return gmdate('Y-m-d H:i:s', $timestamp);
-                }
-            }
-        }
-        
-        return null; // No date found
     }
     
     private function get_categories() {
