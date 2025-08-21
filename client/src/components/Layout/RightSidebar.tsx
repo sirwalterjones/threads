@@ -25,7 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
 import { Post, Category } from '../../types';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
 const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
@@ -135,8 +135,18 @@ const RightSidebar: React.FC = () => {
           </Box>
           
           <List dense sx={{ py: 0, flex: 1, overflowY: 'auto', maxHeight: '100%', pr: 1 }}>
-            {recentThreads.map((thread) => (
-              <ListItem key={thread.id} disablePadding>
+            {recentThreads.map((thread, index) => {
+              const dt = new Date(thread.wp_published_date);
+              const header = isToday(dt) ? 'Today' : (isYesterday(dt) ? 'Yesterday' : format(dt, 'MMM d'));
+              const prev = index > 0 ? (() => { const pdt = new Date(recentThreads[index-1].wp_published_date); return isToday(pdt) ? 'Today' : (isYesterday(pdt) ? 'Yesterday' : format(pdt, 'MMM d')); })() : '';
+              return (
+              <Box key={thread.id}>
+                {header !== prev && (
+                  <Box sx={{ px: 1.25, py: 0.5, color: '#9CA3AF', fontSize: '11px', position: 'sticky', top: 0, backgroundColor: '#16181C', zIndex: 1 }}>
+                    {header}
+                  </Box>
+                )}
+              <ListItem disablePadding>
                 <ListItemButton
                   onClick={() => handleThreadClick(thread.id)}
                   sx={{
@@ -171,7 +181,8 @@ const RightSidebar: React.FC = () => {
                   />
                 </ListItemButton>
               </ListItem>
-            ))}
+              </Box>
+            );})}
           </List>
           
           <Box sx={{ p: 1.25, pt: 1 }}>

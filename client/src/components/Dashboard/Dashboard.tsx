@@ -215,10 +215,10 @@ const Dashboard: React.FC = () => {
             px: 3,
             py: 1.5,
             textTransform: 'none',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4), 0 0 18px rgba(29, 155, 240, 0.45)',
             '&:hover': {
               backgroundColor: '#1F2937',
-              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5)',
+              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5), 0 0 22px rgba(29, 155, 240, 0.65)',
               transform: 'translateY(-2px)'
             },
             transition: 'all 0.3s ease'
