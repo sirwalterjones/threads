@@ -446,12 +446,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         borderTop: '1px solid #E5E7EB',
         backgroundColor: 'white',
         gap: 2,
-        justifyContent: 'space-between'
+        justifyContent: 'flex-end'
       }}>
-        <Typography variant="caption" sx={{ color: '#6B7280', fontSize: '12px' }}>
-          Category, author, and date are set automatically
-        </Typography>
-        
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button 
             onClick={onClose}
