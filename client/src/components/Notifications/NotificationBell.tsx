@@ -37,8 +37,8 @@ const NotificationBell: React.FC = () => {
 
   const loadUnreadCount = async () => {
     try {
-      const count = await apiService.getUnreadNotificationCount();
-      setUnreadCount(count);
+      const data = await apiService.getUnreadNotificationCount();
+      setUnreadCount(data.count);
     } catch (error) {
       console.error('Failed to load unread count:', error);
     }
