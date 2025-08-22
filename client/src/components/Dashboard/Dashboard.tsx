@@ -613,13 +613,14 @@ const Dashboard: React.FC = () => {
               );
             })()}
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
               {post.category_name && (
                 <Chip 
                   size="small" 
                   label={post.category_name} 
                   color="primary"
                   variant="outlined"
+                  sx={{ fontSize: '0.75rem' }}
                 />
               )}
               <Chip 
@@ -628,7 +629,8 @@ const Dashboard: React.FC = () => {
                 variant="outlined"
                 sx={{ 
                   borderColor: '#E5E7EB',
-                  color: '#6B7280'
+                  color: '#6B7280',
+                  fontSize: '0.75rem'
                 }}
               />
               <Chip 
@@ -637,7 +639,8 @@ const Dashboard: React.FC = () => {
                 variant="outlined"
                 sx={{ 
                   borderColor: '#E5E7EB',
-                  color: '#6B7280'
+                  color: '#6B7280',
+                  fontSize: '0.75rem'
                 }}
               />
               {/* Comment Count Indicator */}
@@ -674,7 +677,8 @@ const Dashboard: React.FC = () => {
               </Box>
             )}
 
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            {/* Action Buttons - Centered at bottom */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
               {(() => {
                 const contentText = stripHtmlTags(post.content || '');
                 const contentCount = countMatches(contentText, searchQuery);
@@ -692,9 +696,9 @@ const Dashboard: React.FC = () => {
                       }}
                       sx={{
                         backgroundColor: '#000000',
-                        color: 'white',
+                        color: '#ffffff',
                         '&:hover': {
-                          backgroundColor: '#1F2937'
+                          backgroundColor: '#1a1a1a'
                         }
                       }}
                     >
@@ -712,9 +716,9 @@ const Dashboard: React.FC = () => {
                     }}
                     sx={{
                       backgroundColor: '#000000',
-                      color: 'white',
+                      color: '#ffffff',
                       '&:hover': {
-                        backgroundColor: '#1F2937'
+                        backgroundColor: '#1a1a1a'
                       }
                     }}
                   >
@@ -730,6 +734,14 @@ const Dashboard: React.FC = () => {
                     e.stopPropagation();
                     const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
                     window.dispatchEvent(evt);
+                  }}
+                  sx={{
+                    borderColor: '#2F3336',
+                    color: '#E7E9EA',
+                    '&:hover': {
+                      borderColor: '#1D9BF0',
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                    }
                   }}
                 >
                   Edit
