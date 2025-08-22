@@ -84,10 +84,9 @@ const Header: React.FC = () => {
 
   return (
     <AppBar position="static" color="primary" enableColorOnDark sx={{
-      backgroundColor: 'background.paper',
-      color: 'text.primary',
-      borderBottom: '1px solid',
-      borderColor: 'divider'
+      backgroundColor: '#000000',
+      color: '#E7E9EA',
+      borderBottom: '1px solid #2F3336'
     }}>
       <Toolbar>
         <Typography
@@ -119,7 +118,7 @@ const Header: React.FC = () => {
               color={getRoleColor(user.role) as any}
               variant="outlined"
               size="small"
-              sx={{ color: 'text.primary', borderColor: 'divider', bgcolor: 'transparent', whiteSpace: 'nowrap' }}
+              sx={{ color: '#E7E9EA', borderColor: '#2F3336', bgcolor: 'transparent', whiteSpace: 'nowrap' }}
             />
           )}
           
@@ -142,7 +141,7 @@ const Header: React.FC = () => {
               <Avatar sx={{ width: 28, height: 28, bgcolor: 'secondary.main', color: 'common.white' }}>
                 {user.username.charAt(0).toUpperCase()}
               </Avatar>
-              <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.875rem' }}>
+              <Typography variant="body2" sx={{ color: '#E7E9EA', fontSize: '0.875rem' }}>
                 {user.username}
               </Typography>
             </Box>

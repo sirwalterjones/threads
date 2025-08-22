@@ -3,6 +3,7 @@ import { Box, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
+import Header from './Header';
 import NewPostModal from '../NewPostModal';
 import PostDetailModal from '../PostDetailModal';
 import apiService from '../../services/api';
@@ -82,9 +83,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             borderLeft: '1px solid #2F3336',
             borderRight: '1px solid #2F3336',
             backgroundColor: '#000000',
-            minHeight: '100vh'
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
+          {/* Header */}
+          <Header />
+
           {/* Mobile Menu Button - only show on mobile */}
           <Box
             sx={{
@@ -108,7 +114,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
 
           {/* Main Content Feed */}
-          <Box sx={{ backgroundColor: '#000000' }}>
+          <Box sx={{ backgroundColor: '#000000', flexGrow: 1 }}>
             {children}
           </Box>
         </Box>

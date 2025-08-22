@@ -6,7 +6,6 @@ import {
   MenuItem,
   Typography,
   Box,
-  Divider,
   List,
   ListItem,
   ListItemText,
@@ -106,6 +105,10 @@ const NotificationBell: React.FC = () => {
           '&:hover': {
             backgroundColor: 'rgba(29, 155, 240, 0.2)',
             borderColor: 'rgba(29, 155, 240, 0.5)'
+          },
+          '& .MuiBadge-badge': {
+            backgroundColor: '#ff4444',
+            color: 'white'
           }
         }}
       >
