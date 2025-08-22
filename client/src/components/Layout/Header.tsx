@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import NewPostModal from '../NewPostModal';
 import NotificationBell from '../Notifications/NotificationBell';
+import SyncNotification from '../Notifications/SyncNotification';
 import apiService from '../../services/api';
 
 const Header: React.FC = () => {
@@ -92,6 +93,13 @@ const Header: React.FC = () => {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>
+          {/* Sync Notification - Show when system is ingesting data */}
+          {user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
+              <SyncNotification />
+            </Box>
+          )}
+          
           {/* Notification Bell - Give it dedicated space */}
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>

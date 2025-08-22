@@ -146,53 +146,90 @@ const UsersManage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
-      <Typography variant="h5" sx={{ mb: 2, color: 'text.primary' }}>Users</Typography>
+    <Box sx={{ 
+      p: 2, 
+      bgcolor: '#0F1419', 
+      color: '#E7E9EA', 
+      minHeight: '100vh',
+      '& .MuiPaper-root': {
+        bgcolor: '#16202A !important',
+        color: '#E7E9EA !important'
+      }
+    }}>
+      <Typography variant="h5" sx={{ mb: 2, color: '#E7E9EA' }}>Users</Typography>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={() => setOpenNew(true)}>Add User</Button>
+        <Button 
+          variant="contained" 
+          onClick={() => setOpenNew(true)}
+          sx={{ 
+            bgcolor: '#1976d2',
+            '&:hover': { bgcolor: '#1565c0' }
+          }}
+        >
+          Add User
+        </Button>
       </Stack>
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2, bgcolor: '#2E7D32', color: '#E7E9EA' }}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2, bgcolor: '#D32F2F', color: '#E7E9EA' }}>{error}</Alert>}
       <Box sx={{ display:'grid', gap:2, gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))' }}>
         {users.map((u: any, index) => {
           const role = u.role || 'view';
           const isActive = typeof u.isActive === 'boolean' ? u.isActive : !!u.is_active;
           return (
-            <Card key={u.id} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+            <Card key={u.id} sx={{ 
+              bgcolor: '#16202A', 
+              border: '1px solid #2F3336', 
+              color: '#E7E9EA'
+            }}>
               <CardContent>
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>{u.username}</Typography>
-                    <IconButton size="small" onClick={() => openEditDialog(u)} sx={{ color: 'text.secondary' }}>
+                    <Typography variant="subtitle1" sx={{ color: '#E7E9EA' }}>{u.username}</Typography>
+                    <IconButton size="small" onClick={() => openEditDialog(u)} sx={{ color: '#8B98A5' }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
                   </Stack>
-                  <Chip label={role.toUpperCase()} size="small" />
+                  <Chip label={role.toUpperCase()} size="small" sx={{ bgcolor: '#2F3336', color: '#E7E9EA' }} />
                 </Stack>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{u.email}</Typography>
+                <Typography variant="caption" sx={{ color: '#8B98A5' }}>{u.email}</Typography>
                 <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                   <FormControl size="small" sx={{ minWidth: 140 }}>
-                    <InputLabel sx={{ color: 'text.primary' }}>Role</InputLabel>
+                    <InputLabel sx={{ color: '#E7E9EA' }}>Role</InputLabel>
                     <Select
                       label="Role"
                       value={role}
-                      sx={{ color: 'text.primary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
+                      sx={{ 
+                        color: '#E7E9EA', 
+                        '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                        '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                      }}
                       onChange={(e) => {
                         const val = e.target.value;
                         setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, role: val }: x));
                       }}
                     >
-                      <MenuItem value="admin" sx={{ color: 'text.primary' }}>Admin</MenuItem>
-                      <MenuItem value="edit" sx={{ color: 'text.primary' }}>Edit</MenuItem>
-                      <MenuItem value="view" sx={{ color: 'text.primary' }}>View</MenuItem>
+                      <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
+                      <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
+                      <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
                     </Select>
                   </FormControl>
                   <FormControlLabel
-                    control={<Switch checked={isActive} onChange={(e)=>{
-                      const checked = e.target.checked;
-                      setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, isActive: checked, is_active: checked }: x));
-                    }} />}
-                    label={<span style={{ color: 'inherit' }}>{isActive ? 'Active' : 'Inactive'}</span>}
+                    control={<Switch 
+                      checked={isActive} 
+                      onChange={(e)=>{
+                        const checked = e.target.checked;
+                        setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, isActive: checked, is_active: checked }: x));
+                      }}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-checked': {
+                          color: '#1976d2',
+                        },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                          backgroundColor: '#1976d2',
+                        },
+                      }}
+                    />}
+                    label={<span style={{ color: '#E7E9EA' }}>{isActive ? 'Active' : 'Inactive'}</span>}
                   />
                 </Stack>
                 <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
@@ -201,6 +238,11 @@ const UsersManage: React.FC = () => {
                     size="small"
                     disabled={savingId === u.id}
                     onClick={() => handleSave(users[index] as any, index)}
+                    sx={{ 
+                      bgcolor: '#1976d2',
+                      '&:hover': { bgcolor: '#1565c0' },
+                      '&:disabled': { bgcolor: '#2F3336', color: '#8B98A5' }
+                    }}
                   >
                     {savingId === u.id ? 'Saving...' : 'Save'}
                   </Button>
@@ -211,13 +253,24 @@ const UsersManage: React.FC = () => {
         })}
       </Box>
 
-      <Dialog open={openNew} onClose={() => setOpenNew(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ color: 'text.primary', bgcolor: 'background.paper' }}>New User</DialogTitle>
-        <DialogContent sx={{ bgcolor: 'background.paper' }}>
+      <Dialog 
+        open={openNew} 
+        onClose={() => setOpenNew(false)} 
+        fullWidth 
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            bgcolor: '#16202A',
+            color: '#E7E9EA'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>New User</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } } }}
             value={newUser.username}
             onChange={(e)=> setNewUser((s)=> ({ ...s, username: e.target.value }))}
           />
@@ -225,7 +278,7 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.email}
             onChange={(e)=> setNewUser((s)=> ({ ...s, email: e.target.value }))}
           />
@@ -233,7 +286,7 @@ const UsersManage: React.FC = () => {
             type="password"
             label="Password"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.password}
             onChange={(e)=> setNewUser((s)=> ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters"
@@ -242,30 +295,41 @@ const UsersManage: React.FC = () => {
             label="Role"
             select
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.role}
             onChange={(e)=> setNewUser((s)=> ({ ...s, role: e.target.value }))}
           >
-            <MenuItem value="admin">Admin</MenuItem>
-            <MenuItem value="edit">Edit</MenuItem>
-            <MenuItem value="view">View</MenuItem>
+            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
+            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
+            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
           </TextField>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={()=> setOpenNew(false)} disabled={creating} sx={{ color: 'text.primary' }}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button onClick={()=> setOpenNew(false)} disabled={creating} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button variant="contained" onClick={handleCreate} disabled={creating || !newUser.username || !newUser.email || !newUser.password}> 
             {creating ? 'Creating...' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={editDialog.open} onClose={closeEditDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ color: 'text.primary', bgcolor: 'background.paper' }}>Edit User</DialogTitle>
-        <DialogContent sx={{ bgcolor: 'background.paper' }}>
+      <Dialog 
+        open={editDialog.open} 
+        onClose={closeEditDialog} 
+        fullWidth 
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            bgcolor: '#16202A',
+            color: '#E7E9EA'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit User</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } } }}
             value={editUser.username}
             onChange={(e) => setEditUser((s) => ({ ...s, username: e.target.value }))}
           />
@@ -273,7 +337,7 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={editUser.email}
             onChange={(e) => setEditUser((s) => ({ ...s, email: e.target.value }))}
           />
@@ -281,7 +345,7 @@ const UsersManage: React.FC = () => {
             type="password"
             label="New Password (leave blank to keep current)"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={editUser.password}
             onChange={(e) => setEditUser((s) => ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters if changing password"
@@ -290,17 +354,17 @@ const UsersManage: React.FC = () => {
             label="Role"
             select
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={editUser.role}
             onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}
           >
-            <MenuItem value="admin" sx={{ color: 'text.primary' }}>Admin</MenuItem>
-            <MenuItem value="edit" sx={{ color: 'text.primary' }}>Edit</MenuItem>
-            <MenuItem value="view" sx={{ color: 'text.primary' }}>View</MenuItem>
+            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
+            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
+            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
           </TextField>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={closeEditDialog} disabled={editing} sx={{ color: 'text.primary' }}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button onClick={closeEditDialog} disabled={editing} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button variant="contained" onClick={handleEdit} disabled={editing || !editUser.username || !editUser.email}>
             {editing ? 'Saving...' : 'Save Changes'}
           </Button>
