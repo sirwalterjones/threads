@@ -69,28 +69,44 @@ router.get('/sync', async (req, res) => {
 
     // Get last sync from database
     try {
+      // First, let's check what columns exist in the audit_log table
+      const tableInfoResult = await pool.query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'audit_log'
+      `);
+      
+      console.log('Available columns in audit_log:', tableInfoResult.rows.map(r => r.column_name));
+      
+      // Use the correct timestamp column (try common names)
+      const timestampColumn = tableInfoResult.rows.find(r => 
+        ['created_at', 'timestamp', 'created', 'date_created'].includes(r.column_name)
+      )?.column_name || 'created_at';
+      
+      console.log('Using timestamp column:', timestampColumn);
+      
       const lastSyncResult = await pool.query(`
-        SELECT created_at, details 
+        SELECT ${timestampColumn}, details 
         FROM audit_log 
         WHERE action IN ('SYNC_SUCCESS', 'SYNC_ERROR')
-        ORDER BY created_at DESC 
+        ORDER BY ${timestampColumn} DESC 
         LIMIT 1
       `);
 
       if (lastSyncResult.rows.length > 0) {
         const lastLog = lastSyncResult.rows[0];
-        syncStatus.lastSync = lastLog.created_at;
+        syncStatus.lastSync = lastLog[timestampColumn];
         
         if (lastLog.action === 'SYNC_ERROR') {
           try {
             const details = JSON.parse(lastLog.details);
             syncStatus.errors.push({
-              timestamp: lastLog.created_at,
+              timestamp: lastLog[timestampColumn],
               error: details.error || 'Unknown error'
             });
           } catch (parseError) {
             syncStatus.errors.push({
-              timestamp: lastLog.created_at,
+              timestamp: lastLog[timestampColumn],
               error: 'Parse error in error details'
             });
           }
@@ -99,11 +115,11 @@ router.get('/sync', async (req, res) => {
 
       // Get recent sync errors
       const errorResult = await pool.query(`
-        SELECT created_at, details 
+        SELECT ${timestampColumn}, details 
         FROM audit_log 
         WHERE action = 'SYNC_ERROR' 
-        AND created_at > NOW() - INTERVAL '24 hours'
-        ORDER BY created_at DESC 
+        AND ${timestampColumn} > NOW() - INTERVAL '24 hours'
+        ORDER BY ${timestampColumn} DESC 
         LIMIT 10
       `);
 
@@ -111,7 +127,7 @@ router.get('/sync', async (req, res) => {
         try {
           const details = JSON.parse(row.details);
           syncStatus.errors.push({
-            timestamp: row.created_at,
+            timestamp: row[timestampColumn],
             error: details.error || 'Unknown error'
           });
         } catch (parseError) {
@@ -145,7 +161,30 @@ router.get('/sync', async (req, res) => {
 
     } catch (dbError) {
       console.error('Database error in sync status:', dbError);
-      syncStatus.status = 'database_error';
+      
+      // Fallback: provide basic sync status without database
+      syncStatus.status = 'unknown';
+      syncStatus.lastSync = null;
+      syncStatus.errors = [];
+      
+      // Try to get basic status from cron service if available
+      if (global.cronService) {
+        try {
+          const cronStatus = global.cronService.getStatus();
+          syncStatus.cronService = cronStatus;
+          
+          // If we have cron service info, we can infer some status
+          if (cronStatus && cronStatus.lastRun) {
+            syncStatus.lastSync = cronStatus.lastRun;
+            syncStatus.status = 'available';
+          }
+        } catch (cronError) {
+          console.error('Cron service error:', cronError);
+        }
+      }
+      
+      // Add the database error to the response for debugging
+      syncStatus.databaseError = dbError.message;
     }
 
     res.json(syncStatus);
