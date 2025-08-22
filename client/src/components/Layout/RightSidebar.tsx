@@ -113,6 +113,37 @@ const RightSidebar: React.FC = () => {
         }}
       >
         <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {/* Add Thread Button - Subtle and above Recent Threads header */}
+          <Box sx={{ p: 1, pb: 0.5, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                const evt = new CustomEvent('open-new-post-modal');
+                window.dispatchEvent(evt);
+              }}
+              sx={{
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#E7E9EA',
+                backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                fontSize: '11px',
+                fontWeight: 500,
+                px: 1.5,
+                py: 0.5,
+                minWidth: 'auto',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#1D9BF0',
+                  backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                  color: '#1D9BF0'
+                }
+              }}
+            >
+              + Add Thread
+            </Button>
+          </Box>
+          
           <Box sx={{ p: 1, pb: 0.5 }}>
             <Typography variant="body2" sx={{ 
               color: '#E7E9EA', 
