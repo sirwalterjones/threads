@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Stack, Chip, Alert, Divider, Paper, Typography, LinearProgress, IconButton } from '@mui/material';
-import { CloudUpload, Delete, CheckCircle, Error } from '@mui/icons-material';
+import { CloudUpload, Delete, CheckCircle, Error, Close } from '@mui/icons-material';
 import DOMPurify from 'dompurify';
 import { Editor } from '@tinymce/tinymce-react';
 import apiService from '../services/api';
@@ -23,6 +23,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -230,16 +231,26 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt });
       }
       
-      // Reset form
-      setTitle(''); 
-      setContent(''); 
-      setExcerpt(''); 
-      setCategoryId(''); 
-      setUploads([]);
-      setEditorRef(null);
+      // Show success message
+      setShowSuccess(true);
       
-      onCreated?.();
-      onClose();
+      // Wait a moment for user to see success message, then refresh page
+      setTimeout(() => {
+        // Reset form
+        setTitle(''); 
+        setContent(''); 
+        setExcerpt(''); 
+        setCategoryId(''); 
+        setUploads([]);
+        setEditorRef(null);
+        setShowSuccess(false);
+        
+        onCreated?.();
+        onClose();
+        
+        // Refresh the page to show the new thread
+        window.location.reload();
+      }, 1500);
     } catch (err:any) {
       console.error('Thread creation error:', err);
       let errorMessage = 'Failed to create thread';
@@ -276,7 +287,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       <DialogTitle sx={{ 
         p: 3, 
         pb: 2,
-        borderBottom: '1px solid #E5E7EB'
+        borderBottom: '1px solid #E5E7EB',
+        position: 'relative'
       }}>
         <Typography variant="h5" sx={{ 
           fontWeight: 600, 
@@ -285,6 +297,21 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         }}>
           {post ? 'Edit Thread' : 'Add Thread'}
         </Typography>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 16,
+            top: 16,
+            color: '#6B7280',
+            '&:hover': {
+              backgroundColor: '#F3F4F6',
+              color: '#374151'
+            }
+          }}
+        >
+          <Close />
+        </IconButton>
       </DialogTitle>
       
       <DialogContent sx={{ 
@@ -304,6 +331,21 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             }}
           >
             {error}
+          </Alert>
+        )}
+        
+        {showSuccess && (
+          <Alert 
+            severity="success" 
+            sx={{ 
+              mb: 3, 
+              borderRadius: 2,
+              '& .MuiAlert-message': {
+                fontSize: '14px'
+              }
+            }}
+          >
+            {post ? 'Thread updated successfully!' : 'Thread created successfully!'}
           </Alert>
         )}
 
