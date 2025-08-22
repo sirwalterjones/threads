@@ -128,7 +128,7 @@ const Header: React.FC = () => {
           >
             {(user?.role === 'admin' || user?.role === 'edit') && (
               <MenuItem onClick={() => { setOpenNew(true); handleMenuClose(); }}>
-                <Dashboard sx={{ mr: 2 }} />
+                <Add sx={{ mr: 2 }} />
                 New Thread
               </MenuItem>
             )}
