@@ -175,16 +175,28 @@ const PostExpiration: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <Typography>Loading expiring posts...</Typography>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh',
+        bgcolor: '#0F1419',
+        color: '#E7E9EA'
+      }}>
+        <Typography sx={{ color: '#E7E9EA' }}>Loading expiring posts...</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: 3, 
+      bgcolor: '#0F1419', 
+      color: '#E7E9EA', 
+      minHeight: '100vh' 
+    }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ color: '#1F2937', fontWeight: 600 }}>
+        <Typography variant="h5" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
           Post Expiration Management
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -192,6 +204,11 @@ const PostExpiration: React.FC = () => {
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={loadExpiringPosts}
+            sx={{ 
+              color: '#E7E9EA', 
+              borderColor: '#2F3336',
+              '&:hover': { borderColor: '#E7E9EA', bgcolor: '#16202A' }
+            }}
           >
             Refresh
           </Button>
@@ -200,7 +217,11 @@ const PostExpiration: React.FC = () => {
               variant="contained"
               startIcon={<ExtensionIcon />}
               onClick={() => setBulkDialogOpen(true)}
-              sx={{ backgroundColor: '#10B981', '&:hover': { backgroundColor: '#059669' } }}
+              sx={{ 
+                backgroundColor: '#10B981', 
+                '&:hover': { backgroundColor: '#059669' },
+                color: '#FFFFFF'
+              }}
             >
               Extend {selectedPosts.size} Posts
             </Button>
@@ -208,20 +229,20 @@ const PostExpiration: React.FC = () => {
         </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3, bgcolor: '#D32F2F', color: '#E7E9EA' }}>{error}</Alert>}
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card sx={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA' }}>
+          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <WarningIcon sx={{ color: '#DC2626', fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h6" sx={{ color: '#DC2626', fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ color: '#EF4444', fontWeight: 600 }}>
                     {posts.filter(p => getDaysUntilExpiry(p.retention_date) <= 7).length}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#7F1D1D' }}>
+                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                     Critical (&le;7 days)
                   </Typography>
                 </Box>
@@ -230,18 +251,18 @@ const PostExpiration: React.FC = () => {
           </Card>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card sx={{ backgroundColor: '#FFFBEB', border: '1px solid #FED7AA' }}>
+          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <TimeIcon sx={{ color: '#D97706', fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h6" sx={{ color: '#D97706', fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ color: '#F59E0B', fontWeight: 600 }}>
                     {posts.filter(p => {
                       const days = getDaysUntilExpiry(p.retention_date);
                       return days > 7 && days <= 30;
                     }).length}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#92400E' }}>
+                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                     Warning (8-30 days)
                   </Typography>
                 </Box>
@@ -250,15 +271,15 @@ const PostExpiration: React.FC = () => {
           </Card>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card sx={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <CategoryIcon sx={{ color: '#16A34A', fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h6" sx={{ color: '#16A34A', fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 600 }}>
                     {posts.filter(p => getDaysUntilExpiry(p.retention_date) > 30).length}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#15803D' }}>
+                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                     Normal (&gt;30 days)
                   </Typography>
                 </Box>
@@ -267,15 +288,15 @@ const PostExpiration: React.FC = () => {
           </Card>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card sx={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <PurgeIcon sx={{ color: '#64748B', fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h6" sx={{ color: '#64748B', fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ color: '#8B98A5', fontWeight: 600 }}>
                     {posts.filter(p => getDaysUntilExpiry(p.retention_date) < 0).length}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#475569' }}>
+                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                     Expired
                   </Typography>
                 </Box>
@@ -286,7 +307,7 @@ const PostExpiration: React.FC = () => {
       </Grid>
 
       {/* Search and Filter Section */}
-      <Card sx={{ mb: 3, backgroundColor: 'white', border: '1px solid #E5E7EB' }}>
+      <Card sx={{ mb: 3, backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
         <CardContent>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 3 }}>
@@ -297,15 +318,22 @@ const PostExpiration: React.FC = () => {
                 placeholder="Search posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#8B98A5' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#E7E9EA',
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#6B7280' }} />
+                      <SearchIcon sx={{ color: '#8B98A5' }} />
                     </InputAdornment>
                   ),
                   endAdornment: searchQuery && (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setSearchQuery('')} size="small">
+                      <IconButton onClick={() => setSearchQuery('')} size="small" sx={{ color: '#8B98A5' }}>
                         <ClearIcon />
                       </IconButton>
                     </InputAdornment>
@@ -315,46 +343,61 @@ const PostExpiration: React.FC = () => {
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Days Until Expiry</InputLabel>
+                <InputLabel sx={{ color: '#8B98A5' }}>Days Until Expiry</InputLabel>
                 <Select
                   value={daysFilter}
                   onChange={(e) => setDaysFilter(e.target.value)}
                   label="Days Until Expiry"
+                  sx={{
+                    color: '#E7E9EA',
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                  }}
                 >
-                  <MenuItem value="7">7 days</MenuItem>
-                  <MenuItem value="30">30 days</MenuItem>
-                  <MenuItem value="90">90 days</MenuItem>
-                  <MenuItem value="365">1 year</MenuItem>
-                  <MenuItem value="1825">5 years</MenuItem>
+                  <MenuItem value="7" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>7 days</MenuItem>
+                  <MenuItem value="30" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>30 days</MenuItem>
+                  <MenuItem value="90" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>90 days</MenuItem>
+                  <MenuItem value="365" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>1 year</MenuItem>
+                  <MenuItem value="1825" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>5 years</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Category</InputLabel>
+                <InputLabel sx={{ color: '#8B98A5' }}>Category</InputLabel>
                 <Select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   label="Category"
+                  sx={{
+                    color: '#E7E9EA',
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                  }}
                 >
-                  <MenuItem value="">All Categories</MenuItem>
+                  <MenuItem value="" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>All Categories</MenuItem>
                   {uniqueCategories.map(category => (
-                    <MenuItem key={category} value={category}>{category}</MenuItem>
+                    <MenuItem key={category} value={category} sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>{category}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Author</InputLabel>
+                <InputLabel sx={{ color: '#8B98A5' }}>Author</InputLabel>
                 <Select
                   value={authorFilter}
                   onChange={(e) => setAuthorFilter(e.target.value)}
                   label="Author"
+                  sx={{
+                    color: '#E7E9EA',
+                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                  }}
                 >
-                  <MenuItem value="">All Authors</MenuItem>
+                  <MenuItem value="" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>All Authors</MenuItem>
                   {uniqueAuthors.map(author => (
-                    <MenuItem key={author} value={author}>{author}</MenuItem>
+                    <MenuItem key={author} value={author} sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>{author}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -364,7 +407,12 @@ const PostExpiration: React.FC = () => {
                 fullWidth
                 variant="outlined"
                 onClick={clearFilters}
-                sx={{ height: '56px' }}
+                sx={{ 
+                  height: '56px',
+                  color: '#E7E9EA',
+                  borderColor: '#2F3336',
+                  '&:hover': { borderColor: '#E7E9EA', bgcolor: '#16202A' }
+                }}
               >
                 Clear Filters
               </Button>
@@ -375,30 +423,31 @@ const PostExpiration: React.FC = () => {
 
       {/* Results Summary */}
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="body2" sx={{ color: '#6B7280' }}>
+        <Typography variant="body2" sx={{ color: '#8B98A5' }}>
           Showing {paginatedPosts.length} of {filteredPosts.length} posts
           {filteredPosts.length !== posts.length && ` (filtered from ${posts.length} total)`}
         </Typography>
       </Box>
 
-      <TableContainer component={Paper} sx={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }}>
+      <TableContainer component={Paper} sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+            <TableRow sx={{ backgroundColor: '#0F1419' }}>
               <TableCell padding="checkbox">
                 <Checkbox
                   checked={selectedPosts.size === paginatedPosts.length && paginatedPosts.length > 0}
                   indeterminate={selectedPosts.size > 0 && selectedPosts.size < paginatedPosts.length}
                   onChange={handleSelectAll}
+                  sx={{ color: '#E7E9EA' }}
                 />
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Title</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Author</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Category</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Expires</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Author</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Created</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Expires</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 600, color: '#E7E9EA' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -410,31 +459,38 @@ const PostExpiration: React.FC = () => {
                 <TableRow 
                   key={post.id}
                   sx={{ 
-                    '&:hover': { backgroundColor: '#F9FAFB' },
-                    borderBottom: '1px solid #E5E7EB'
+                    '&:hover': { backgroundColor: '#0F1419' },
+                    borderBottom: '1px solid #2F3336',
+                    bgcolor: '#16202A'
                   }}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedPosts.has(post.id)}
                       onChange={() => handleSelectPost(post.id)}
+                      sx={{ color: '#E7E9EA' }}
                     />
                   </TableCell>
                   <TableCell sx={{ maxWidth: '300px' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1F2937' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#E7E9EA' }}>
                       {post.title}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ color: '#6B7280' }}>{post.author_name}</TableCell>
-                  <TableCell sx={{ color: '#6B7280' }}>
+                  <TableCell sx={{ color: '#8B98A5' }}>{post.author_name}</TableCell>
+                  <TableCell sx={{ color: '#8B98A5' }}>
                     {post.category_name && (
-                      <Chip size="small" label={post.category_name} variant="outlined" />
+                      <Chip 
+                        size="small" 
+                        label={post.category_name} 
+                        variant="outlined" 
+                        sx={{ color: '#E7E9EA', borderColor: '#2F3336' }}
+                      />
                     )}
                   </TableCell>
-                  <TableCell sx={{ color: '#6B7280' }}>
+                  <TableCell sx={{ color: '#8B98A5' }}>
                     {format(parseISO(post.wp_published_date), 'MMM dd, yyyy')}
                   </TableCell>
-                  <TableCell sx={{ color: '#6B7280' }}>
+                  <TableCell sx={{ color: '#8B98A5' }}>
                     {format(parseISO(post.retention_date), 'MMM dd, yyyy')}
                   </TableCell>
                   <TableCell>
@@ -452,7 +508,13 @@ const PostExpiration: React.FC = () => {
                           size="small"
                           variant="outlined"
                           onClick={() => handleExtendSingle(post.id, 365)}
-                          sx={{ minWidth: 'auto', px: 1 }}
+                          sx={{ 
+                            minWidth: 'auto', 
+                            px: 1,
+                            color: '#E7E9EA',
+                            borderColor: '#2F3336',
+                            '&:hover': { borderColor: '#E7E9EA', bgcolor: '#0F1419' }
+                          }}
                         >
                           +1Y
                         </Button>
@@ -462,7 +524,13 @@ const PostExpiration: React.FC = () => {
                           size="small"
                           variant="contained"
                           onClick={() => handleExtendSingle(post.id, 1825)}
-                          sx={{ minWidth: 'auto', px: 1, backgroundColor: '#10B981' }}
+                          sx={{ 
+                            minWidth: 'auto', 
+                            px: 1, 
+                            backgroundColor: '#10B981',
+                            '&:hover': { backgroundColor: '#059669' },
+                            color: '#FFFFFF'
+                          }}
                         >
                           +5Y
                         </Button>
@@ -486,15 +554,34 @@ const PostExpiration: React.FC = () => {
             color="primary"
             showFirstButton
             showLastButton
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: '#E7E9EA',
+                borderColor: '#2F3336',
+                '&:hover': { bgcolor: '#16202A' },
+                '&.Mui-selected': { bgcolor: '#1976d2', color: '#FFFFFF' }
+              }
+            }}
           />
         </Box>
       )}
 
       {/* Bulk Extension Dialog */}
-      <Dialog open={bulkDialogOpen} onClose={() => setBulkDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Bulk Extend Retention</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 3, color: '#6B7280' }}>
+      <Dialog 
+        open={bulkDialogOpen} 
+        onClose={() => setBulkDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: '#16202A',
+            color: '#E7E9EA'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Bulk Extend Retention</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
+          <Typography variant="body2" sx={{ mb: 3, color: '#8B98A5' }}>
             Extend retention for {selectedPosts.size} selected posts
           </Typography>
           <TextField
@@ -505,14 +592,26 @@ const PostExpiration: React.FC = () => {
             onChange={(e) => setNewRetentionDays(parseInt(e.target.value))}
             helperText="Standard retention: 1825 days (5 years)"
             InputProps={{ inputProps: { min: 1, max: 7300 } }}
+            sx={{
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiOutlinedInput-root': {
+                color: '#E7E9EA',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }
+              },
+              '& .MuiFormHelperText-root': { color: '#8B98A5' }
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBulkDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button onClick={() => setBulkDialogOpen(false)} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button 
             variant="contained" 
             onClick={handleBulkExtension}
-            sx={{ backgroundColor: '#10B981', '&:hover': { backgroundColor: '#059669' } }}
+            sx={{ 
+              backgroundColor: '#10B981', 
+              '&:hover': { backgroundColor: '#059669' },
+              color: '#FFFFFF'
+            }}
           >
             Extend Retention
           </Button>
