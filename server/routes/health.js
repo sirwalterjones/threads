@@ -498,6 +498,95 @@ router.get('/direct-wordpress-test', async (req, res) => {
     }
 });
 
+// Test both HTTP and HTTPS to WordPress
+router.get('/test-wordpress-connection', async (req, res) => {
+    try {
+        console.log('🧪 Testing WordPress connection with both HTTP and HTTPS...');
+        
+        const axios = require('axios');
+        const results = {};
+        
+        // Test HTTPS (port 443)
+        try {
+            console.log('🔒 Testing HTTPS connection...');
+            const httpsResponse = await axios.get('https://cmansrms.us/wp-json/threads-intel/v1/status', {
+                timeout: 10000,
+                headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+            });
+            results.https = {
+                success: true,
+                status: httpsResponse.status,
+                data: httpsResponse.data
+            };
+            console.log('✅ HTTPS connection successful');
+        } catch (error) {
+            results.https = {
+                success: false,
+                error: error.message,
+                code: error.code
+            };
+            console.log('❌ HTTPS connection failed:', error.message);
+        }
+        
+        // Test HTTP (port 80)
+        try {
+            console.log('🔓 Testing HTTP connection...');
+            const httpResponse = await axios.get('http://cmansrms.us/wp-json/threads-intel/v1/status', {
+                timeout: 10000,
+                headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+            });
+            results.http = {
+                success: true,
+                status: httpResponse.status,
+                data: httpResponse.data
+            };
+            console.log('✅ HTTP connection successful');
+        } catch (error) {
+            results.http = {
+                success: false,
+                error: error.message,
+                code: error.code
+            };
+            console.log('❌ HTTP connection failed:', error.message);
+        }
+        
+        // Test with IP address directly
+        try {
+            console.log('🌐 Testing direct IP connection...');
+            const ipResponse = await axios.get('http://20.158.6.234/wp-json/threads-intel/v1/status', {
+                timeout: 10000,
+                headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+            });
+            results.directIP = {
+                success: true,
+                status: ipResponse.status,
+                data: ipResponse.data
+            };
+            console.log('✅ Direct IP connection successful');
+        } catch (error) {
+            results.directIP = {
+                success: false,
+                error: error.message,
+                code: error.code
+            };
+            console.log('❌ Direct IP connection failed:', error.message);
+        }
+        
+        res.json({
+            message: 'WordPress connection test results',
+            results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Connection test failed:', error);
+        res.status(500).json({
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Get server IP and network info
 router.get('/server-info', async (req, res) => {
     try {
