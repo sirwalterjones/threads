@@ -445,37 +445,33 @@ const HomeSimple: React.FC = () => {
                 <TextField
                   fullWidth
                   variant="outlined"
-  placeholder=""
+                  placeholder="Search your threads..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={handleKeyPress}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '50px',
-                      backgroundColor: 'white',
+                      backgroundColor: '#16181C',
                       fontSize: '18px',
-                      height: '64px',
-                      boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.25)',
-                      border: '2px solid transparent',
-                      transition: 'all 0.3s ease',
+                      height: '50px',
+                      border: '1px solid #2F3336',
                       '&:hover': {
-                        boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
-                        transform: 'translateY(-1px)'
+                        borderColor: '#1D9BF0'
                       },
                       '&.Mui-focused': {
-                        boxShadow: '0 16px 50px -8px rgba(0, 0, 0, 0.35)',
-                        borderColor: '#3B82F6',
-                        transform: 'translateY(-1px)'
+                        borderColor: '#1D9BF0',
+                        backgroundColor: '#000000'
                       },
                       '& fieldset': {
                         border: 'none'
                       },
                       '& input': {
-                        padding: '20px 24px 20px 60px',
+                        padding: '12px 24px 12px 50px',
                         fontSize: '18px',
-                        color: '#1F2937',
+                        color: '#E7E9EA',
                         '&::placeholder': {
-                          color: '#9CA3AF',
+                          color: '#71767B',
                           opacity: 1
                         }
                       }
@@ -490,14 +486,14 @@ const HomeSimple: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center'
                       }}>
-                        <SearchIcon sx={{ color: '#6B7280', fontSize: 24 }} />
+                        <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
                       </Box>
                     ),
                     endAdornment: (
                       <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
                         <Tooltip title="Search syntax">
                           <IconButton aria-label="search help" onClick={()=> setHelpOpen(true)} size="small">
-                            <HelpOutline sx={{ color: '#6B7280' }} />
+                            <HelpOutline sx={{ color: '#71767B' }} />
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -509,38 +505,69 @@ const HomeSimple: React.FC = () => {
                   display: 'flex', 
                   justifyContent: 'center', 
                   gap: 2, 
-                  mt: 4 
+                  mt: 2 
                 }}>
                   <Button 
-                    variant="contained" 
+                    variant="outlined" 
                     onClick={handleSearch}
                     disabled={loading || !searchTerm.trim()}
-                    size="large"
+                    size="small"
                     sx={{ 
-                      borderRadius: '25px',
-                      backgroundColor: '#000000',
-                      color: 'white',
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      px: 4,
-                      py: 1.5,
+                      borderRadius: '8px',
+                      borderColor: '#2F3336',
+                      color: '#E7E9EA',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      px: 3,
+                      py: 1,
                       textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                       '&:hover': {
-                        backgroundColor: '#1F2937',
-                        boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
-                        transform: 'translateY(-1px)'
+                        borderColor: '#1D9BF0',
+                        backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                        color: '#1D9BF0'
                       },
                       '&:disabled': {
-                        backgroundColor: '#E5E7EB',
-                        color: '#9CA3AF',
-                        boxShadow: 'none'
+                        borderColor: '#2F3336',
+                        color: '#71767B'
                       },
                       transition: 'all 0.2s ease'
                     }}
                   >
-                    {loading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+                    {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
                     Search
+                  </Button>
+                  
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setPosts([]);
+                      setCurrentPage(1);
+                    }}
+                    disabled={!searchTerm && posts.length === 0}
+                    size="small"
+                    sx={{ 
+                      borderRadius: '8px',
+                      borderColor: '#2F3336',
+                      color: '#71767B',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      px: 3,
+                      py: 1,
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: '#71767B',
+                        backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                        color: '#E7E9EA'
+                      },
+                      '&:disabled': {
+                        borderColor: '#2F3336',
+                        color: '#71767B'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Clear
                   </Button>
                 </Box>
               </Box>
@@ -566,34 +593,33 @@ const HomeSimple: React.FC = () => {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder='Search posts...'
+                placeholder="Search your threads..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
-                size="small"
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '25px',
-                    backgroundColor: 'white',
-                    fontSize: '14px',
-                    height: '44px',
-                    boxShadow: '0 8px 25px -8px rgba(0, 0, 0, 0.2)',
-                    border: '1px solid #E5E7EB',
-                    transition: 'all 0.3s ease',
+                    borderRadius: '50px',
+                    backgroundColor: '#16181C',
+                    fontSize: '18px',
+                    height: '50px',
+                    border: '1px solid #2F3336',
                     '&:hover': {
-                      boxShadow: '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
-                      borderColor: '#D1D5DB'
+                      borderColor: '#1D9BF0'
                     },
                     '&.Mui-focused': {
-                      boxShadow: '0 10px 30px -8px rgba(59, 130, 246, 0.15)',
-                      borderColor: '#3B82F6'
+                      borderColor: '#1D9BF0',
+                      backgroundColor: '#000000'
+                    },
+                    '& fieldset': {
+                      border: 'none'
                     },
                     '& input': {
-                      padding: '12px 16px 12px 45px',
-                      fontSize: '14px',
-                      color: '#1F2937',
+                      padding: '12px 24px 12px 50px',
+                      fontSize: '18px',
+                      color: '#E7E9EA',
                       '&::placeholder': {
-                        color: '#9CA3AF',
+                        color: '#71767B',
                         opacity: 1
                       }
                     }
@@ -603,19 +629,19 @@ const HomeSimple: React.FC = () => {
                   startAdornment: (
                     <Box sx={{ 
                       position: 'absolute', 
-                      left: 16, 
+                      left: 20, 
                       zIndex: 1,
                       display: 'flex',
                       alignItems: 'center'
                     }}>
-                      <SearchIcon sx={{ color: '#6B7280', fontSize: 18 }} />
+                      <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
                     </Box>
                   ),
                   endAdornment: (
-                    <Box sx={{ position: 'absolute', right: 16, zIndex: 1 }}>
+                    <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
                       <Tooltip title="Search syntax">
                         <IconButton aria-label="search help" onClick={()=> setHelpOpen(true)} size="small">
-                          <HelpOutline sx={{ color: '#6B7280', fontSize: 16 }} />
+                          <HelpOutline sx={{ color: '#71767B' }} />
                         </IconButton>
                       </Tooltip>
                     </Box>
@@ -625,31 +651,66 @@ const HomeSimple: React.FC = () => {
             </Box>
             
             <Button 
-              variant="contained" 
+              variant="outlined" 
               onClick={handleSearch}
               disabled={loading || !searchTerm.trim()}
+              size="small"
               sx={{ 
-                borderRadius: '20px',
-                backgroundColor: '#000000',
-                color: 'white',
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#E7E9EA',
                 fontSize: '14px',
-                fontWeight: 600,
+                fontWeight: 500,
                 px: 3,
                 py: 1,
                 textTransform: 'none',
-                minWidth: 'auto',
-                height: '44px',
                 '&:hover': {
-                  backgroundColor: '#1F2937'
+                  borderColor: '#1D9BF0',
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                  color: '#1D9BF0'
                 },
                 '&:disabled': {
-                  backgroundColor: '#E5E7EB',
-                  color: '#9CA3AF'
-                }
+                  borderColor: '#2F3336',
+                  color: '#71767B'
+                },
+                transition: 'all 0.2s ease'
               }}
             >
               {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
               Search
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              onClick={() => {
+                setSearchTerm('');
+                setPosts([]);
+                setCurrentPage(1);
+              }}
+              disabled={!searchTerm && posts.length === 0}
+              size="small"
+              sx={{ 
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#71767B',
+                fontSize: '14px',
+                fontWeight: 500,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#71767B',
+                  backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                  color: '#E7E9EA'
+                },
+                '&:disabled': {
+                  borderColor: '#2F3336',
+                  color: '#71767B'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Clear
             </Button>
           </Box>
         )}
