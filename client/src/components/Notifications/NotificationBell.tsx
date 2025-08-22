@@ -90,15 +90,6 @@ const NotificationBell: React.FC = () => {
   };
 
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await apiService.markAllNotificationsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
-  };
 
   const handleClearAllNotifications = async () => {
     try {
@@ -162,26 +153,15 @@ const NotificationBell: React.FC = () => {
             <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
               Notifications
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {unreadCount > 0 && (
-                <Button
-                  size="small"
-                  onClick={handleMarkAllAsRead}
-                  sx={{ color: '#1D9BF0', textTransform: 'none', fontSize: '12px' }}
-                >
-                  Mark all read
-                </Button>
-              )}
-              {notifications.length > 0 && (
-                <Button
-                  size="small"
-                  onClick={handleClearAllNotifications}
-                  sx={{ color: '#71767B', textTransform: 'none', fontSize: '12px' }}
-                >
-                  Clear all
-                </Button>
-              )}
-            </Box>
+            {notifications.length > 0 && (
+              <Button
+                size="small"
+                onClick={handleClearAllNotifications}
+                sx={{ color: '#71767B', textTransform: 'none', fontSize: '12px' }}
+              >
+                Clear all
+              </Button>
+            )}
           </Box>
         </Box>
 
