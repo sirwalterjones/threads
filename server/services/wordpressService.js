@@ -1,6 +1,11 @@
 const axios = require('axios');
 const { pool } = require('../config/database');
 
+// Add fetch polyfill if not available
+if (typeof fetch === 'undefined') {
+    global.fetch = require('node-fetch');
+}
+
 class WordPressService {
   constructor() {
     this.baseUrl = process.env.WORDPRESS_API_URL;
@@ -764,22 +769,30 @@ class WordPressService {
             const baseUrl = wordpressUrl.endsWith('/') ? wordpressUrl : `${wordpressUrl}/`;
             
             // Test connection first
-            const statusResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/status`);
-            if (!statusResponse.ok) {
+            const statusResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/status`, {
+                timeout: 30000,
+                validateStatus: () => true
+            });
+            
+            if (statusResponse.status !== 200) {
                 throw new Error(`WordPress status endpoint failed: ${statusResponse.status} ${statusResponse.statusText}`);
             }
             
-            const status = await statusResponse.json();
+            const status = statusResponse.data;
             console.log('WordPress status:', status);
             
             // Get categories
             console.log('Fetching categories from WordPress...');
-            const categoriesResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/categories`);
-            if (!categoriesResponse.ok) {
+            const categoriesResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/categories`, {
+                timeout: 30000,
+                validateStatus: () => true
+            });
+            
+            if (categoriesResponse.status !== 200) {
                 throw new Error(`Failed to fetch categories: ${categoriesResponse.status}`);
             }
             
-            const categories = await categoriesResponse.json();
+            const categories = categoriesResponse.data;
             console.log(`Found ${categories.length} categories in WordPress`);
             
             // Get posts with pagination
@@ -789,12 +802,16 @@ class WordPressService {
             let hasMore = true;
             
             while (hasMore) {
-                const postsResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/posts?per_page=100&page=${page}`);
-                if (!postsResponse.ok) {
+                const postsResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/posts?per_page=100&page=${page}`, {
+                    timeout: 30000,
+                    validateStatus: () => true
+                });
+                
+                if (postsResponse.status !== 200) {
                     throw new Error(`Failed to fetch posts page ${page}: ${postsResponse.status}`);
                 }
                 
-                const postsData = await postsResponse.json();
+                const postsData = postsResponse.data;
                 const posts = postsData.posts || [];
                 
                 if (posts.length === 0) {
