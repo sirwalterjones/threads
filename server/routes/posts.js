@@ -209,16 +209,18 @@ router.get('/',
           COALESCE(
             (SELECT json_agg(
               json_build_object(
-                'id', pa.id,
-              'filename', f.original_name,
-              'mime_type', f.mime_type,
-              'url', CONCAT('/api/files/', f.id, '/', f.filename)
-            )
-          ) FROM post_attachments pa 
-           JOIN files f ON pa.file_id = f.id 
-           WHERE pa.post_id = p.id), 
-          '[]'::json
-        ) as attachments,
+                'id', f.id,
+                'filename', f.filename,
+                'original_name', f.original_name,
+                'mime_type', f.mime_type,
+                'file_size', f.file_size,
+                'uploaded_at', f.uploaded_at
+              )
+            ) FROM post_attachments pa 
+             JOIN files f ON pa.file_id = f.id 
+             WHERE pa.post_id = p.id), 
+            '[]'::json
+          ) as attachments,
         COALESCE(
           (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
           0
