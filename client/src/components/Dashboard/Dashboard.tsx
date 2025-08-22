@@ -306,59 +306,57 @@ const Dashboard: React.FC = () => {
             mt: 2 
           }}>
             <Button 
-              variant="contained" 
+              variant="outlined" 
               onClick={handleSearch}
               disabled={searchLoading || !searchQuery.trim()}
-              size="large"
+              size="small"
               sx={{ 
-                borderRadius: '50px',
-                backgroundColor: '#1D9BF0',
-                color: 'white',
-                fontSize: '16px',
-                fontWeight: 700,
-                px: 6,
-                py: 1.5,
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#E7E9EA',
+                fontSize: '14px',
+                fontWeight: 500,
+                px: 3,
+                py: 1,
                 textTransform: 'none',
-                border: '1px solid #1D9BF0',
                 '&:hover': {
-                  backgroundColor: '#1A8CD8'
+                  borderColor: '#1D9BF0',
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                  color: '#1D9BF0'
                 },
                 '&:disabled': {
-                  backgroundColor: '#2F3336',
-                  color: '#71767B',
-                  borderColor: '#2F3336'
+                  borderColor: '#2F3336',
+                  color: '#71767B'
                 },
                 transition: 'all 0.2s ease'
               }}
             >
-              {searchLoading ? <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> : null}
+              {searchLoading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
               Search
             </Button>
             
             <Button 
-              variant="contained" 
+              variant="outlined" 
               onClick={handleClearSearch}
               disabled={!searchQuery && searchResults.length === 0}
-              size="large"
+              size="small"
               sx={{ 
-                borderRadius: '25px',
-                backgroundColor: '#000000',
-                color: 'white',
-                fontSize: '16px',
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#71767B',
+                fontSize: '14px',
                 fontWeight: 500,
                 px: 3,
-                py: 1.5,
+                py: 1,
                 textTransform: 'none',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                 '&:hover': {
-                  backgroundColor: '#1F2937',
-                  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
-                  transform: 'translateY(-1px)'
+                  borderColor: '#71767B',
+                  backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                  color: '#E7E9EA'
                 },
                 '&:disabled': {
-                  backgroundColor: '#E5E7EB',
-                  color: '#9CA3AF',
-                  boxShadow: 'none'
+                  borderColor: '#2F3336',
+                  color: '#71767B'
                 },
                 transition: 'all 0.2s ease'
               }}
