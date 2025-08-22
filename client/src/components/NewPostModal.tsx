@@ -278,7 +278,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setShowSuccess(false);
         setError(''); // Clear any previous errors
         
-        // Close modal cleanly
+        // Close modal cleanly - only call onClose once
         onClose();
         onCreated?.();
       }, 1500);
@@ -330,12 +330,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           setSaving(false);
           setUploadingFiles([]);
         }
+        // Call onClose only once
         onClose();
       }}
       fullWidth 
       maxWidth="md"
-      disableRestoreFocus
-      disableAutoFocus
+      disableRestoreFocus={false}
+      disableAutoFocus={false}
       keepMounted={false}
       PaperProps={{
         sx: {
@@ -377,6 +378,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             setError('');
             setSaving(false);
             setUploadingFiles([]);
+            // Call onClose only once
             onClose();
           }}
           sx={{
