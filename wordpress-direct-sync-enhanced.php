@@ -107,26 +107,53 @@ class ThreadsIntelPushSync {
         $args = array(
             'post_type' => 'post',
             'post_status' => 'publish',
-            'posts_per_page' => 20,
+            'posts_per_page' => 50,
             'date_query' => array(
                 array(
                     'column' => 'post_modified',
                     'after' => '24 hours ago'
                 )
-            )
+            ),
+            'orderby' => 'modified',
+            'order' => 'DESC'
         );
         
         $posts = get_posts($args);
         $formatted = array();
         
         foreach ($posts as $post) {
+            // Get categories
+            $categories = get_the_category($post->ID);
+            $category_ids = array();
+            foreach ($categories as $category) {
+                $category_ids[] = $category->term_id;
+            }
+            
+            // Get author info
+            $author = get_userdata($post->post_author);
+            
+            // Format the post data exactly as Threads Intel expects
             $formatted[] = array(
                 'id' => $post->ID,
                 'title' => $post->post_title,
                 'content' => $post->post_content,
                 'excerpt' => $post->post_excerpt,
+                'slug' => $post->post_name ?: 'post-' . $post->ID, // Ensure slug exists
+                'status' => $post->post_status,
+                'author' => $post->post_author,
+                'author_name' => $author ? $author->display_name : 'Unknown',
                 'date' => $post->post_date,
-                'modified' => $post->post_modified
+                'modified' => $post->post_modified,
+                'wp_published_date' => $post->post_date_gmt,
+                'wp_modified_date' => $post->post_modified_gmt,
+                'categories' => $category_ids,
+                'tags' => wp_get_post_tags($post->ID, array('fields' => 'ids')),
+                'featured_media' => get_post_thumbnail_id($post->ID),
+                'sticky' => is_sticky($post->ID),
+                'format' => get_post_format($post->ID) ?: 'standard',
+                'comment_count' => get_comments_number($post->ID),
+                'ingested_at' => current_time('mysql', true), // Add ingestion timestamp
+                'source' => 'wordpress_plugin'
             );
         }
         

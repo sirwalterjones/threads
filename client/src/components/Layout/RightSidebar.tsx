@@ -47,23 +47,36 @@ const RightSidebar: React.FC = () => {
   const loadSidebarData = async () => {
     try {
       setLoading(true);
+      console.log('Loading sidebar data...');
       
-      // Load recent threads - get more posts to ensure we have today's posts
+      // Load recent threads - get ALL posts to ensure we have today's posts
       const recentResponse = await apiService.getPosts({
-        limit: 100, // Increased to ensure we get today's posts
-        sortBy: 'ingested_at', // Use ingested_at instead of wp_published_date
+        limit: 200, // Get more posts to ensure we have today's
+        sortBy: 'ingested_at',
         sortOrder: 'DESC'
       });
       
-      // Sort posts by ingested_at date (newest first) and ensure we show today's posts
-      const sortedPosts = recentResponse.posts.sort((a, b) => {
-        const dateA = new Date(a.ingested_at || a.wp_published_date || 0);
-        const dateB = new Date(b.ingested_at || b.wp_published_date || 0);
-        return dateB.getTime() - dateA.getTime(); // Newest first
-      });
+      console.log('Recent response:', recentResponse);
       
-      // Take the first 20 posts (most recent)
-      setRecentThreads(sortedPosts.slice(0, 20));
+      if (recentResponse.posts && recentResponse.posts.length > 0) {
+        console.log(`Found ${recentResponse.posts.length} posts`);
+        
+        // Sort posts by ingested_at date (newest first)
+        const sortedPosts = recentResponse.posts.sort((a, b) => {
+          const dateA = new Date(a.ingested_at || a.wp_published_date || 0);
+          const dateB = new Date(b.ingested_at || b.wp_published_date || 0);
+          return dateB.getTime() - dateA.getTime(); // Newest first
+        });
+        
+        // Take the first 25 posts (most recent)
+        const finalPosts = sortedPosts.slice(0, 25);
+        console.log('Final posts to display:', finalPosts.length);
+        console.log('First post:', finalPosts[0]);
+        setRecentThreads(finalPosts);
+      } else {
+        console.log('No posts found in response');
+        setRecentThreads([]);
+      }
 
       // Load top categories
       const categoriesResponse = await apiService.getCategories();
@@ -79,11 +92,12 @@ const RightSidebar: React.FC = () => {
       
       const sortedCategories = uniqueCategories
         .sort((a, b) => b.post_count - a.post_count)
-        .slice(0, 4); // Reduced to 4 to avoid clutter
+        .slice(0, 4);
       setTopCategories(sortedCategories);
       
     } catch (error) {
       console.error('Failed to load sidebar data:', error);
+      setRecentThreads([]);
     } finally {
       setLoading(false);
     }
