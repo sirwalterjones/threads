@@ -68,7 +68,7 @@ const HomeSimple: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'wp_published_date'|'title'|'author_name'|'ingested_at'>('wp_published_date');
+  const [sortBy, setSortBy] = useState<'wp_published_date'|'title'|'author_name'|'ingested_at'>('ingested_at');
   const [sortOrder, setSortOrder] = useState<'ASC'|'DESC'>('DESC');
   const [helpOpen, setHelpOpen] = useState(false);
 

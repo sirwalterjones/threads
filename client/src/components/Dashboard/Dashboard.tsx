@@ -188,7 +188,7 @@ const Dashboard: React.FC = () => {
       setSearchLoading(true);
       const filters: SearchFilters = {
         search: searchQuery,
-        sortBy: 'wp_published_date',
+        sortBy: 'ingested_at',
         sortOrder: 'DESC'
       };
       console.log('Searching with filters:', filters); // DEBUG
