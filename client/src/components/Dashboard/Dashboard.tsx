@@ -399,27 +399,32 @@ const Dashboard: React.FC = () => {
             }}
             onClick={() => handlePostClick(post.id)}
           >
-            <CardContent>
-              {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
-              {post.attachments && post.attachments.length > 0 ? (
-                <MediaGallery attachments={post.attachments} maxHeight={120} />
-              ) : (() => {
-                const imageUrls = extractImageUrls(post.content).slice(0, 3);
-                if (imageUrls.length === 0) return null;
-                return (
-                  <Box sx={{ mb: 1, display: 'flex', gap: 0.5, overflowX: 'auto', pb: 0.5 }}>
-                    {imageUrls.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={resolveContentImageUrl(url)}
-                        alt={`Post image ${idx + 1}`}
-                        style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: '4px', flex: '0 0 auto' }}
-                        onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
-                      />
-                    ))}
-                  </Box>
-                );
-              })()}
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */}
+              {post.attachments && post.attachments.length > 0 && (
+                <MediaGallery attachments={post.attachments} maxHeight={180} />
+              )}
+              {(!post.attachments || post.attachments.length === 0) && (
+                <>
+                  {(() => {
+                    const imageUrls = extractImageUrls(post.content).slice(0, 5);
+                    if (imageUrls.length === 0) return null;
+                    return (
+                      <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                        {imageUrls.map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={resolveContentImageUrl(url)}
+                            alt={`Post image ${idx + 1}`}
+                            style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                            onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                          />
+                        ))}
+                      </Box>
+                    );
+                  })()}
+                </>
+              )}
               
               <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
                 {highlightText(stripHtmlTags(post.title))}
@@ -433,7 +438,7 @@ const Dashboard: React.FC = () => {
                 if (!text) return null;
                 return (
                   <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
-                    {highlightText(text.substring(0, 80))}...
+                    {highlightText(text.substring(0, 450))}...
                   </Typography>
                 );
               })()}
@@ -489,7 +494,21 @@ const Dashboard: React.FC = () => {
                 )}
               </Box>
 
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              {/* Featured media preview */}
+              {post.featured_media_url && (
+                <Box sx={{ mb: 2 }}>
+                  <img 
+                    src={post.featured_media_url.startsWith('http') 
+                      ? post.featured_media_url 
+                      : `https://cso.vectoronline.us${post.featured_media_url}`}
+                    alt="Featured media"
+                    style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                  />
+                </Box>
+              )}
+
+              {/* Action Buttons - Centered at bottom */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
                 <Button
                   startIcon={<Visibility />}
                   size="small"
@@ -499,14 +518,14 @@ const Dashboard: React.FC = () => {
                     handlePostClick(post.id);
                   }}
                   sx={{
-                    backgroundColor: '#10B981',
-                    '&:hover': { backgroundColor: '#059669' },
-                    fontSize: '0.75rem',
-                    py: 0.5,
-                    px: 1.5
+                    backgroundColor: '#000000',
+                    color: '#ffffff',
+                    '&:hover': {
+                      backgroundColor: '#1a1a1a'
+                    }
                   }}
                 >
-                  View
+                  View Details
                 </Button>
               </Box>
             </CardContent>
@@ -537,11 +556,12 @@ const Dashboard: React.FC = () => {
         <Card
           key={post.id}
           sx={{
+            height: '100%',
+            backgroundColor: '#16181C',
+            border: '1px solid #2F3336',
+            borderRadius: 2,
             cursor: 'pointer',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            backgroundColor: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: 3,
+            transition: 'all 0.2s ease-in-out',
             '&:hover': {
               transform: 'translateY(-2px)',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -549,29 +569,34 @@ const Dashboard: React.FC = () => {
           }}
           onClick={() => handlePostClick(post.id)}
         >
-          <CardContent>
-            {/* Media Gallery - prefer uploaded attachments; fallback to first content image */}
-            {post.attachments && post.attachments.length > 0 ? (
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */}
+            {post.attachments && post.attachments.length > 0 && (
               <MediaGallery attachments={post.attachments} maxHeight={180} />
-            ) : (() => {
-              const imageUrls = extractImageUrls(post.content).slice(0, 5);
-              if (imageUrls.length === 0) return null;
-              return (
-                <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
-                  {imageUrls.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={resolveContentImageUrl(url)}
-                      alt={`Post image ${idx + 1}`}
-                      style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
-                      onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
-                    />
-                  ))}
-                </Box>
-              );
-            })()}
+            )}
+            {(!post.attachments || post.attachments.length === 0) && (
+              <>
+                {(() => {
+                  const imageUrls = extractImageUrls(post.content).slice(0, 5);
+                  if (imageUrls.length === 0) return null;
+                  return (
+                    <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                      {imageUrls.map((url, idx) => (
+                        <img
+                          key={idx}
+                          src={resolveContentImageUrl(url)}
+                          alt={`Post image ${idx + 1}`}
+                          style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                          onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                        />
+                      ))}
+                    </Box>
+                  );
+                })()}
+              </>
+            )}
             
-            <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#1F2937' }}>
+            <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
               {highlightText(stripHtmlTags(post.title))}
             </Typography>
             
@@ -582,8 +607,8 @@ const Dashboard: React.FC = () => {
               const text = stripHtmlTags(raw);
               if (!text) return null;
               return (
-                <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
-                  {highlightText(text.substring(0, 150))}...
+                <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
+                  {highlightText(text.substring(0, 450))}...
                 </Typography>
               );
             })()}
