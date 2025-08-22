@@ -14,7 +14,9 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { 
   Search as SearchIcon, 
@@ -37,6 +39,7 @@ const CategoriesManage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'post_count' | 'created_at'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [currentTab, setCurrentTab] = useState<'visible' | 'hidden' | 'all'>('all');
   
   // Category visibility management
   const [updatingCategory, setUpdatingCategory] = useState<number | null>(null);
@@ -55,10 +58,18 @@ const CategoriesManage: React.FC = () => {
   };
 
   const filterAndSortCategories = React.useCallback(() => {
-    console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder);
+    console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder, 'Tab:', currentTab);
     
-    // Start with visible categories based on user role
+    // Start with categories based on tab selection and user role
     let filtered = getVisibleCategories(categories);
+
+    // Apply tab-based filtering
+    if (currentTab === 'visible') {
+      filtered = filtered.filter(cat => !cat.is_hidden);
+    } else if (currentTab === 'hidden') {
+      filtered = filtered.filter(cat => cat.is_hidden);
+    }
+    // 'all' tab shows all categories (already handled by getVisibleCategories)
 
     if (searchQuery && searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -69,30 +80,33 @@ const CategoriesManage: React.FC = () => {
       console.log('After search filter:', filtered.length);
     }
 
-    filtered.sort((a, b) => {
-      let aVal, bVal;
-      switch (sortBy) {
-        case 'post_count':
-          aVal = a.post_count || 0;
-          bVal = b.post_count || 0;
-          break;
-        case 'created_at':
-          aVal = new Date(a.created_at || 0).getTime();
-          bVal = new Date(b.created_at || 0).getTime();
-          break;
-        default:
-          aVal = a.name.toLowerCase();
-          bVal = b.name.toLowerCase();
-      }
+    // Ensure we have a valid array before sorting
+    if (filtered && filtered.length > 0) {
+      filtered.sort((a, b) => {
+        let aVal, bVal;
+        switch (sortBy) {
+          case 'post_count':
+            aVal = a.post_count || 0;
+            bVal = b.post_count || 0;
+            break;
+          case 'created_at':
+            aVal = new Date(a.created_at || 0).getTime();
+            bVal = new Date(b.created_at || 0).getTime();
+            break;
+          default:
+            aVal = a.name.toLowerCase();
+            bVal = b.name.toLowerCase();
+        }
 
-      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
+        if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
 
     console.log('Final filtered categories:', filtered.length);
-    setFilteredCategories(filtered);
-  }, [categories, searchQuery, sortBy, sortOrder, user]);
+    setFilteredCategories(filtered || []);
+  }, [categories, searchQuery, sortBy, sortOrder, currentTab, user]);
 
   const handleToggleCategoryVisibility = async (category: Category, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
@@ -164,12 +178,57 @@ const CategoriesManage: React.FC = () => {
   }
 
 
+  // Get counts for tabs
+  const visibleCount = categories.filter(cat => !cat.is_hidden).length;
+  const hiddenCount = categories.filter(cat => cat.is_hidden).length;
+  const allCount = categories.length;
+
   // Categories List View
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, color: '#E7E9EA', fontWeight: 700 }}>
         Categories
       </Typography>
+
+      {/* Tab Navigation */}
+      {user && user.role === 'admin' && (
+        <Box sx={{ mb: 3 }}>
+          <Tabs
+            value={currentTab}
+            onChange={(_, newValue) => setCurrentTab(newValue)}
+            sx={{
+              '& .MuiTabs-root': {
+                borderBottom: '1px solid #2F3336',
+              },
+              '& .MuiTab-root': {
+                color: '#71767B',
+                fontWeight: 500,
+                textTransform: 'none',
+                fontSize: '14px',
+                '&.Mui-selected': {
+                  color: '#1D9BF0',
+                },
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#1D9BF0',
+              },
+            }}
+          >
+            <Tab 
+              label={`All Categories (${allCount})`} 
+              value="all" 
+            />
+            <Tab 
+              label={`Visible (${visibleCount})`} 
+              value="visible" 
+            />
+            <Tab 
+              label={`Hidden (${hiddenCount})`} 
+              value="hidden" 
+            />
+          </Tabs>
+        </Box>
+      )}
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 

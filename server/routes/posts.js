@@ -453,99 +453,86 @@ router.put('/:id',
         return res.status(404).json({ error: 'Post not found' });
       }
 
-      // Start a transaction for updating post and attachments
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
+      // Use standard pool.query with proper error handling
+      const updateFields = [];
+      const queryParams = [];
+      let paramIndex = 1;
 
-        const updateFields = [];
-        const queryParams = [];
-        let paramIndex = 1;
+      if (title) {
+        updateFields.push(`title = $${paramIndex}`);
+        queryParams.push(title);
+        paramIndex++;
+      }
 
-        if (title) {
-          updateFields.push(`title = $${paramIndex}`);
-          queryParams.push(title);
-          paramIndex++;
-        }
+      if (content) {
+        updateFields.push(`content = $${paramIndex}`);
+        queryParams.push(content);
+        paramIndex++;
+      }
 
-        if (content) {
-          updateFields.push(`content = $${paramIndex}`);
-          queryParams.push(content);
-          paramIndex++;
-        }
+      if (excerpt) {
+        updateFields.push(`excerpt = $${paramIndex}`);
+        queryParams.push(excerpt);
+        paramIndex++;
+      }
 
-        if (excerpt) {
-          updateFields.push(`excerpt = $${paramIndex}`);
-          queryParams.push(excerpt);
-          paramIndex++;
-        }
+      if (categoryId) {
+        updateFields.push(`category_id = $${paramIndex}`);
+        queryParams.push(categoryId);
+        paramIndex++;
+      }
 
-        if (categoryId) {
-          updateFields.push(`category_id = $${paramIndex}`);
-          queryParams.push(categoryId);
-          paramIndex++;
-        }
+      if (retentionDays) {
+        const newRetentionDate = new Date();
+        newRetentionDate.setDate(newRetentionDate.getDate() + parseInt(retentionDays));
+        updateFields.push(`retention_date = $${paramIndex}`);
+        queryParams.push(newRetentionDate);
+        paramIndex++;
+      }
 
-        if (retentionDays) {
-          const newRetentionDate = new Date();
-          newRetentionDate.setDate(newRetentionDate.getDate() + parseInt(retentionDays));
-          updateFields.push(`retention_date = $${paramIndex}`);
-          queryParams.push(newRetentionDate);
-          paramIndex++;
-        }
+      if (updateFields.length === 0) {
+        return res.status(400).json({ error: 'No fields to update' });
+      }
 
-        if (updateFields.length === 0) {
-          return res.status(400).json({ error: 'No fields to update' });
-        }
+      updateFields.push(`wp_modified_date = NOW()`);
+      queryParams.push(id);
 
-        updateFields.push(`wp_modified_date = NOW()`);
-        queryParams.push(id);
+      // Update the post
+      const result = await pool.query(`
+        UPDATE posts 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `, queryParams);
 
-        // Update the post
-        const result = await client.query(`
-          UPDATE posts 
-          SET ${updateFields.join(', ')}
-          WHERE id = $${paramIndex}
-          RETURNING *
-        `, queryParams);
-
-        // Handle attachments if provided
-        if (attachments !== undefined) {
-          // Remove existing attachments
-          await client.query('DELETE FROM post_attachments WHERE post_id = $1', [id]);
-          
-          // Add new attachments if any
-          if (attachments && attachments.length > 0) {
-            for (const fileId of attachments) {
-              if (fileId) {
-                // Verify the file exists and belongs to the current user
-                const fileCheck = await client.query(
-                  'SELECT id FROM files WHERE id = $1 AND uploaded_by = $2',
-                  [fileId, req.user.id]
+      // Handle attachments if provided
+      if (attachments !== undefined) {
+        // Remove existing attachments
+        await pool.query('DELETE FROM post_attachments WHERE post_id = $1', [id]);
+        
+        // Add new attachments if any
+        if (attachments && attachments.length > 0) {
+          for (const fileId of attachments) {
+            if (fileId) {
+              // Verify the file exists and belongs to the current user
+              const fileCheck = await pool.query(
+                'SELECT id FROM files WHERE id = $1 AND uploaded_by = $2',
+                [fileId, req.user.id]
+              );
+              
+              if (fileCheck.rows.length > 0) {
+                await pool.query(
+                  'INSERT INTO post_attachments (post_id, file_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+                  [id, fileId]
                 );
-                
-                if (fileCheck.rows.length > 0) {
-                  await client.query(
-                    'INSERT INTO post_attachments (post_id, file_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-                    [id, fileId]
-                  );
-                }
               }
             }
           }
         }
-
-        await client.query('COMMIT');
-        
-        // Return the updated post with attachments
-        const updatedPost = result.rows[0];
-        res.json(updatedPost);
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      } finally {
-        client.release();
       }
+      
+      // Return the updated post
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error updating post:', error);
       res.status(500).json({ error: 'Failed to update post' });

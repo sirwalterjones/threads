@@ -252,7 +252,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       // Show success message
       setShowSuccess(true);
       
-      // Wait a moment for user to see success message, then refresh page
+      // Wait a moment for user to see success message, then close and refresh
       setTimeout(() => {
         // Reset form
         setTitle(''); 
@@ -262,21 +262,35 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setUploads([]);
         setEditorRef(null);
         setShowSuccess(false);
+        setError(''); // Clear any previous errors
         
-        onCreated?.();
+        // Close modal first
         onClose();
+        onCreated?.();
         
-        // Refresh the page to show the new thread
-        window.location.reload();
+        // Small delay before refresh to ensure modal closes
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       }, 1500);
     } catch (err:any) {
       console.error('Thread creation error:', err);
+      console.error('Error details:', {
+        status: err?.response?.status,
+        statusText: err?.response?.statusText,
+        data: err?.response?.data,
+        message: err?.message,
+        stack: err?.stack
+      });
+      
       let errorMessage = 'Failed to create thread';
       
       if (err?.response?.status === 401) {
         errorMessage = 'Authentication required. Please log in again.';
       } else if (err?.response?.status === 403) {
         errorMessage = 'You do not have permission to create threads.';
+      } else if (err?.response?.status === 500) {
+        errorMessage = `Server error: ${err?.response?.data?.error || 'Internal server error'}`;
       } else if (err?.response?.data?.error) {
         errorMessage = err.response.data.error;
       } else if (err?.message) {
@@ -316,7 +330,18 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           {post ? 'Edit Thread' : 'Add Thread'}
         </Typography>
         <IconButton
-          onClick={onClose}
+          onClick={() => {
+            // Reset all states when closing
+            setTitle('');
+            setContent('');
+            setExcerpt('');
+            setCategoryId('');
+            setUploads([]);
+            setEditorRef(null);
+            setShowSuccess(false);
+            setError('');
+            onClose();
+          }}
           sx={{
             position: 'absolute',
             right: 16,
