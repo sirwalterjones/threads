@@ -240,6 +240,11 @@ class ApiService {
     return response.data;
   }
 
+  async getHealthSync(): Promise<any> {
+    const response = await axios.get(`${API_BASE_URL}/health/sync`);
+    return response.data;
+  }
+
   async performMaintenance(action: string): Promise<any> {
     const response = await axios.post(`${API_BASE_URL}/admin/maintenance`, { action });
     return response.data;
