@@ -25,7 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
 import { Post, Category } from '../../types';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
 const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
@@ -206,43 +206,83 @@ const RightSidebar: React.FC = () => {
             '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
             '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
           }}>
-            {recentThreads.map((thread, index) => (
-              <ListItem key={thread.id} disablePadding>
-                <ListItemButton
-                  onClick={() => handleThreadClick(thread.id)}
-                  sx={{
-                    py: 0.75,
-                    px: 1,
-                    '&:hover': {
-                      backgroundColor: '#1C1F23'
-                    }
-                  }}
-                >
-                  <ListItemText
-                    primary={
+            {recentThreads.map((thread, index) => {
+              const threadDate = new Date(thread.ingested_at || thread.wp_published_date);
+              const currentHeader = isToday(threadDate) ? 'TODAY' : 
+                                  isYesterday(threadDate) ? 'YESTERDAY' : 
+                                  format(threadDate, 'MMM d');
+              
+              const previousThread = index > 0 ? recentThreads[index - 1] : null;
+              const previousDate = previousThread ? new Date(previousThread.ingested_at || previousThread.wp_published_date) : null;
+              const previousHeader = previousDate ? 
+                (isToday(previousDate) ? 'TODAY' : 
+                 isYesterday(previousDate) ? 'YESTERDAY' : 
+                 format(previousDate, 'MMM d')) : '';
+              
+              const showHeader = currentHeader !== previousHeader;
+              
+              return (
+                <Box key={thread.id}>
+                  {showHeader && (
+                    <Box sx={{ 
+                      px: 1.25, 
+                      pt: 1, 
+                      pb: 0.5, 
+                      position: 'sticky', 
+                      top: 0, 
+                      backgroundColor: '#16181C', 
+                      zIndex: 1 
+                    }}>
                       <Typography sx={{ 
-                        color: '#E7E9EA', 
-                        fontWeight: 500, 
-                        fontSize: '13px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        color: '#1D9BF0', 
+                        fontWeight: 700, 
+                        fontSize: '12px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
                       }}>
-                        {thread.title}
+                        {currentHeader}
                       </Typography>
-                    }
-                    secondary={
-                      <Typography sx={{ 
-                        color: '#71767B', 
-                        fontSize: '11px' 
-                      }}>
-                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.ingested_at || thread.wp_published_date), { addSuffix: true })}
-                      </Typography>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
+                      <Box sx={{ mt: 0.5, height: '1px', backgroundColor: '#2F3336', width: '100%' }} />
+                    </Box>
+                  )}
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() => handleThreadClick(thread.id)}
+                      sx={{
+                        py: 0.75,
+                        px: 1,
+                        '&:hover': {
+                          backgroundColor: '#1C1F23'
+                        }
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography sx={{ 
+                            color: '#E7E9EA', 
+                            fontWeight: 500, 
+                            fontSize: '13px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {thread.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography sx={{ 
+                            color: '#71767B', 
+                            fontSize: '11px' 
+                          }}>
+                            @{thread.author_name} · {formatDistanceToNow(threadDate, { addSuffix: true })}
+                          </Typography>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                </Box>
+              );
+            })}
           </List>
           
           <Box sx={{ p: 1.25, pt: 1 }}>
