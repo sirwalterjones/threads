@@ -891,11 +891,15 @@ const HomeSimple: React.FC = () => {
                   <Card
                     key={post.id}
                     sx={{
+                      height: '100%',
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      borderRadius: 2,
                       cursor: 'pointer',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: 4,
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                       },
                     }}
                     onClick={() => handlePostClick(post.id)}
@@ -927,7 +931,7 @@ const HomeSimple: React.FC = () => {
                         </>
                       )}
                       
-                      <Typography variant="h6" component="h2" gutterBottom>
+                      <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
                         {highlightText(stripHtmlTags(post.title))}
                       </Typography>
                       
@@ -938,18 +942,42 @@ const HomeSimple: React.FC = () => {
                         const text = stripHtmlTags(raw);
                         if (!text) return null;
                         return (
-                          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                          <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
                             {highlightText(text.substring(0, 450))}...
                           </Typography>
                         );
                       })()}
 
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
                         {post.category_name && (
-                          <Chip size="small" label={post.category_name} color="primary" />
+                          <Chip 
+                            size="small" 
+                            label={post.category_name} 
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontSize: '0.75rem' }}
+                          />
                         )}
-                        <Chip size="small" label={post.author_name} />
-                        <Chip size="small" label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} />
+                        <Chip 
+                          size="small" 
+                          label={post.author_name} 
+                          variant="outlined"
+                          sx={{ 
+                            borderColor: '#E5E7EB',
+                            color: '#6B7280',
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                        <Chip 
+                          size="small" 
+                          label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                          variant="outlined"
+                          sx={{ 
+                            borderColor: '#E5E7EB',
+                            color: '#6B7280',
+                            fontSize: '0.75rem'
+                          }}
+                        />
                         {/* Comment Count Indicator */}
                         {post.comment_count && post.comment_count > 0 && (
                           <Chip 
@@ -958,8 +986,14 @@ const HomeSimple: React.FC = () => {
                             color="secondary"
                             variant="filled"
                             sx={{ 
+                              fontSize: '0.75rem',
                               backgroundColor: '#8B5CF6',
-                              color: 'white'
+                              color: 'white',
+                              '& .MuiChip-label': {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px'
+                              }
                             }}
                           />
                         )}
