@@ -1156,7 +1156,7 @@ const HomeSimple: React.FC = () => {
                   >
                     Previous
                   </Button>
-                  <Typography sx={{ px: 2, py: 1, alignSelf: 'center' }}>
+                  <Typography sx={{ px: 2, py: 1, alignSelf: 'center', color: '#E7E9EA' }}>
                     Page {currentPage} of {totalPages}
                   </Typography>
                   <Button 
