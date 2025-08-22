@@ -83,10 +83,17 @@ router.get('/sync', async (req, res) => {
         ['created_at', 'timestamp', 'created', 'date_created'].includes(r.column_name)
       )?.column_name || 'created_at';
       
+      // Check if details column exists
+      const hasDetailsColumn = tableInfoResult.rows.some(r => r.column_name === 'details');
+      
       console.log('Using timestamp column:', timestampColumn);
+      console.log('Has details column:', hasDetailsColumn);
+      
+      // Build query based on available columns
+      const selectColumns = hasDetailsColumn ? `${timestampColumn}, details` : timestampColumn;
       
       const lastSyncResult = await pool.query(`
-        SELECT ${timestampColumn}, details 
+        SELECT ${selectColumns}
         FROM audit_log 
         WHERE action IN ('SYNC_SUCCESS', 'SYNC_ERROR')
         ORDER BY ${timestampColumn} DESC 
@@ -97,7 +104,7 @@ router.get('/sync', async (req, res) => {
         const lastLog = lastSyncResult.rows[0];
         syncStatus.lastSync = lastLog[timestampColumn];
         
-        if (lastLog.action === 'SYNC_ERROR') {
+        if (lastLog.action === 'SYNC_ERROR' && hasDetailsColumn && lastLog.details) {
           try {
             const details = JSON.parse(lastLog.details);
             syncStatus.errors.push({
@@ -110,30 +117,38 @@ router.get('/sync', async (req, res) => {
               error: 'Parse error in error details'
             });
           }
+        } else if (lastLog.action === 'SYNC_ERROR') {
+          // No details column, just log the error action
+          syncStatus.errors.push({
+            timestamp: lastLog[timestampColumn],
+            error: 'Sync error occurred (no details available)'
+          });
         }
       }
 
-      // Get recent sync errors
-      const errorResult = await pool.query(`
-        SELECT ${timestampColumn}, details 
-        FROM audit_log 
-        WHERE action = 'SYNC_ERROR' 
-        AND ${timestampColumn} > NOW() - INTERVAL '24 hours'
-        ORDER BY ${timestampColumn} DESC 
-        LIMIT 10
-      `);
+      // Get recent sync errors (only if details column exists)
+      if (hasDetailsColumn) {
+        const errorResult = await pool.query(`
+          SELECT ${timestampColumn}, details 
+          FROM audit_log 
+          WHERE action = 'SYNC_ERROR' 
+          AND ${timestampColumn} > NOW() - INTERVAL '24 hours'
+          ORDER BY ${timestampColumn} DESC 
+          LIMIT 10
+        `);
 
-      errorResult.rows.forEach(row => {
-        try {
-          const details = JSON.parse(row.details);
-          syncStatus.errors.push({
-            timestamp: row[timestampColumn],
-            error: details.error || 'Unknown error'
-          });
-        } catch (parseError) {
-          // Skip malformed entries
-        }
-      });
+        errorResult.rows.forEach(row => {
+          try {
+            const details = JSON.parse(row.details);
+            syncStatus.errors.push({
+              timestamp: row[timestampColumn],
+              error: details.error || 'Unknown error'
+            });
+          } catch (parseError) {
+            // Skip malformed entries
+          }
+        });
+      }
 
       // Determine sync status
       if (syncStatus.lastSync) {
@@ -151,6 +166,28 @@ router.get('/sync', async (req, res) => {
         }
       } else {
         syncStatus.status = 'never';
+      }
+      
+      // If we couldn't get detailed info, try a simple approach
+      if (!syncStatus.lastSync) {
+        try {
+          // Simple query to just check if there are any recent sync actions
+          const simpleSyncResult = await pool.query(`
+            SELECT ${timestampColumn}
+            FROM audit_log 
+            WHERE action LIKE '%SYNC%'
+            ORDER BY ${timestampColumn} DESC 
+            LIMIT 1
+          `);
+          
+          if (simpleSyncResult.rows.length > 0) {
+            syncStatus.lastSync = simpleSyncResult.rows[0][timestampColumn];
+            syncStatus.status = 'recent';
+            console.log('Found recent sync activity using simple query');
+          }
+        } catch (simpleError) {
+          console.log('Simple sync query also failed:', simpleError.message);
+        }
       }
 
       // Get cron service status if available
