@@ -697,7 +697,7 @@ const HomeSimple: React.FC = () => {
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#71767B',
+                        color: '#E7E9EA',
                         '&.Mui-focused': {
                           color: '#1D9BF0',
                         },
@@ -747,7 +747,7 @@ const HomeSimple: React.FC = () => {
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#71767B',
+                  color: '#E7E9EA',
                   '&.Mui-focused': {
                     color: '#1D9BF0',
                   },
@@ -875,7 +875,7 @@ const HomeSimple: React.FC = () => {
                       },
                     },
                     '& .MuiFormHelperText-root': {
-                      color: '#71767B',
+                      color: '#E7E9EA',
                     },
                   }}
                 />
@@ -955,7 +955,7 @@ const HomeSimple: React.FC = () => {
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#71767B',
+                  color: '#E7E9EA',
                   '&.Mui-focused': {
                     color: '#1D9BF0',
                   },
@@ -1005,7 +1005,7 @@ const HomeSimple: React.FC = () => {
                   },
                 },
                 '& .MuiInputLabel-root': {
-                  color: '#71767B',
+                  color: '#E7E9EA',
                   '&.Mui-focused': {
                     color: '#1D9BF0',
                   },
