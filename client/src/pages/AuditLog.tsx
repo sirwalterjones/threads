@@ -405,7 +405,8 @@ const AuditLog: React.FC = () => {
               <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>User</TableCell>
               <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action</TableCell>
               <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Resource</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Details</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action Details</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Actions</TableCell>
               <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }} align="right">IP Address</TableCell>
             </TableRow>
           </TableHead>
@@ -530,7 +531,7 @@ const AuditLog: React.FC = () => {
                   {/* Expandable Details Row */}
                   {isExpanded && (
                     <TableRow>
-                      <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
+                      <TableCell colSpan={7} sx={{ p: 0, border: 0 }}>
                         <Box sx={{ p: 2, backgroundColor: '#0F1115', borderTop: '1px solid #2F3336' }}>
                           {/* Edit Changes */}
                           {details?.meta?.changes && (
