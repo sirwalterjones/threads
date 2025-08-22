@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const axios = require('axios');
 const { pool } = require('../config/database');
+const WordPressService = require('./wordpressService');
 
 class CronService {
   constructor() {
@@ -13,6 +14,9 @@ class CronService {
       lastError: null
     };
     this.isRunning = false;
+    
+    // Initialize WordPress service for pull-based sync
+    this.wordpressService = new WordPressService();
   }
 
   // Initialize all cron jobs
