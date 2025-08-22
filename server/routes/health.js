@@ -1,6 +1,7 @@
 const express = require('express');
 const { pool } = require('../config/database');
 const CronService = require('../services/cronService');
+const axios = require('axios'); // Added axios for HTTP request testing
 
 const router = express.Router();
 
@@ -219,6 +220,149 @@ router.post('/sync/pull', async (req, res) => {
     }
 });
 
+// Bulletproof pull sync - bypass all service classes
+router.post('/sync/bulletproof', async (req, res) => {
+    try {
+        console.log('🚀 BULLETPROOF SYNC: Starting direct WordPress sync...');
+        
+        const { wordpressUrl } = req.body;
+        const targetUrl = wordpressUrl || 'https://cmansrms.us';
+        const baseUrl = targetUrl.endsWith('/') ? targetUrl : `${targetUrl}/`;
+        
+        console.log(`🎯 Target: ${baseUrl}`);
+        
+        // Step 1: Test connection
+        console.log('📡 Step 1: Testing connection...');
+        const axios = require('axios');
+        
+        const statusResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/status`, {
+            timeout: 30000,
+            headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+        });
+        
+        if (statusResponse.status !== 200) {
+            throw new Error(`Status endpoint failed: ${statusResponse.status}`);
+        }
+        
+        console.log('✅ Connection test passed');
+        
+        // Step 2: Get categories
+        console.log('📂 Step 2: Fetching categories...');
+        const categoriesResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/categories`, {
+            timeout: 30000,
+            headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+        });
+        
+        const categories = categoriesResponse.data;
+        console.log(`✅ Found ${categories.length} categories`);
+        
+        // Step 3: Get posts (first page only for now)
+        console.log('📝 Step 3: Fetching posts...');
+        const postsResponse = await axios.get(`${baseUrl}wp-json/threads-intel/v1/posts?per_page=10&page=1`, {
+            timeout: 30000,
+            headers: { 'User-Agent': 'ThreadsIntel/1.0' }
+        });
+        
+        const postsData = postsResponse.data;
+        const posts = postsData.posts || [];
+        console.log(`✅ Found ${posts.length} posts on first page`);
+        
+        // Step 4: Process data directly in database
+        console.log('💾 Step 4: Processing data...');
+        const { pool } = require('../../config/database');
+        
+        // Process categories
+        let categoriesProcessed = 0;
+        for (const category of categories.slice(0, 5)) { // Just first 5 for test
+            try {
+                await pool.query(
+                    `INSERT INTO categories (wp_term_id, name, slug, description, parent_id, count, is_hidden) 
+                     VALUES ($1, $2, $3, $4, $5, $6, false)
+                     ON CONFLICT (wp_term_id) DO UPDATE SET
+                     name = EXCLUDED.name,
+                     slug = EXCLUDED.slug,
+                     description = EXCLUDED.description,
+                     parent_id = EXCLUDED.parent_id,
+                     count = EXCLUDED.count,
+                     updated_at = NOW()`,
+                    [category.id, category.name, category.slug, category.description || '', category.parent || null, category.count || 0]
+                );
+                categoriesProcessed++;
+            } catch (error) {
+                console.error(`Failed to process category ${category.id}:`, error.message);
+            }
+        }
+        
+        // Process posts
+        let postsProcessed = 0;
+        for (const post of posts.slice(0, 5)) { // Just first 5 for test
+            try {
+                await pool.query(
+                    `INSERT INTO posts (wp_post_id, title, content, excerpt, slug, status, author_id, author_name, 
+                     published_at, modified_at, category_id, is_sticky, post_format, comment_count) 
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                     ON CONFLICT (wp_post_id) DO UPDATE SET
+                     title = EXCLUDED.title,
+                     content = EXCLUDED.content,
+                     excerpt = EXCLUDED.excerpt,
+                     slug = EXCLUDED.slug,
+                     status = EXCLUDED.status,
+                     author_name = EXCLUDED.author_name,
+                     modified_at = EXCLUDED.modified_at,
+                     category_id = EXCLUDED.category_id,
+                     is_sticky = EXCLUDED.is_sticky,
+                     post_format = EXCLUDED.post_format,
+                     comment_count = EXCLUDED.comment_count,
+                     updated_at = NOW()`,
+                    [
+                        post.id,
+                        post.title?.rendered || post.title || '',
+                        post.content?.rendered || post.content || '',
+                        post.excerpt?.rendered || post.excerpt || '',
+                        post.slug,
+                        post.status,
+                        post.author,
+                        post.author_name,
+                        new Date(post.date),
+                        new Date(post.modified),
+                        null, // category_id for now
+                        post.sticky || false,
+                        post.format || 'standard',
+                        post.comment_count || 0
+                    ]
+                );
+                postsProcessed++;
+            } catch (error) {
+                console.error(`Failed to process post ${post.id}:`, error.message);
+            }
+        }
+        
+        console.log(`✅ BULLETPROOF SYNC COMPLETED: ${categoriesProcessed} categories, ${postsProcessed} posts`);
+        
+        res.json({
+            success: true,
+            message: 'BULLETPROOF SYNC COMPLETED!',
+            result: {
+                categoriesProcessed,
+                postsProcessed,
+                timestamp: new Date().toISOString(),
+                type: 'bulletproof'
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ BULLETPROOF SYNC FAILED:', error);
+        
+        res.status(500).json({
+            success: false,
+            message: 'BULLETPROOF SYNC FAILED',
+            error: error.message,
+            errorCode: error.code,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // System metrics endpoint
 router.get('/metrics', async (req, res) => {
   try {
@@ -285,6 +429,73 @@ router.get('/metrics', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Test external HTTP request endpoint
+router.get('/test-http', async (req, res) => {
+    try {
+        console.log('Testing HTTP request to WordPress...');
+        
+        const response = await axios.get('https://cmansrms.us/wp-json/threads-intel/v1/status', {
+            timeout: 10000,
+            validateStatus: () => true
+        });
+        
+        res.json({
+            status: 'success',
+            message: 'HTTP request test successful',
+            wordpressStatus: response.status,
+            wordpressData: response.data,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('HTTP request test failed:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'HTTP request test failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// Direct WordPress test - bypass all complex logic
+router.get('/direct-wordpress-test', async (req, res) => {
+    try {
+        console.log('🚀 DIRECT TEST: Making HTTP request to WordPress...');
+        
+        // Use axios directly - no fancy service classes
+        const axios = require('axios');
+        const response = await axios.get('https://cmansrms.us/wp-json/threads-intel/v1/status', {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'ThreadsIntel/1.0'
+            }
+        });
+        
+        console.log('✅ DIRECT TEST SUCCESS:', response.status);
+        
+        res.json({
+            success: true,
+            message: 'DIRECT TEST: Server CAN reach WordPress!',
+            status: response.status,
+            data: response.data,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ DIRECT TEST FAILED:', error.message);
+        
+        res.status(500).json({
+            success: false,
+            message: 'DIRECT TEST: Server CANNOT reach WordPress',
+            error: error.message,
+            errorCode: error.code,
+            errorStack: error.stack,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 module.exports = router;

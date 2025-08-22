@@ -23,6 +23,7 @@ const commentsRoutes = require('./routes/comments');
 const notificationsRoutes = require('./routes/notifications');
 const healthRoutes = require('./routes/health');
 
+// Force Vercel restart - WordPress sync fix
 const app = express();
 // Ensure Express uses X-Forwarded-* headers on Vercel to get real client IP
 app.set('trust proxy', true);
