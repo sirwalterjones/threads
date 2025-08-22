@@ -83,4 +83,19 @@ router.get('/unread-count', authenticateToken, async (req, res) => {
   }
 });
 
+// Clear all notifications
+router.delete('/', authenticateToken, async (req, res) => {
+  try {
+    await pool.query(`
+      DELETE FROM notifications 
+      WHERE user_id = $1
+    `, [req.user.id]);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error clearing all notifications:', error);
+    res.status(500).json({ error: 'Failed to clear notifications' });
+  }
+});
+
 module.exports = router;

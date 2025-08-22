@@ -241,7 +241,7 @@ const Dashboard: React.FC = () => {
       {/* Dashboard Stats Cards removed */}
 
       {/* Search Bar with Buttons */}
-      <Box sx={{ mb: 4, px: 3 }}>
+      <Box sx={{ mb: 4, px: 3, mt: 4 }}>
         <Box sx={{ 
           position: 'relative',
           width: '100%',

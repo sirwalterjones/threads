@@ -13,7 +13,7 @@ import {
   AccountCircle,
   ExitToApp,
   Settings,
-  Dashboard
+  Add
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -59,11 +59,6 @@ const Header: React.FC = () => {
 
   const handleProfile = () => {
     navigate('/profile');
-    handleMenuClose();
-  };
-
-  const handleDashboard = () => {
-    navigate('/dashboard');
     handleMenuClose();
   };
 
@@ -132,15 +127,9 @@ const Header: React.FC = () => {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
             {(user?.role === 'admin' || user?.role === 'edit') && (
-              <MenuItem onClick={handleDashboard}>
-                <Dashboard sx={{ mr: 2 }} />
-                Admin Dashboard
-              </MenuItem>
-            )}
-            {(user?.role === 'admin' || user?.role === 'edit') && (
               <MenuItem onClick={() => { setOpenNew(true); handleMenuClose(); }}>
                 <Dashboard sx={{ mr: 2 }} />
-                New Post
+                New Thread
               </MenuItem>
             )}
             <MenuItem onClick={handleProfile}>
