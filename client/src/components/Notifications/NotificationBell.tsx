@@ -65,17 +65,30 @@ const NotificationBell: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleMarkAsRead = async (notificationId: number) => {
+  const handleNotificationClick = async (notification: any) => {
     try {
-      await apiService.markNotificationRead(notificationId);
+      // Mark notification as read
+      await apiService.markNotificationRead(notification.id);
       setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+        prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Close the notification menu
+      setAnchorEl(null);
+
+      // Open the post detail modal if there's a related post
+      if (notification.related_post_id) {
+        const evt = new CustomEvent('open-post-detail', { 
+          detail: { postId: notification.related_post_id } 
+        });
+        window.dispatchEvent(evt);
+      }
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      console.error('Failed to handle notification click:', error);
     }
   };
+
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -164,7 +177,7 @@ const NotificationBell: React.FC = () => {
             notifications.slice(0, 10).map((notification) => (
               <MenuItem
                 key={notification.id}
-                onClick={() => handleMarkAsRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
                 sx={{
                   backgroundColor: notification.is_read ? 'transparent' : 'rgba(29, 155, 240, 0.1)',
                   borderLeft: notification.is_read ? 'none' : '3px solid #1D9BF0',
