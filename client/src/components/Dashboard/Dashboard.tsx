@@ -28,8 +28,7 @@ import {
   TrendingUp,
   CalendarToday,
   Visibility,
-  Clear as ClearIcon,
-  Add as AddIcon
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService, { API_BASE_URL } from '../../services/api';
@@ -233,39 +232,11 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const handleAddThread = () => {
-    const evt = new CustomEvent('open-new-post-modal');
-    window.dispatchEvent(evt);
-  };
+
 
   return (
     <Box sx={{ position: 'relative', overflow: 'hidden', width: '100%' }}>
-      {/* Add Thread above Search Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 4 }}>
-        <Button
-          variant="contained"
-          onClick={handleAddThread}
-          startIcon={<AddIcon />}
-          size="medium"
-          sx={{
-            borderRadius: '999px',
-            backgroundColor: '#1D9BF0',
-            color: 'black',
-            fontSize: '14px',
-            fontWeight: 700,
-            px: 3,
-            py: 1,
-            textTransform: 'none',
-            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(29, 155, 240, 0.45)',
-            '&:hover': {
-              backgroundColor: '#1A8CD8',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(29, 155, 240, 0.65)'
-            },
-          }}
-        >
-          Add Thread
-        </Button>
-      </Box>
+
 
       {/* Dashboard Stats Cards removed */}
 
