@@ -17,7 +17,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string; id?:number}[]>([]);
-  const [uploadingFiles, setUploadingFiles] = useState<{file: File; progress: number; status: 'uploading' | 'success' | 'error'; error?: string}[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<{file: File; progress: number; status: 'uploading' | 'success' | 'error'; error?: string; id: string}[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -81,57 +81,62 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
 
     setError('');
     
-    // Add file to uploading list
-    const uploadingFile = { file, progress: 0, status: 'uploading' as const };
-    setUploadingFiles(prev => [...prev, uploadingFile]);
+    // Create a unique ID for this upload
+    const uploadId = `${file.name}-${Date.now()}`;
     
-    let progressInterval: NodeJS.Timeout | undefined;
+    // Add file to uploading list immediately
+    const uploadingFile = { 
+      file, 
+      progress: 0, 
+      status: 'uploading' as const,
+      id: uploadId
+    };
+    
+    setUploadingFiles(prev => [...prev, uploadingFile]);
     
     try {
       const form = new FormData();
       form.append('file', file);
       
-      // Simulate progress updates (since we don't have real progress from the API)
-      progressInterval = setInterval(() => {
+      // Simple progress simulation
+      const progressInterval = setInterval(() => {
         setUploadingFiles(prev => prev.map(f => 
-          f.file === file 
-            ? { ...f, progress: Math.min(f.progress + Math.random() * 20, 90) }
+          f.id === uploadId 
+            ? { ...f, progress: Math.min(f.progress + 10, 90) }
             : f
         ));
-      }, 200);
+      }, 100);
       
       const resp = await apiService.uploadFile(form);
       clearInterval(progressInterval);
       
       // Mark as complete
       setUploadingFiles(prev => prev.map(f => 
-        f.file === file 
+        f.id === uploadId 
           ? { ...f, progress: 100, status: 'success' as const }
           : f
       ));
       
-      // Add to uploads after a brief delay to show completion
+      // Add to uploads immediately
+      const newUpload = { 
+        url: resp.url, 
+        path: resp.path, 
+        mimeType: resp.mimeType, 
+        name: resp.originalName || file.name,
+        id: resp.id 
+      };
+      
+      setUploads(prev => [...prev, newUpload]);
+      
+      // Remove from uploading list after a brief delay
       setTimeout(() => {
-        setUploads(prev => [...prev, { 
-          url: resp.url, 
-          path: resp.path, 
-          mimeType: resp.mimeType, 
-          name: resp.originalName || file.name,
-          id: resp.id 
-        }]);
-        
-        // Remove from uploading list
-        setUploadingFiles(prev => prev.filter(f => f.file !== file));
-      }, 500);
+        setUploadingFiles(prev => prev.filter(f => f.id !== uploadId));
+      }, 1000);
       
     } catch (err: any) {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
-      
       // Mark as error
       setUploadingFiles(prev => prev.map(f => 
-        f.file === file 
+        f.id === uploadId 
           ? { ...f, status: 'error' as const, error: 'Upload failed' }
           : f
       ));
@@ -490,7 +495,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   'bold italic forecolor | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
                   'removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; background-color: #1C1F23; color: #E7E9EA; } p { color: #E7E9EA; } h1, h2, h3, h4, h5, h6 { color: #E7E9EA; } a { color: #1DA1F2; }',
                 // Use local skins to avoid remote fetches
                 skin_url: '/tinymce/skins/ui/oxide',
                 content_css: '/tinymce/skins/content/default/content.min.css',
@@ -502,6 +507,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                 setup: (editor) => {
                   editor.on('init', () => {
                     editor.getContainer().style.transition = 'border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out';
+                    // Force dark mode styling
+                    editor.getBody().style.backgroundColor = '#1C1F23';
+                    editor.getBody().style.color = '#E7E9EA';
                   });
                 }
               }}
