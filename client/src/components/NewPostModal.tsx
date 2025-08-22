@@ -322,10 +322,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     onClose();
   }, [onClose]);
 
-  const handleCloseButton = useCallback(() => {
-    handleClose();
-  }, [handleClose]);
-
   return (
     <Dialog 
       open={open} 
@@ -354,7 +350,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         </Typography>
         <IconButton
           aria-label="Close modal"
-          onClick={handleCloseButton}
+          onClick={handleClose}
           sx={{
             position: 'absolute',
             right: 16,
@@ -517,16 +513,113 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           </Paper>
         </Box>
 
-        {/* Media Upload Dropzone */}
+        {/* Media Upload Section */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" sx={{ 
             mb: 1, 
-            color: '#374151', 
+            color: '#E7E9EA', 
             fontWeight: 600 
           }}>
             Media Attachments
           </Typography>
           
+          {/* Uploading Files - Show above dropzone when files are uploading */}
+          {uploadingFiles.length > 0 && (
+            <Paper 
+              elevation={0}
+              sx={{ 
+                p: 2, 
+                backgroundColor: '#1C1F23',
+                border: '1px solid #2F3336',
+                borderRadius: 2,
+                mb: 2
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
+                  Uploading Files ({uploadingFiles.length})
+                </Typography>
+                {uploadingFiles.some(f => f.status === 'error') && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={handleClearAllFailedUploads}
+                    sx={{
+                      fontSize: '12px',
+                      color: '#EF4444',
+                      borderColor: '#EF4444',
+                      backgroundColor: 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderColor: '#DC2626'
+                      }
+                    }}
+                  >
+                    Clear All Failed
+                  </Button>
+                )}
+              </Box>
+              <Stack spacing={2}>
+                {uploadingFiles.map((fileData, i) => (
+                  <Box key={i} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2, 
+                    p: 2,
+                    backgroundColor: '#16181C',
+                    borderRadius: 2,
+                    border: '1px solid #2F3336'
+                  }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: '#E7E9EA' }}>
+                        {fileData.file.name}
+                      </Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={fileData.progress} 
+                        sx={{ 
+                          height: 6, 
+                          borderRadius: 3,
+                          backgroundColor: '#2F3336',
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: fileData.status === 'error' ? '#EF4444' : '#10B981'
+                          }
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ color: '#71767B', mt: 0.5, display: 'block' }}>
+                        {fileData.status === 'uploading' && `${Math.round(fileData.progress)}% uploaded`}
+                        {fileData.status === 'success' && 'Upload complete!'}
+                        {fileData.status === 'error' && fileData.error}
+                      </Typography>
+                    </Box>
+                    {fileData.status === 'success' && (
+                      <CheckCircle sx={{ color: '#10B981', fontSize: 20 }} />
+                    )}
+                    {fileData.status === 'error' && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Error sx={{ color: '#EF4444', fontSize: 20 }} />
+                        <IconButton
+                          size="small"
+                          onClick={() => handleRemoveFailedUpload(fileData.file)}
+                          sx={{ 
+                            color: '#EF4444',
+                            backgroundColor: 'transparent',
+                            '&:hover': { 
+                              backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                            }
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
+          
+          {/* Dropzone */}
           <Paper
             elevation={0}
             onDrop={handleDrop}
@@ -582,102 +675,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             </Button>
           </Paper>
         </Box>
-
-        {/* Uploading Files */}
-        {uploadingFiles.length > 0 && (
-          <Paper 
-            elevation={0}
-            sx={{ 
-              p: 2, 
-              backgroundColor: '#1C1F23',
-              border: '1px solid #2F3336',
-              borderRadius: 2,
-              mb: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
-                Uploading Files ({uploadingFiles.length})
-              </Typography>
-              {uploadingFiles.some(f => f.status === 'error') && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={handleClearAllFailedUploads}
-                  sx={{
-                    fontSize: '12px',
-                    color: '#EF4444',
-                    borderColor: '#EF4444',
-                    backgroundColor: 'transparent',
-                    '&:hover': {
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                      borderColor: '#DC2626'
-                    }
-                  }}
-                >
-                  Clear All Failed
-                </Button>
-              )}
-            </Box>
-            <Stack spacing={2}>
-              {uploadingFiles.map((fileData, i) => (
-                <Box key={i} sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 2, 
-                  p: 2,
-                  backgroundColor: '#1C1F23',
-                  borderRadius: 2,
-                  border: '1px solid #2F3336'
-                }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: '#E7E9EA' }}>
-                      {fileData.file.name}
-                    </Typography>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={fileData.progress} 
-                      sx={{ 
-                        height: 6, 
-                        borderRadius: 3,
-                        backgroundColor: '#2F3336',
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: fileData.status === 'error' ? '#EF4444' : '#10B981'
-                        }
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ color: '#71767B', mt: 0.5, display: 'block' }}>
-                      {fileData.status === 'uploading' && `${Math.round(fileData.progress)}% uploaded`}
-                      {fileData.status === 'success' && 'Upload complete!'}
-                      {fileData.status === 'error' && fileData.error}
-                    </Typography>
-                  </Box>
-                  {fileData.status === 'success' && (
-                    <CheckCircle sx={{ color: '#10B981', fontSize: 20 }} />
-                  )}
-                  {fileData.status === 'error' && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Error sx={{ color: '#EF4444', fontSize: 20 }} />
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveFailedUpload(fileData.file)}
-                        sx={{ 
-                          color: '#EF4444',
-                          backgroundColor: 'transparent',
-                          '&:hover': { 
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                          }
-                        }}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </Stack>
-          </Paper>
-        )}
 
         {/* Uploaded Files */}
         {uploads.length > 0 && (
