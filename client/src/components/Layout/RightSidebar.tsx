@@ -25,7 +25,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
 import { Post, Category } from '../../types';
-import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
@@ -172,7 +172,7 @@ const RightSidebar: React.FC = () => {
               mb: 1, 
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'space-between' 
+              justifyContent: 'center' // Center the header
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Schedule sx={{ color: '#1D9BF0', fontSize: 16, mr: 1 }} />
@@ -206,21 +206,8 @@ const RightSidebar: React.FC = () => {
             '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
             '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
           }}>
-            {recentThreads.map((thread, index) => {
-              const dt = new Date(thread.wp_published_date);
-              const header = isToday(dt) ? 'Today' : (isYesterday(dt) ? 'Yesterday' : format(dt, 'MMM d'));
-              const prev = index > 0 ? (() => { const pdt = new Date(recentThreads[index-1].wp_published_date); return isToday(pdt) ? 'Today' : (isYesterday(pdt) ? 'Yesterday' : format(pdt, 'MMM d')); })() : '';
-              return (
-              <Box key={thread.id}>
-                {header !== prev && (
-                  <Box sx={{ px: 1.25, pt: 0.75, pb: 0.25, position: 'sticky', top: 0, backgroundColor: '#16181C', zIndex: 1 }}>
-                    <Typography sx={{ color: '#E7E9EA', fontWeight: 700, fontSize: '12px' }}>
-                      {header}
-                    </Typography>
-                    <Box sx={{ mt: 0.5, height: '1px', backgroundColor: '#2F3336', width: '100%' }} />
-                  </Box>
-                )}
-              <ListItem disablePadding>
+            {recentThreads.map((thread, index) => (
+              <ListItem key={thread.id} disablePadding>
                 <ListItemButton
                   onClick={() => handleThreadClick(thread.id)}
                   sx={{
@@ -249,14 +236,13 @@ const RightSidebar: React.FC = () => {
                         color: '#71767B', 
                         fontSize: '11px' 
                       }}>
-                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.wp_published_date), { addSuffix: true })}
+                        @{thread.author_name} · {formatDistanceToNow(new Date(thread.ingested_at || thread.wp_published_date), { addSuffix: true })}
                       </Typography>
                     }
                   />
                 </ListItemButton>
               </ListItem>
-              </Box>
-            );})}
+            ))}
           </List>
           
           <Box sx={{ p: 1.25, pt: 1 }}>
