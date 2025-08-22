@@ -810,7 +810,7 @@ const AuditLog: React.FC = () => {
                         margin: 0,
                         lineHeight: 1.5
                       }}>
-                        {JSON.stringify(JSON.parse(detailDialog.entry.new_values || '{}'), null, 2)}
+                        {JSON.stringify(detailDialog.entry.new_values || {}, null, 2)}
                       </pre>
                     </Box>
                   </CardContent>
