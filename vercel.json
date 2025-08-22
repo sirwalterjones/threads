@@ -13,30 +13,26 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/index.js"
+      "source": "/api/(.*)",
+      "destination": "/server/index.js"
     },
     {
-      "src": "/health",
-      "dest": "/server/index.js"
+      "source": "/health",
+      "destination": "/server/index.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "/server/index.js"
+      "source": "/uploads/(.*)",
+      "destination": "/server/index.js"
     },
     {
-      "src": "/tinymce/(.*)",
-      "dest": "/server/index.js"
+      "source": "/tinymce/(.*)",
+      "destination": "/server/index.js"
     },
     {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
-      "dest": "/client/build/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
