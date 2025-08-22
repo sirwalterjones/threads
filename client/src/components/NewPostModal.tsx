@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Stack, Chip, Alert, Divider, Paper, Typography, LinearProgress, IconButton } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, Stack, Chip, Alert, Divider, Paper, Typography, LinearProgress, IconButton } from '@mui/material';
 import { CloudUpload, Delete, CheckCircle, Error, Close } from '@mui/icons-material';
 import DOMPurify from 'dompurify';
 import { Editor } from '@tinymce/tinymce-react';
@@ -16,8 +16,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [categoryId, setCategoryId] = useState('');
   const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string; id?:number}[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<{file: File; progress: number; status: 'uploading' | 'success' | 'error'; error?: string}[]>([]);
   const [error, setError] = useState('');
@@ -33,8 +31,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     if (post) {
       setTitle(post.title || '');
       setContent(post.content || '');
-      setExcerpt(post.excerpt || '');
-      setCategoryId(post.category_id ? String(post.category_id) : '');
+
       // Load existing attachments for editing - convert MediaFile to uploads format
       if (post.attachments && post.attachments.length > 0) {
         const convertedAttachments = post.attachments.map(attachment => ({
@@ -49,7 +46,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setUploads([]);
       }
     } else {
-      setTitle(''); setContent(''); setExcerpt(''); setCategoryId('');
+      setTitle(''); setContent('');
       setUploads([]);
     }
   }, [open, post]);
@@ -240,8 +237,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       const payload: any = { 
         title: title.trim(), 
         content: content.trim(), 
-        excerpt: autoExcerpt, 
-        categoryId: categoryId || null, // Send null instead of empty string
+        excerpt: autoExcerpt,
         retentionDays: '365',
         attachments: uploads.map(u => u.id).filter(Boolean) // Include file IDs
       };
@@ -254,13 +250,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         const updatedPost = await apiService.updatePost(post.id, payload);
         console.log('Post updated successfully:', updatedPost);
         // Track edit
-        await auditService.trackEdit('post', post.id, { title, content, excerpt });
+        await auditService.trackEdit('post', post.id, { title, content, excerpt: autoExcerpt });
       } else {
         console.log('Creating post with payload:', payload);
         const result = await apiService.createPost(payload);
         console.log('Post created successfully:', result);
         // Track creation
-        await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt });
+        await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt: autoExcerpt });
       }
       
       // Show success message
@@ -270,9 +266,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       setTimeout(() => {
         // Reset form
         setTitle(''); 
-        setContent(''); 
-        setExcerpt(''); 
-        setCategoryId(''); 
+        setContent('');
         setUploads([]);
         setEditorRef(null);
         setShowSuccess(false);
@@ -315,8 +309,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const handleClose = useCallback(() => {
     setTitle('');
     setContent('');
-    setExcerpt('');
-    setCategoryId('');
     setUploads([]);
     setUploadingFiles([]);
     setError('');
@@ -727,93 +719,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           </Paper>
         )}
 
-        {/* Excerpt and Category */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" sx={{ 
-            mb: 1, 
-            color: '#374151', 
-            fontWeight: 600 
-          }}>
-            Excerpt
-          </Typography>
-          <TextField
-            label="Excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            fullWidth
-            multiline
-            rows={2}
-            sx={{
-              mb: 3,
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#1C1F23',
-                color: '#E7E9EA',
-                '& fieldset': {
-                  borderColor: '#2F3336'
-                },
-                '&:hover fieldset': {
-                  borderColor: '#3F4144'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#1DA1F2'
-                }
-              },
-              '& .MuiInputLabel-root': {
-                color: '#71767B',
-                '&.Mui-focused': {
-                  color: '#1DA1F2'
-                }
-              },
-              '& .MuiInputBase-input': {
-                color: '#E7E9EA'
-              }
-            }}
-          />
 
-          <TextField
-            select
-            label="Category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            fullWidth
-            required
-            sx={{
-              mb: 3,
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#1C1F23',
-                color: '#E7E9EA',
-                '& fieldset': {
-                  borderColor: '#2F3336'
-                },
-                '&:hover fieldset': {
-                  borderColor: '#3F4144'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#1DA1F2'
-                }
-              },
-              '& .MuiInputLabel-root': {
-                color: '#71767B',
-                '&.Mui-focused': {
-                  color: '#1DA1F2'
-                }
-              },
-              '& .MuiInputBase-input': {
-                color: '#E7E9EA'
-              },
-              '& .MuiSelect-select': {
-                color: '#E7E9EA'
-              }
-            }}
-          >
-            {/* Assuming Category type is defined elsewhere or needs a placeholder */}
-            {/* For now, using a placeholder for the select options */}
-            <MenuItem value="">Select a category</MenuItem>
-            <MenuItem value="1">Category 1</MenuItem>
-            <MenuItem value="2">Category 2</MenuItem>
-            <MenuItem value="3">Category 3</MenuItem>
-          </TextField>
-        </Box>
       </DialogContent>
       
       <DialogActions sx={{ 
