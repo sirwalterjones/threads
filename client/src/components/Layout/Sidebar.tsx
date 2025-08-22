@@ -59,16 +59,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const mainPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
-    { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
-    { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['view', 'edit', 'admin'] }
+    { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] }
   ];
 
   const contentPages = [
-            { text: 'My Vector', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
+    { text: 'My Vector', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
     { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] }
   ];
 
   const systemAdminPages = [
+    { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
     { text: 'Data Management', icon: <SettingsIcon />, path: '/data-management', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
