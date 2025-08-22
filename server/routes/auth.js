@@ -385,23 +385,81 @@ router.get('/users',
   }
 );
 
-// Update user role or status (admin only)
+// Update user (admin only)
 router.put('/users/:id', 
   authenticateToken, 
   authorizeRole(['admin']), 
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { role, isActive } = req.body;
-
+      const { role, isActive, username, email, password } = req.body;
+      
       if (parseInt(id) === req.user.id) {
         return res.status(400).json({ error: 'Cannot modify your own account' });
       }
-
+      
       const updateFields = [];
       const queryParams = [];
       let paramIndex = 1;
-
+      
+      // Username update
+      if (username) {
+        if (username.length < 3) {
+          return res.status(400).json({ error: 'Username must be at least 3 characters long' });
+        }
+        
+        // Check if username already exists for another user
+        const usernameCheck = await pool.query(
+          'SELECT id FROM users WHERE username = $1 AND id != $2',
+          [username, id]
+        );
+        
+        if (usernameCheck.rows.length > 0) {
+          return res.status(409).json({ error: 'Username already in use' });
+        }
+        
+        updateFields.push(`username = $${paramIndex}`);
+        queryParams.push(username);
+        paramIndex++;
+      }
+      
+      // Email update
+      if (email) {
+        if (!validator.isEmail(email)) {
+          return res.status(400).json({ error: 'Invalid email format' });
+        }
+        
+        // Check if email already exists for another user
+        const emailCheck = await pool.query(
+          'SELECT id FROM users WHERE email = $1 AND id != $2',
+          [email, id]
+        );
+        
+        if (emailCheck.rows.length > 0) {
+          return res.status(409).json({ error: 'Email already in use' });
+        }
+        
+        updateFields.push(`email = $${paramIndex}`);
+        queryParams.push(email);
+        paramIndex++;
+      }
+      
+      // Password update
+      if (password) {
+        if (password.length < 8) {
+          return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+        }
+        
+        // Hash new password
+        const saltRounds = 12;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+        
+        updateFields.push(`password_hash = $${paramIndex}`);
+        queryParams.push(passwordHash);
+        paramIndex++;
+      }
+      
+      // Role update
       if (role) {
         const validRoles = ['admin', 'edit', 'view'];
         if (!validRoles.includes(role)) {
@@ -412,31 +470,32 @@ router.put('/users/:id',
         queryParams.push(role);
         paramIndex++;
       }
-
+      
+      // Active status update
       if (typeof isActive === 'boolean') {
         updateFields.push(`is_active = $${paramIndex}`);
         queryParams.push(isActive);
         paramIndex++;
       }
-
+      
       if (updateFields.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
       }
-
+      
       updateFields.push(`updated_at = NOW()`);
       queryParams.push(id);
-
+      
       const result = await pool.query(`
         UPDATE users 
         SET ${updateFields.join(', ')}
         WHERE id = $${paramIndex}
         RETURNING id, username, email, role, is_active, updated_at
       `, queryParams);
-
+      
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
-
+      
       res.json({
         message: 'User updated successfully',
         user: result.rows[0]

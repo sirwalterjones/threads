@@ -93,7 +93,7 @@ class ApiService {
     return response.data;
   }
 
-  async updateUser(id: number, data: { role?: string; isActive?: boolean }): Promise<{ user: User }> {
+  async updateUser(id: number, data: { role?: string; isActive?: boolean; username?: string; email?: string; password?: string }): Promise<{ user: User }> {
     const response: AxiosResponse<{ user: User }> = await axios.put(
       `${API_BASE_URL}/auth/users/${id}`,
       data

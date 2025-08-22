@@ -18,8 +18,10 @@ import {
   FormControl,
   InputLabel,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  IconButton
 } from '@mui/material';
+import { Edit as EditIcon } from '@mui/icons-material';
 import apiService from '../services/api';
 import { User } from '../types';
 
@@ -31,6 +33,9 @@ const UsersManage: React.FC = () => {
   const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: 'view' });
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
+  const [editDialog, setEditDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
+  const [editUser, setEditUser] = useState({ username: '', email: '', password: '', role: 'view' });
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     apiService.getUsers().then((data) => {
@@ -85,9 +90,64 @@ const UsersManage: React.FC = () => {
     }
   };
 
+  const openEditDialog = (user: any) => {
+    setEditUser({
+      username: user.username,
+      email: user.email,
+      password: '',
+      role: user.role
+    });
+    setEditDialog({ open: true, user });
+  };
+
+  const closeEditDialog = () => {
+    setEditDialog({ open: false, user: null });
+    setEditUser({ username: '', email: '', password: '', role: 'view' });
+  };
+
+  const handleEdit = async () => {
+    try {
+      setEditing(true);
+      setError('');
+      setSuccess('');
+      
+      const updateData: any = {};
+      
+      // Only include fields that have changed
+      if (editUser.username !== editDialog.user.username) {
+        updateData.username = editUser.username.trim();
+      }
+      if (editUser.email !== editDialog.user.email) {
+        updateData.email = editUser.email.trim();
+      }
+      if (editUser.password) {
+        updateData.password = editUser.password;
+      }
+      if (editUser.role !== editDialog.user.role) {
+        updateData.role = editUser.role;
+      }
+      
+      if (Object.keys(updateData).length === 0) {
+        setError('No changes to save');
+        return;
+      }
+      
+      const res = await apiService.updateUser(editDialog.user.id, updateData);
+      const updated = res.user as any;
+      
+      setUsers((prev) => prev.map(u => u.id === editDialog.user.id ? { ...u, ...updated } : u));
+      closeEditDialog();
+      setSuccess('User updated successfully');
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to update user');
+    } finally {
+      setEditing(false);
+    }
+  };
+
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>Users</Typography>
+    <Box sx={{ p: 2, bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
+      <Typography variant="h5" sx={{ mb: 2, color: 'text.primary' }}>Users</Typography>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <Button variant="contained" onClick={() => setOpenNew(true)}>Add User</Button>
       </Stack>
@@ -98,27 +158,33 @@ const UsersManage: React.FC = () => {
           const role = u.role || 'view';
           const isActive = typeof u.isActive === 'boolean' ? u.isActive : !!u.is_active;
           return (
-            <Card key={u.id}>
+            <Card key={u.id} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
               <CardContent>
                 <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                  <Typography variant="subtitle1">{u.username}</Typography>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="subtitle1" sx={{ color: 'text.primary' }}>{u.username}</Typography>
+                    <IconButton size="small" onClick={() => openEditDialog(u)} sx={{ color: 'text.secondary' }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
                   <Chip label={role.toUpperCase()} size="small" />
                 </Stack>
-                <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{u.email}</Typography>
                 <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                   <FormControl size="small" sx={{ minWidth: 140 }}>
-                    <InputLabel>Role</InputLabel>
+                    <InputLabel sx={{ color: 'text.primary' }}>Role</InputLabel>
                     <Select
                       label="Role"
                       value={role}
+                      sx={{ color: 'text.primary', '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
                       onChange={(e) => {
                         const val = e.target.value;
                         setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, role: val }: x));
                       }}
                     >
-                      <MenuItem value="admin">Admin</MenuItem>
-                      <MenuItem value="edit">Edit</MenuItem>
-                      <MenuItem value="view">View</MenuItem>
+                      <MenuItem value="admin" sx={{ color: 'text.primary' }}>Admin</MenuItem>
+                      <MenuItem value="edit" sx={{ color: 'text.primary' }}>Edit</MenuItem>
+                      <MenuItem value="view" sx={{ color: 'text.primary' }}>View</MenuItem>
                     </Select>
                   </FormControl>
                   <FormControlLabel
@@ -126,7 +192,7 @@ const UsersManage: React.FC = () => {
                       const checked = e.target.checked;
                       setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, isActive: checked, is_active: checked }: x));
                     }} />}
-                    label={isActive ? 'Active' : 'Inactive'}
+                    label={<span style={{ color: 'inherit' }}>{isActive ? 'Active' : 'Inactive'}</span>}
                   />
                 </Stack>
                 <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
@@ -146,12 +212,12 @@ const UsersManage: React.FC = () => {
       </Box>
 
       <Dialog open={openNew} onClose={() => setOpenNew(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New User</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ color: 'text.primary', bgcolor: 'background.paper' }}>New User</DialogTitle>
+        <DialogContent sx={{ bgcolor: 'background.paper' }}>
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1 }}
+            sx={{ mt: 1, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
             value={newUser.username}
             onChange={(e)=> setNewUser((s)=> ({ ...s, username: e.target.value }))}
           />
@@ -159,7 +225,7 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
             value={newUser.email}
             onChange={(e)=> setNewUser((s)=> ({ ...s, email: e.target.value }))}
           />
@@ -167,7 +233,7 @@ const UsersManage: React.FC = () => {
             type="password"
             label="Password"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
             value={newUser.password}
             onChange={(e)=> setNewUser((s)=> ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters"
@@ -176,7 +242,7 @@ const UsersManage: React.FC = () => {
             label="Role"
             select
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
             value={newUser.role}
             onChange={(e)=> setNewUser((s)=> ({ ...s, role: e.target.value }))}
           >
@@ -185,10 +251,58 @@ const UsersManage: React.FC = () => {
             <MenuItem value="view">View</MenuItem>
           </TextField>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={()=> setOpenNew(false)} disabled={creating}>Cancel</Button>
+        <DialogActions sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button onClick={()=> setOpenNew(false)} disabled={creating} sx={{ color: 'text.primary' }}>Cancel</Button>
           <Button variant="contained" onClick={handleCreate} disabled={creating || !newUser.username || !newUser.email || !newUser.password}> 
             {creating ? 'Creating...' : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={editDialog.open} onClose={closeEditDialog} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ color: 'text.primary', bgcolor: 'background.paper' }}>Edit User</DialogTitle>
+        <DialogContent sx={{ bgcolor: 'background.paper' }}>
+          <TextField
+            label="Username"
+            fullWidth
+            sx={{ mt: 1, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            value={editUser.username}
+            onChange={(e) => setEditUser((s) => ({ ...s, username: e.target.value }))}
+          />
+          <TextField
+            type="email"
+            label="Email"
+            fullWidth
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            value={editUser.email}
+            onChange={(e) => setEditUser((s) => ({ ...s, email: e.target.value }))}
+          />
+          <TextField
+            type="password"
+            label="New Password (leave blank to keep current)"
+            fullWidth
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            value={editUser.password}
+            onChange={(e) => setEditUser((s) => ({ ...s, password: e.target.value }))}
+            helperText="Minimum 8 characters if changing password"
+          />
+          <TextField
+            label="Role"
+            select
+            fullWidth
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } } }}
+            value={editUser.role}
+            onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}
+          >
+            <MenuItem value="admin" sx={{ color: 'text.primary' }}>Admin</MenuItem>
+            <MenuItem value="edit" sx={{ color: 'text.primary' }}>Edit</MenuItem>
+            <MenuItem value="view" sx={{ color: 'text.primary' }}>View</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button onClick={closeEditDialog} disabled={editing} sx={{ color: 'text.primary' }}>Cancel</Button>
+          <Button variant="contained" onClick={handleEdit} disabled={editing || !editUser.username || !editUser.email}>
+            {editing ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -222,37 +222,28 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
 
   return (
     <Box sx={{ mt: 3 }}>
-      {/* Prominent Comment Section Header */}
+      {/* Subtle Comment Section Header */}
       <Box sx={{ 
         mb: 3, 
-        p: 2, 
-        backgroundColor: '#0F1419', 
+        p: 2.5, 
+        backgroundColor: '#1C1F23', 
         borderRadius: 2, 
-        border: '2px solid #1DA1F2',
-        textAlign: 'center',
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '3px',
-          background: 'linear-gradient(90deg, #1DA1F2, #794BC4, #E91E63)',
-          borderRadius: '2px 2px 0 0'
-        }
+        border: '1px solid #2F3336',
+        borderLeft: '4px solid #1DA1F2',
+        position: 'relative'
       }}>
-        <Typography variant="h5" sx={{ 
+        <Typography variant="h6" sx={{ 
           color: '#E7E9EA', 
-          fontWeight: 700, 
-          mb: 1,
-          textTransform: 'uppercase',
-          letterSpacing: '1px'
+          fontWeight: 600, 
+          mb: 0.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
         }}>
           💬 Comments ({comments.length})
         </Typography>
-        <Typography variant="body2" sx={{ color: '#71767B' }}>
-          Join the conversation and share your thoughts!
+        <Typography variant="body2" sx={{ color: '#71767B', fontSize: '14px' }}>
+          Share your thoughts and join the discussion
         </Typography>
       </Box>
 
@@ -271,7 +262,7 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
       {/* Add new comment */}
       {user && (
         <Paper elevation={0} sx={{ 
-          p: 3, 
+          p: 2.5, 
           mb: 3, 
           backgroundColor: '#1C1F23',
           border: '1px solid #2F3336',
@@ -279,11 +270,11 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 2, 
-            color: '#1DA1F2', 
-            fontWeight: 600,
-            fontSize: '16px'
+            color: '#E7E9EA', 
+            fontWeight: 500,
+            fontSize: '15px'
           }}>
-            ✍️ Add Your Comment
+            Add a comment
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
             <TextField
@@ -367,22 +358,19 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               sx={{
                 backgroundColor: '#1DA1F2',
                 color: '#FFFFFF',
-                fontWeight: 600,
-                px: 3,
-                py: 1.5,
+                fontWeight: 500,
+                px: 2.5,
+                py: 1.2,
                 '&:hover': { 
-                  backgroundColor: '#1A8CD8',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(29, 161, 242, 0.3)'
+                  backgroundColor: '#1A8CD8'
                 },
                 '&:disabled': { 
                   backgroundColor: '#2F3336',
                   color: '#71767B'
-                },
-                transition: 'all 0.2s ease'
+                }
               }}
             >
-              {submitting ? 'Posting...' : 'Post Comment'}
+              {submitting ? 'Posting...' : 'Post'}
             </Button>
           </Box>
         </Paper>
