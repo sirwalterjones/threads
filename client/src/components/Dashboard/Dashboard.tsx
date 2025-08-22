@@ -405,7 +405,7 @@ const Dashboard: React.FC = () => {
   <Box sx={{ mb: 4, px: 3 }}>
     <Box sx={{ 
       display: 'grid', 
-      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+      gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
       gap: 2,
       maxWidth: '100%', 
       mx: 'auto',
@@ -542,7 +542,7 @@ const Dashboard: React.FC = () => {
     </Typography>
 
     {/* Results Grid */}
-    <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
+    <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', maxWidth: '1200px', mx: 'auto' }}>
       {searchResults.map((post) => (
         <Card
           key={post.id}
