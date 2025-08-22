@@ -86,6 +86,7 @@ const Header: React.FC = () => {
     <AppBar position="fixed" color="primary" enableColorOnDark sx={{
       backgroundColor: '#000000',
       color: '#E7E9EA',
+      border: 'none',
       borderBottom: '1px solid #2F3336',
       boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)',
       zIndex: 1300,
