@@ -252,7 +252,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       // Show success message
       setShowSuccess(true);
       
-      // Wait a moment for user to see success message, then close and refresh
+      // Wait a moment for user to see success message, then close cleanly
       setTimeout(() => {
         // Reset form
         setTitle(''); 
@@ -264,14 +264,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setShowSuccess(false);
         setError(''); // Clear any previous errors
         
-        // Close modal first
+        // Close modal cleanly
         onClose();
         onCreated?.();
-        
-        // Small delay before refresh to ensure modal closes
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
       }, 1500);
     } catch (err:any) {
       console.error('Thread creation error:', err);
@@ -306,7 +301,23 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   return (
     <Dialog 
       open={open} 
-      onClose={onClose} 
+      onClose={(event, reason) => {
+        // Handle all close scenarios
+        if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+          // Reset all states when closing via backdrop or escape
+          setTitle('');
+          setContent('');
+          setExcerpt('');
+          setCategoryId('');
+          setUploads([]);
+          setEditorRef(null);
+          setShowSuccess(false);
+          setError('');
+          setSaving(false);
+          setUploadingFiles([]);
+        }
+        onClose();
+      }}
       fullWidth 
       maxWidth="md"
       PaperProps={{
@@ -340,6 +351,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             setEditorRef(null);
             setShowSuccess(false);
             setError('');
+            setSaving(false);
+            setUploadingFiles([]);
             onClose();
           }}
           sx={{
