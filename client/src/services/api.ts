@@ -350,6 +350,11 @@ class ApiService {
     return response.data;
   }
 
+  async clearAllNotifications(): Promise<{ success: boolean }> {
+    const response = await axios.delete(`${API_BASE_URL}/notifications`);
+    return response.data;
+  }
+
   async deleteComment(commentId: number): Promise<{ message: string }> {
     const response = await axios.delete(`${API_BASE_URL}/comments/${commentId}`);
     return response.data;

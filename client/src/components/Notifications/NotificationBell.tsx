@@ -100,6 +100,16 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const handleClearAllNotifications = async () => {
+    try {
+      await apiService.clearAllNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to clear all notifications:', error);
+    }
+  };
+
   const open = Boolean(anchorEl);
 
   return (
@@ -144,18 +154,31 @@ const NotificationBell: React.FC = () => {
         }}
       >
         <Box sx={{ p: 2, borderBottom: '1px solid #2F3336' }}>
-          <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
-            Notifications
-          </Typography>
-          {unreadCount > 0 && (
-            <Button
-              size="small"
-              onClick={handleMarkAllAsRead}
-              sx={{ color: '#1D9BF0', textTransform: 'none' }}
-            >
-              Mark all as read
-            </Button>
-          )}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
+              Notifications
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {unreadCount > 0 && (
+                <Button
+                  size="small"
+                  onClick={handleMarkAllAsRead}
+                  sx={{ color: '#1D9BF0', textTransform: 'none', fontSize: '12px' }}
+                >
+                  Mark all read
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button
+                  size="small"
+                  onClick={handleClearAllNotifications}
+                  sx={{ color: '#71767B', textTransform: 'none', fontSize: '12px' }}
+                >
+                  Clear all
+                </Button>
+              )}
+            </Box>
+          </Box>
         </Box>
 
         <List sx={{ p: 0, maxHeight: 300, overflow: 'auto' }}>
@@ -191,20 +214,36 @@ const NotificationBell: React.FC = () => {
                     variant="body2"
                     sx={{
                       color: notification.is_read ? '#6B7280' : '#E7E9EA',
-                      fontWeight: notification.is_read ? 'normal' : 'bold'
+                      fontWeight: notification.is_read ? 'normal' : 'bold',
+                      fontSize: '13px',
+                      lineHeight: 1.3
                     }}
                   >
-                    {notification.title}
+                    {notification.from_username && (
+                      <Box component="span" sx={{ color: '#1D9BF0', fontWeight: 600 }}>
+                        @{notification.from_username}
+                      </Box>
+                    )}
+                    {notification.from_username && ' mentioned you'}
+                    {!notification.from_username && notification.title}
                   </Typography>
+                  {notification.post_title && (
+                    <Typography
+                      variant="caption"
+                      sx={{ 
+                        color: notification.is_read ? '#6B7280' : '#E7E9EA', 
+                        display: 'block', 
+                        mt: 0.5,
+                        fontWeight: 700,
+                        fontSize: '12px'
+                      }}
+                    >
+                      in "{notification.post_title}"
+                    </Typography>
+                  )}
                   <Typography
                     variant="caption"
-                    sx={{ color: '#71767B', display: 'block', mt: 0.5 }}
-                  >
-                    {notification.message}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: '#71767B', display: 'block', mt: 0.5 }}
+                    sx={{ color: '#71767B', display: 'block', mt: 0.5, fontSize: '11px' }}
                   >
                     {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                   </Typography>
