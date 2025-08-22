@@ -334,12 +334,17 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       }}
       fullWidth 
       maxWidth="md"
+      disableRestoreFocus
+      disableAutoFocus
+      keepMounted={false}
       PaperProps={{
         sx: {
           borderRadius: 3,
           boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25)'
         }
       }}
+      aria-labelledby="modal-title"
+      aria-describedby="modal-description"
     >
       <DialogTitle sx={{ 
         p: 3, 
@@ -347,14 +352,19 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         borderBottom: '1px solid #E5E7EB',
         position: 'relative'
       }}>
-        <Typography variant="h5" sx={{ 
-          fontWeight: 600, 
-          color: '#1F2937',
-          textAlign: 'center'
-        }}>
+        <Typography 
+          id="modal-title"
+          variant="h5" 
+          sx={{ 
+            fontWeight: 600, 
+            color: '#1F2937',
+            textAlign: 'center'
+          }}
+        >
           {post ? 'Edit Thread' : 'Add Thread'}
         </Typography>
         <IconButton
+          aria-label="Close modal"
           onClick={() => {
             // Reset all states when closing
             setTitle('');
@@ -384,11 +394,14 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         </IconButton>
       </DialogTitle>
       
-      <DialogContent sx={{ 
-        p: 3, 
-        bgcolor: '#FAFAFA',
-        minHeight: '500px'
-      }}>
+      <DialogContent 
+        id="modal-description"
+        sx={{ 
+          p: 3, 
+          bgcolor: '#FAFAFA',
+          minHeight: '500px'
+        }}
+      >
         {error && (
           <Alert 
             severity="error" 
