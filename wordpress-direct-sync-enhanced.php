@@ -35,7 +35,7 @@ class ThreadsIntelPushSync {
         // Add admin menu
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
-        // Schedule sync every 5 minutes
+        // Schedule sync every 5 minutes (WordPress cron)
         add_action('init', array($this, 'schedule_sync'));
         add_action('threads_intel_sync_hook', array($this, 'perform_sync'));
         
@@ -46,6 +46,9 @@ class ThreadsIntelPushSync {
         add_action('wp_ajax_test_connection', array($this, 'ajax_test_connection'));
         add_action('wp_ajax_manual_sync', array($this, 'ajax_manual_sync'));
         add_action('wp_ajax_clear_logs', array($this, 'ajax_clear_logs'));
+        
+        // REST API endpoint for server cron
+        add_action('rest_api_init', array($this, 'register_rest_routes'));
         
         // Register activation/deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
@@ -327,6 +330,34 @@ class ThreadsIntelPushSync {
             </div>
             
             <div class="card">
+                <h2>Server Cron Setup (Recommended)</h2>
+                <p><strong>WordPress cron is unreliable!</strong> Set up real server cron for guaranteed sync every 5 minutes.</p>
+                
+                <h3>Step 1: Disable WordPress Cron</h3>
+                <p>Add this to your <code>wp-config.php</code>:</p>
+                <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px;">define('DISABLE_WP_CRON', true);</pre>
+                
+                <h3>Step 2: Set Up Server Cron</h3>
+                <p>SSH into your server and run:</p>
+                <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px;">crontab -e</pre>
+                
+                <p>Add this line:</p>
+                <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px;">*/5 * * * * curl -X POST "<?php echo get_site_url(); ?>/wp-json/threads-intel/v1/sync"</pre>
+                
+                <h3>Step 3: Test Server Cron</h3>
+                <p>Test the endpoint manually:</p>
+                <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px;">curl -X POST "<?php echo get_site_url(); ?>/wp-json/threads-intel/v1/sync"</pre>
+                
+                <p><strong>Benefits:</strong></p>
+                <ul>
+                    <li>✅ Runs every 5 minutes regardless of site traffic</li>
+                    <li>✅ More reliable than WordPress cron</li>
+                    <li>✅ Better performance (no visitor dependency)</li>
+                    <li>✅ Can monitor and log cron execution</li>
+                </ul>
+            </div>
+            
+            <div class="card">
                 <h2>Recent Sync Logs</h2>
                 <div id="sync-logs">
                     <?php
@@ -469,6 +500,20 @@ class ThreadsIntelPushSync {
     public function deactivate() {
         $this->log_message('Plugin deactivated');
         wp_clear_scheduled_hook('threads_intel_sync_hook');
+    }
+
+    public function register_rest_routes() {
+        register_rest_route('threads-intel/v1', '/sync', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'rest_trigger_sync'),
+            'permission_callback' => '__return_true' // Allow anyone to trigger sync
+        ));
+    }
+
+    public function rest_trigger_sync($request) {
+        $this->log_message('REST API sync triggered');
+        $this->perform_sync();
+        return new WP_REST_Response(array('message' => 'Sync triggered via REST API'), 200);
     }
 }
 
