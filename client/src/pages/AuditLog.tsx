@@ -26,7 +26,15 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress
 } from '@mui/material';
 import { 
   Search as SearchIcon, 
@@ -235,7 +243,7 @@ const AuditLog: React.FC = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <Typography>Loading audit log...</Typography>
+        <CircularProgress />
       </Box>
     );
   }
@@ -388,309 +396,258 @@ const AuditLog: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Audit Entries - Card Based Layout */}
-      <Stack spacing={2}>
-        {paginatedEntries.map((entry: any) => {
-          let details: any = null;
-          try { 
-            details = entry.new_values ? JSON.parse(entry.new_values) : null; 
-          } catch {}
+      {/* Audit Entries - Table Based Layout */}
+      <TableContainer component={Paper} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+        <Table sx={{ minWidth: 650 }} aria-label="audit log table">
+          <TableHead sx={{ backgroundColor: '#0F1115', borderBottom: '1px solid #2F3336' }}>
+            <TableRow>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Timestamp</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>User</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Resource</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Details</TableCell>
+              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }} align="right">IP Address</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedEntries.map((entry: any) => {
+              let details: any = null;
+              try { 
+                details = entry.new_values ? JSON.parse(entry.new_values) : null; 
+              } catch {}
 
-          const isExpanded = expandedEntries.has(entry.id);
-          const actionColor = getActionColor(entry.action);
-          
-          return (
-            <Card 
-              key={entry.id}
-              sx={{ 
-                backgroundColor: '#16181C',
-                border: '1px solid #2F3336',
-                borderRadius: 2,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: '#1C1F23',
-                  borderColor: '#1D9BF0',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
-                }
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                {/* Header Row */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
-                  {/* Action Icon */}
-                  <Avatar 
+              const isExpanded = expandedEntries.has(entry.id);
+              const actionColor = getActionColor(entry.action);
+              
+              return (
+                <React.Fragment key={entry.id}>
+                  <TableRow
                     sx={{ 
-                      bgcolor: actionColor, 
-                      width: 40, 
-                      height: 40,
-                      color: 'white'
+                      '&:last-child td, &:last-child th': { border: 0 },
+                      '&:hover': {
+                        backgroundColor: '#1C1F23',
+                        borderColor: '#1D9BF0',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
+                      }
                     }}
                   >
-                    {getActionIcon(entry.action)}
-                  </Avatar>
-
-                  {/* Main Content */}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    {/* Primary Info Row */}
-                    <Box sx={{ 
-                      display: 'flex', 
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: { xs: 'flex-start', sm: 'center' }, 
-                      gap: { xs: 1, sm: 2 },
-                      mb: 1
-                    }}>
-                      <Chip
-                        icon={getActionIcon(entry.action)}
-                        label={entry.action || 'UNKNOWN'}
-                        size="small"
-                        sx={{
-                          backgroundColor: `${actionColor}20`,
-                          color: actionColor,
-                          border: `1px solid ${actionColor}40`,
-                          fontWeight: 600,
-                          '& .MuiChip-icon': { color: actionColor }
-                        }}
-                      />
-                      
-                      <Chip
-                        icon={entry.username ? <PersonIcon /> : <SystemIcon />}
-                        label={entry.username || 'System'}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          borderColor: entry.username ? '#1D9BF0' : '#6B7280',
-                          color: entry.username ? '#1D9BF0' : '#6B7280',
-                          '& .MuiChip-icon': { color: entry.username ? '#1D9BF0' : '#6B7280' }
-                        }}
-                      />
-
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          color: '#71767B',
-                          fontFamily: 'monospace',
-                          ml: { xs: 0, sm: 'auto' }
-                        }}
-                      >
-                        {format(new Date(entry.timestamp), 'MMM dd, yyyy HH:mm:ss')}
-                      </Typography>
-                    </Box>
-
-                    {/* Resource Info */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, flexWrap: 'wrap' }}>
-                      {entry.table_name && (
+                    <TableCell sx={{ color: '#E7E9EA' }}>{format(new Date(entry.timestamp), 'MMM dd, yyyy HH:mm:ss')}</TableCell>
+                    <TableCell sx={{ color: '#E7E9EA' }}>{entry.username || 'System'}</TableCell>
+                    <TableCell sx={{ color: '#E7E9EA' }}>{entry.action}</TableCell>
+                    <TableCell sx={{ color: '#E7E9EA' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {entry.table_name && (
+                          <Chip
+                            icon={getResourceIcon(entry.table_name)}
+                            label={entry.table_name}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              borderColor: '#2F3336',
+                              color: '#E7E9EA',
+                              backgroundColor: '#0F1115'
+                            }}
+                          />
+                        )}
+                        {entry.record_id && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="caption" sx={{ color: '#71767B' }}>
+                              ID:
+                            </Typography>
+                            {entry.table_name === 'posts' ? 
+                              renderPostLink(entry.record_id, details?.meta?.title) :
+                              <Typography variant="caption" sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+                                {entry.record_id}
+                              </Typography>
+                            }
+                          </Box>
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: '#E7E9EA' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Chip
-                          icon={getResourceIcon(entry.table_name)}
-                          label={entry.table_name}
+                          icon={getActionIcon(entry.action)}
+                          label={entry.action || 'UNKNOWN'}
                           size="small"
-                          variant="outlined"
                           sx={{
-                            borderColor: '#2F3336',
-                            color: '#E7E9EA',
-                            backgroundColor: '#0F1115'
+                            backgroundColor: `${actionColor}20`,
+                            color: actionColor,
+                            border: `1px solid ${actionColor}40`,
+                            fontWeight: 600,
+                            '& .MuiChip-icon': { color: actionColor }
                           }}
                         />
-                      )}
-                      
-                      {entry.record_id && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {details?.meta && (
                           <Typography variant="caption" sx={{ color: '#71767B' }}>
-                            ID:
+                            {details.meta.method && details.meta.path && (
+                              <>API: {details.meta.method} {details.meta.path}</>
+                            )}
+                            {details.meta.status && (
+                              <> • Status: {details.meta.status}</>
+                            )}
+                            {details.meta.durationMs && (
+                              <> • {details.meta.durationMs}ms</>
+                            )}
+                            {details.meta.title && (
+                              <> • {details.meta.title}</>
+                            )}
                           </Typography>
-                          {entry.table_name === 'posts' ? 
-                            renderPostLink(entry.record_id, details?.meta?.title) :
-                            <Typography variant="caption" sx={{ color: '#E7E9EA', fontWeight: 500 }}>
-                              {entry.record_id}
-                            </Typography>
-                          }
-                        </Box>
-                      )}
-
-                      {entry.ip_address && (
-                        <Tooltip title="IP Address">
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              color: '#71767B',
-                              fontFamily: 'monospace',
-                              backgroundColor: '#2F3336',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ color: '#E7E9EA' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {(details?.body || details?.meta?.changes || details?.meta?.data) && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            onClick={() => toggleExpanded(entry.id)}
+                            sx={{
+                              borderColor: '#2F3336',
+                              color: '#E7E9EA',
+                              '&:hover': { borderColor: '#1D9BF0' }
                             }}
                           >
-                            {entry.ip_address}
-                          </Typography>
-                        </Tooltip>
-                      )}
-                    </Box>
-
-                    {/* Quick Summary */}
-                    {details?.meta && (
-                      <Typography variant="body2" sx={{ color: '#71767B', mb: 2 }}>
-                        {details.meta.method && details.meta.path && (
-                          <>API: {details.meta.method} {details.meta.path}</>
+                            {isExpanded ? 'Less' : 'Details'}
+                          </Button>
                         )}
-                        {details.meta.status && (
-                          <> • Status: {details.meta.status}</>
-                        )}
-                        {details.meta.durationMs && (
-                          <> • {details.meta.durationMs}ms</>
-                        )}
-                        {details.meta.title && (
-                          <> • {details.meta.title}</>
-                        )}
-                      </Typography>
-                    )}
-
-                    {/* Action Buttons */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                      {(details?.body || details?.meta?.changes || details?.meta?.data) && (
                         <Button
                           size="small"
-                          variant="outlined"
-                          startIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                          onClick={() => toggleExpanded(entry.id)}
-                          sx={{
-                            borderColor: '#2F3336',
-                            color: '#E7E9EA',
-                            '&:hover': { borderColor: '#1D9BF0' }
-                          }}
+                          variant="text"
+                          onClick={() => openDetailDialog(entry)}
+                          sx={{ color: '#1D9BF0' }}
                         >
-                          {isExpanded ? 'Less' : 'Details'}
+                          Full Details
                         </Button>
-                      )}
-
-                      <Button
-                        size="small"
-                        variant="text"
-                        onClick={() => openDetailDialog(entry)}
-                        sx={{ color: '#1D9BF0' }}
-                      >
-                        Full Details
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Expandable Details Section */}
-                <Collapse in={isExpanded}>
-                  <Divider sx={{ my: 2, borderColor: '#2F3336' }} />
-                  <Box sx={{ pl: { xs: 0, sm: 7 } }}>
-                    {/* Edit Changes */}
-                    {details?.meta?.changes && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                          Changes Made:
-                        </Typography>
-                        <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
-                          <CardContent sx={{ p: 2 }}>
-                            <pre style={{ 
-                              color: '#E7E9EA', 
-                              fontSize: '0.875rem', 
-                              fontFamily: 'monospace',
-                              whiteSpace: 'pre-wrap',
-                              margin: 0
-                            }}>
-                              {JSON.stringify(details.meta.changes, null, 2)}
-                            </pre>
-                          </CardContent>
-                        </Card>
                       </Box>
-                    )}
+                    </TableCell>
+                    <TableCell sx={{ color: '#E7E9EA', fontFamily: 'monospace' }} align="right">{entry.ip_address}</TableCell>
+                  </TableRow>
+                  
+                  {/* Expandable Details Row */}
+                  {isExpanded && (
+                    <TableRow>
+                      <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
+                        <Box sx={{ p: 2, backgroundColor: '#0F1115', borderTop: '1px solid #2F3336' }}>
+                          {/* Edit Changes */}
+                          {details?.meta?.changes && (
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                Changes Made:
+                              </Typography>
+                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <CardContent sx={{ p: 2 }}>
+                                  <pre style={{ 
+                                    color: '#E7E9EA', 
+                                    fontSize: '0.875rem', 
+                                    fontFamily: 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    margin: 0
+                                  }}>
+                                    {JSON.stringify(details.meta.changes, null, 2)}
+                                  </pre>
+                                </CardContent>
+                              </Card>
+                            </Box>
+                          )}
 
-                    {/* Request Body */}
-                    {details?.body && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                          Request Payload:
-                        </Typography>
-                        <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
-                          <CardContent sx={{ p: 2 }}>
-                            <Stack spacing={1}>
-                              {Object.entries(details.body).map(([key, value]) => (
-                                <Box key={key} sx={{ display: 'flex', gap: 2 }}>
-                                  <Typography 
-                                    variant="caption" 
-                                    sx={{ 
-                                      color: '#1D9BF0', 
-                                      fontWeight: 600,
-                                      minWidth: 100,
-                                      fontFamily: 'monospace'
-                                    }}
-                                  >
-                                    {key}:
-                                  </Typography>
-                                  <Typography 
-                                    variant="caption" 
-                                    sx={{ 
-                                      color: '#E7E9EA',
-                                      fontFamily: 'monospace',
-                                      wordBreak: 'break-all'
-                                    }}
-                                  >
-                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                                  </Typography>
-                                </Box>
-                              ))}
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    )}
+                          {/* Request Body */}
+                          {details?.body && (
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                Request Payload:
+                              </Typography>
+                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <CardContent sx={{ p: 2 }}>
+                                  <Stack spacing={1}>
+                                    {Object.entries(details.body).map(([key, value]) => (
+                                      <Box key={key} sx={{ display: 'flex', gap: 2 }}>
+                                        <Typography 
+                                          variant="caption" 
+                                          sx={{ 
+                                            color: '#1D9BF0', 
+                                            fontWeight: 600,
+                                            minWidth: 100,
+                                            fontFamily: 'monospace'
+                                          }}
+                                        >
+                                          {key}:
+                                        </Typography>
+                                        <Typography 
+                                          variant="caption" 
+                                          sx={{ 
+                                            color: '#E7E9EA',
+                                            fontFamily: 'monospace',
+                                            wordBreak: 'break-all'
+                                          }}
+                                        >
+                                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Stack>
+                                </CardContent>
+                              </Card>
+                            </Box>
+                          )}
 
-                    {/* Creation Data */}
-                    {details?.meta?.data && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                          Created Data:
-                        </Typography>
-                        <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
-                          <CardContent sx={{ p: 2 }}>
-                            <pre style={{ 
-                              color: '#E7E9EA', 
-                              fontSize: '0.875rem', 
-                              fontFamily: 'monospace',
-                              whiteSpace: 'pre-wrap',
-                              margin: 0
-                            }}>
-                              {JSON.stringify(details.meta.data, null, 2)}
-                            </pre>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    )}
-                  </Box>
-                </Collapse>
-              </CardContent>
-            </Card>
-          );
-        })}
+                          {/* Creation Data */}
+                          {details?.meta?.data && (
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                Created Data:
+                              </Typography>
+                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <CardContent sx={{ p: 2 }}>
+                                  <pre style={{ 
+                                    color: '#E7E9EA', 
+                                    fontSize: '0.875rem', 
+                                    fontFamily: 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    margin: 0
+                                  }}>
+                                    {JSON.stringify(details.meta.data, null, 2)}
+                                  </pre>
+                                </CardContent>
+                              </Card>
+                            </Box>
+                          )}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-        {/* Empty State */}
-        {paginatedEntries.length === 0 && (
-          <Card sx={{ 
-            backgroundColor: '#16181C', 
-            border: '1px solid #2F3336',
-            textAlign: 'center',
-            py: 6
-          }}>
-            <CardContent>
-              <SecurityIcon sx={{ fontSize: 48, color: '#71767B', mb: 2 }} />
-              <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 1 }}>
-                No Audit Entries Found
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#71767B' }}>
-                {filteredEntries.length === 0 && entries.length > 0 
-                  ? 'Try adjusting your filters to see more results.'
-                  : 'No audit log entries have been recorded yet.'
-                }
-              </Typography>
-            </CardContent>
-          </Card>
-        )}
-      </Stack>
+      {/* Empty State */}
+      {paginatedEntries.length === 0 && (
+        <Card sx={{ 
+          backgroundColor: '#16181C', 
+          border: '1px solid #2F3336',
+          textAlign: 'center',
+          py: 6
+        }}>
+          <CardContent>
+            <SecurityIcon sx={{ fontSize: 48, color: '#71767B', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 1 }}>
+              No Audit Entries Found
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#71767B' }}>
+              {filteredEntries.length === 0 && entries.length > 0 
+                ? 'Try adjusting your filters to see more results.'
+                : 'No audit log entries have been recorded yet.'
+              }
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -753,38 +710,38 @@ const AuditLog: React.FC = () => {
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2 }}>
                     Basic Information
                   </Typography>
-                  <Grid container spacing={2}>
-                    <Grid size={6}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <Box>
                       <Typography variant="caption" sx={{ color: '#71767B' }}>Timestamp</Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
                         {format(new Date(detailDialog.entry.timestamp), 'MMM dd, yyyy HH:mm:ss')}
                       </Typography>
-                    </Grid>
-                    <Grid size={6}>
+                    </Box>
+                    <Box>
                       <Typography variant="caption" sx={{ color: '#71767B' }}>User</Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
                         {detailDialog.entry.username || 'System'}
                       </Typography>
-                    </Grid>
-                    <Grid size={6}>
+                    </Box>
+                    <Box>
                       <Typography variant="caption" sx={{ color: '#71767B' }}>Action</Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
                         {detailDialog.entry.action}
                       </Typography>
-                    </Grid>
-                    <Grid size={6}>
+                    </Box>
+                    <Box>
                       <Typography variant="caption" sx={{ color: '#71767B' }}>Resource</Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
                         {detailDialog.entry.table_name} #{detailDialog.entry.record_id}
                       </Typography>
-                    </Grid>
-                    <Grid size={12}>
+                    </Box>
+                    <Box sx={{ gridColumn: '1 / -1' }}>
                       <Typography variant="caption" sx={{ color: '#71767B' }}>IP Address</Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA', fontFamily: 'monospace' }}>
                         {detailDialog.entry.ip_address}
                       </Typography>
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                 </CardContent>
               </Card>
 
