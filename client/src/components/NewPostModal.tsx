@@ -158,11 +158,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     const files = Array.from(e.target.files || []);
     console.log('Selected files:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
     files.forEach(handleFileUpload);
-    // Force reset the input to prevent caching issues
+    // Reset the input value to allow re-uploading the same file
     e.target.value = '';
-    // Also reset the input element completely
-    const input = e.target as HTMLInputElement;
-    input.files = null;
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -259,10 +256,10 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt: autoExcerpt });
       }
       
-      // Show success message
+      // Show success message briefly, then close immediately
       setShowSuccess(true);
       
-      // Wait a moment for user to see success message, then close cleanly
+      // Close modal immediately and refresh page
       setTimeout(() => {
         // Reset form
         setTitle(''); 
@@ -272,10 +269,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setShowSuccess(false);
         setError(''); // Clear any previous errors
         
-        // Close modal cleanly - only call onClose once
+        // Close modal and refresh page
         onClose();
         onCreated?.();
-      }, 1500);
+        // Force page refresh to show new content
+        window.location.reload();
+      }, 500);
     } catch (err:any) {
       console.error('Thread creation error:', err);
       console.error('Error details:', {
@@ -458,16 +457,18 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           <Paper 
             elevation={0}
             sx={{ 
-              border: '1px solid #D1D5DB',
+              border: '1px solid #2F3336',
               borderRadius: 2,
-              backgroundColor: 'white',
+              backgroundColor: '#1C1F23',
               overflow: 'hidden',
               '& .tox-tinymce': {
                 borderRadius: '8px',
-                border: 'none'
+                border: 'none',
+                backgroundColor: '#1C1F23'
               },
               '& .tox-editor-header': {
-                borderBottom: '1px solid #E5E7EB'
+                borderBottom: '1px solid #2F3336',
+                backgroundColor: '#16181C'
               }
             }}
           >
@@ -525,25 +526,25 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             onDragLeave={handleDragLeave}
             sx={{
               border: '2px dashed',
-              borderColor: isDragOver ? '#3B82F6' : '#D1D5DB',
+              borderColor: isDragOver ? '#1DA1F2' : '#2F3336',
               borderRadius: 2,
-              backgroundColor: isDragOver ? '#F0F9FF' : 'white',
+              backgroundColor: isDragOver ? '#0F1419' : '#1C1F23',
               p: 4,
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               '&:hover': {
-                borderColor: '#3B82F6',
-                backgroundColor: '#F0F9FF'
+                borderColor: '#1DA1F2',
+                backgroundColor: '#0F1419'
               }
             }}
             onClick={() => document.getElementById('file-input')?.click()}
           >
-            <CloudUpload sx={{ fontSize: 48, color: '#6B7280', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#374151', mb: 1 }}>
+            <CloudUpload sx={{ fontSize: 48, color: '#71767B', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 1 }}>
               Drop files here or click to browse
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: '#71767B', mb: 2 }}>
               Supports images, PDFs, audio, and video files (max 50MB each)
             </Typography>
             <Button 
@@ -551,11 +552,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
               component="label"
               sx={{
                 borderRadius: 2,
-                borderColor: '#3B82F6',
-                color: '#3B82F6',
+                borderColor: '#1DA1F2',
+                color: '#1DA1F2',
+                backgroundColor: 'transparent',
                 '&:hover': {
-                  backgroundColor: '#EFF6FF',
-                  borderColor: '#2563EB'
+                  backgroundColor: 'rgba(29, 161, 242, 0.1)',
+                  borderColor: '#1A8CD8'
                 }
               }}
               onClick={(e) => e.stopPropagation()}
@@ -579,14 +581,14 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             elevation={0}
             sx={{ 
               p: 2, 
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB',
+              backgroundColor: '#1C1F23',
+              border: '1px solid #2F3336',
               borderRadius: 2,
               mb: 2
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: '#374151', fontWeight: 600 }}>
+              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
                 Uploading Files ({uploadingFiles.length})
               </Typography>
               {uploadingFiles.some(f => f.status === 'error') && (
@@ -598,8 +600,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                     fontSize: '12px',
                     color: '#EF4444',
                     borderColor: '#EF4444',
+                    backgroundColor: 'transparent',
                     '&:hover': {
-                      backgroundColor: '#FEF2F2',
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
                       borderColor: '#DC2626'
                     }
                   }}
@@ -615,11 +618,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   alignItems: 'center', 
                   gap: 2, 
                   p: 2,
-                  backgroundColor: '#F9FAFB',
-                  borderRadius: 2
+                  backgroundColor: '#1C1F23',
+                  borderRadius: 2,
+                  border: '1px solid #2F3336'
                 }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: '#E7E9EA' }}>
                       {fileData.file.name}
                     </Typography>
                     <LinearProgress 
@@ -628,13 +632,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                       sx={{ 
                         height: 6, 
                         borderRadius: 3,
-                        backgroundColor: '#E5E7EB',
+                        backgroundColor: '#2F3336',
                         '& .MuiLinearProgress-bar': {
                           backgroundColor: fileData.status === 'error' ? '#EF4444' : '#10B981'
                         }
                       }}
                     />
-                    <Typography variant="caption" sx={{ color: '#6B7280', mt: 0.5, display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: '#71767B', mt: 0.5, display: 'block' }}>
                       {fileData.status === 'uploading' && `${Math.round(fileData.progress)}% uploaded`}
                       {fileData.status === 'success' && 'Upload complete!'}
                       {fileData.status === 'error' && fileData.error}
@@ -651,8 +655,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                         onClick={() => handleRemoveFailedUpload(fileData.file)}
                         sx={{ 
                           color: '#EF4444',
+                          backgroundColor: 'transparent',
                           '&:hover': { 
-                            backgroundColor: '#FEF2F2'
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
                           }
                         }}
                       >
@@ -672,12 +677,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             elevation={0}
             sx={{ 
               p: 2, 
-              backgroundColor: 'white',
-              border: '1px solid #E5E7EB',
+              backgroundColor: '#1C1F23',
+              border: '1px solid #2F3336',
               borderRadius: 2 
             }}
           >
-            <Typography variant="subtitle2" sx={{ mb: 2, color: '#374151', fontWeight: 600 }}>
+            <Typography variant="subtitle2" sx={{ mb: 2, color: '#E7E9EA', fontWeight: 600 }}>
               Uploaded Files ({uploads.length})
             </Typography>
             <Stack spacing={2}>
@@ -687,15 +692,16 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   alignItems: 'center', 
                   gap: 2, 
                   p: 2,
-                  backgroundColor: '#F9FAFB',
-                  borderRadius: 2
+                  backgroundColor: '#16181C',
+                  borderRadius: 2,
+                  border: '1px solid #2F3336'
                 }}>
                   <Chip 
                     label={u.name || u.path} 
                     size="small" 
-                    sx={{ backgroundColor: 'white' }}
+                    sx={{ backgroundColor: '#2F3336', color: '#E7E9EA' }}
                   />
-                  <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                  <Typography variant="caption" sx={{ color: '#71767B' }}>
                     {u.mimeType.startsWith('image/') ? 'Image' : 
                      u.mimeType.startsWith('video/') ? 'Video' :
                      u.mimeType.startsWith('audio/') ? 'Audio' : 'Document'}
