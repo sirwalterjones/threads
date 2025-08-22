@@ -9,6 +9,7 @@ require('dotenv').config();
 // Import database modules (PostgreSQL for production, SQLite for local)
 const { initializeDatabase } = require('./config/database');
 const WordPressService = require('./services/wordpressService');
+const CronService = require('./services/cronService');
 
 // Import routes
 const authRoutes = require('./routes/auth'); // Use full PostgreSQL version
@@ -20,6 +21,7 @@ const uploadsRoutes = require('./routes/uploads');
 const filesRoutes = require('./routes/files');
 const commentsRoutes = require('./routes/comments');
 const notificationsRoutes = require('./routes/notifications');
+const healthRoutes = require('./routes/health');
 
 const app = express();
 // Ensure Express uses X-Forwarded-* headers on Vercel to get real client IP
@@ -28,6 +30,25 @@ const PORT = process.env.PORT || 5050;
 
 // Initialize WordPress service
 const wpService = new WordPressService();
+
+// Initialize Cron Service for reliable WordPress sync
+let cronService;
+try {
+  cronService = new CronService();
+  global.cronService = cronService; // Make it globally accessible
+  
+  // Start cron service after database is ready
+  initializeDatabase().then(() => {
+    console.log('🚀 Starting Cron Service...');
+    cronService.init();
+  }).catch(error => {
+    console.error('❌ Failed to initialize database for cron service:', error);
+  });
+  
+} catch (error) {
+  console.error('❌ Failed to initialize Cron Service:', error);
+  cronService = null;
+}
 
 // Middleware
 app.use(helmet());
@@ -70,15 +91,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoint (legacy)
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date(),
     version: '2.0.0',
-    features: ['incremental-sync', 'auto-ingestion', 'direct-sync']
+    features: ['incremental-sync', 'auto-ingestion', 'direct-sync', 'enhanced-cron-sync'],
+    message: 'Use /api/health for detailed health information'
   });
 });
+
+// Enhanced health check routes
+app.use('/api/health', healthRoutes);
 
 // Simple test endpoint
 app.get('/api/test', (req, res) => {
@@ -250,12 +275,22 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  console.log('🛑 SIGTERM received, shutting down gracefully...');
+  
+  if (cronService) {
+    cronService.stop();
+  }
+  
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  console.log('🛑 SIGINT received, shutting down gracefully...');
+  
+  if (cronService) {
+    cronService.stop();
+  }
+  
   process.exit(0);
 });
 
