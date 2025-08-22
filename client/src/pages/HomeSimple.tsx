@@ -880,7 +880,7 @@ const HomeSimple: React.FC = () => {
                 </Typography>
               </Box>
             ) : viewMode === 'grid' ? (
-              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))' }}>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', maxWidth: '1200px', mx: 'auto' }}>
                 {posts.map((post) => {
                   const titleText = stripHtmlTags(post.title);
                   const excerptText = stripHtmlTags(post.excerpt || '');
@@ -950,6 +950,19 @@ const HomeSimple: React.FC = () => {
                         )}
                         <Chip size="small" label={post.author_name} />
                         <Chip size="small" label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} />
+                        {/* Comment Count Indicator */}
+                        {post.comment_count && post.comment_count > 0 && (
+                          <Chip 
+                            size="small" 
+                            label={`💬 ${post.comment_count}`}
+                            color="secondary"
+                            variant="filled"
+                            sx={{ 
+                              backgroundColor: '#8B5CF6',
+                              color: 'white'
+                            }}
+                          />
+                        )}
                       </Box>
 
                       {/* Media attachments preview */}
