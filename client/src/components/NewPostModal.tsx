@@ -312,83 +312,61 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     }
   };
 
+  const handleClose = useCallback(() => {
+    setTitle('');
+    setContent('');
+    setExcerpt('');
+    setCategoryId('');
+    setUploads([]);
+    setUploadingFiles([]);
+    setError('');
+    setSaving(false);
+    setShowSuccess(false);
+    setIsDragOver(false);
+    onClose();
+  }, [onClose]);
+
+  const handleCloseButton = useCallback(() => {
+    handleClose();
+  }, [handleClose]);
+
   return (
     <Dialog 
       open={open} 
-      onClose={(event, reason) => {
-        // Handle all close scenarios
-        if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-          // Reset all states when closing via backdrop or escape
-          setTitle('');
-          setContent('');
-          setExcerpt('');
-          setCategoryId('');
-          setUploads([]);
-          setEditorRef(null);
-          setShowSuccess(false);
-          setError('');
-          setSaving(false);
-          setUploadingFiles([]);
-        }
-        // Call onClose only once
-        onClose();
-      }}
-      fullWidth 
-      maxWidth="md"
-      disableRestoreFocus={false}
-      disableAutoFocus={false}
-      keepMounted={false}
+      onClose={handleClose}
+      maxWidth="md" 
+      fullWidth
       PaperProps={{
         sx: {
+          backgroundColor: '#16181C',
+          color: '#E7E9EA',
           borderRadius: 3,
-          boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25)'
+          border: '1px solid #2F3336'
         }
       }}
-      aria-labelledby="modal-title"
-      aria-describedby="modal-description"
     >
       <DialogTitle sx={{ 
         p: 3, 
         pb: 2,
-        borderBottom: '1px solid #E5E7EB',
+        backgroundColor: '#16181C',
+        color: '#E7E9EA',
+        borderBottom: '1px solid #2F3336',
         position: 'relative'
       }}>
-        <Typography 
-          id="modal-title"
-          variant="h5" 
-          sx={{ 
-            fontWeight: 600, 
-            color: '#1F2937',
-            textAlign: 'center'
-          }}
-        >
-          {post ? 'Edit Thread' : 'Add Thread'}
+        <Typography variant="h5" component="h2" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
+          {post ? 'Edit Thread' : 'Create New Thread'}
         </Typography>
         <IconButton
           aria-label="Close modal"
-          onClick={() => {
-            // Reset all states when closing
-            setTitle('');
-            setContent('');
-            setExcerpt('');
-            setCategoryId('');
-            setUploads([]);
-            setEditorRef(null);
-            setShowSuccess(false);
-            setError('');
-            setSaving(false);
-            setUploadingFiles([]);
-            // Call onClose only once
-            onClose();
-          }}
+          onClick={handleCloseButton}
           sx={{
             position: 'absolute',
             right: 16,
             top: 16,
-            color: '#6B7280',
+            color: '#71767B',
             '&:hover': {
-              backgroundColor: '#F3F4F6',
-              color: '#374151'
+              backgroundColor: 'rgba(113, 118, 123, 0.1)',
+              color: '#E7E9EA'
             }
           }}
         >
@@ -396,14 +374,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         </IconButton>
       </DialogTitle>
       
-      <DialogContent 
-        id="modal-description"
-        sx={{ 
-          p: 3, 
-          bgcolor: '#FAFAFA',
-          minHeight: '500px'
-        }}
-      >
+      <DialogContent sx={{ 
+        p: 3, 
+        pt: 2,
+        backgroundColor: '#16181C',
+        color: '#E7E9EA'
+      }}>
         {error && (
           <Alert 
             severity="error" 
@@ -443,22 +419,35 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           }}>
             Thread Title
           </Typography>
-          <TextField 
-            fullWidth 
-            required 
-            placeholder="Enter thread title..."
-            value={title} 
+          <TextField
+            label="Title"
+            value={title}
             onChange={(e) => setTitle(e.target.value)}
+            fullWidth
+            required
             sx={{
+              mb: 3,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                backgroundColor: 'white',
+                backgroundColor: '#1C1F23',
+                color: '#E7E9EA',
+                '& fieldset': {
+                  borderColor: '#2F3336'
+                },
                 '&:hover fieldset': {
-                  borderColor: '#3B82F6'
+                  borderColor: '#3F4144'
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#3B82F6'
+                  borderColor: '#1DA1F2'
                 }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#71767B',
+                '&.Mui-focused': {
+                  color: '#1DA1F2'
+                }
+              },
+              '& .MuiInputBase-input': {
+                color: '#E7E9EA'
               }
             }}
           />
@@ -737,25 +726,118 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             </Stack>
           </Paper>
         )}
+
+        {/* Excerpt and Category */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ 
+            mb: 1, 
+            color: '#374151', 
+            fontWeight: 600 
+          }}>
+            Excerpt
+          </Typography>
+          <TextField
+            label="Excerpt"
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            fullWidth
+            multiline
+            rows={2}
+            sx={{
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1C1F23',
+                color: '#E7E9EA',
+                '& fieldset': {
+                  borderColor: '#2F3336'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3F4144'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1DA1F2'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#71767B',
+                '&.Mui-focused': {
+                  color: '#1DA1F2'
+                }
+              },
+              '& .MuiInputBase-input': {
+                color: '#E7E9EA'
+              }
+            }}
+          />
+
+          <TextField
+            select
+            label="Category"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            fullWidth
+            required
+            sx={{
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1C1F23',
+                color: '#E7E9EA',
+                '& fieldset': {
+                  borderColor: '#2F3336'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3F4144'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1DA1F2'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#71767B',
+                '&.Mui-focused': {
+                  color: '#1DA1F2'
+                }
+              },
+              '& .MuiInputBase-input': {
+                color: '#E7E9EA'
+              },
+              '& .MuiSelect-select': {
+                color: '#E7E9EA'
+              }
+            }}
+          >
+            {/* Assuming Category type is defined elsewhere or needs a placeholder */}
+            {/* For now, using a placeholder for the select options */}
+            <MenuItem value="">Select a category</MenuItem>
+            <MenuItem value="1">Category 1</MenuItem>
+            <MenuItem value="2">Category 2</MenuItem>
+            <MenuItem value="3">Category 3</MenuItem>
+          </TextField>
+        </Box>
       </DialogContent>
       
       <DialogActions sx={{ 
         p: 3, 
         pt: 2,
-        borderTop: '1px solid #E5E7EB',
-        backgroundColor: 'white',
+        borderTop: '1px solid #2F3336',
+        backgroundColor: '#16181C',
         gap: 2,
         justifyContent: 'flex-end'
       }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button 
-            onClick={onClose}
+            onClick={handleClose}
             sx={{ 
               borderRadius: 2,
               px: 3,
-              color: '#6B7280',
-              '&:hover': { backgroundColor: '#F3F4F6' }
+              color: '#71767B',
+              borderColor: '#2F3336',
+              '&:hover': { 
+                backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                borderColor: '#3F4144'
+              }
             }}
+            variant="outlined"
           >
             Cancel
           </Button>
@@ -766,9 +848,15 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             sx={{
               borderRadius: 2,
               px: 4,
-              backgroundColor: '#000000',
-              '&:hover': { backgroundColor: '#1F2937' },
-              '&:disabled': { backgroundColor: '#E5E7EB' }
+              backgroundColor: '#1DA1F2',
+              color: '#FFFFFF',
+              '&:hover': { 
+                backgroundColor: '#1A8CD8' 
+              },
+              '&:disabled': { 
+                backgroundColor: '#2F3336',
+                color: '#71767B'
+              }
             }}
           >
             {saving ? 
