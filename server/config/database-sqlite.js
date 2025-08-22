@@ -91,6 +91,36 @@ const initializeDatabase = async () => {
         if (!columnNames.includes('attachments')) addColumn('attachments', 'TEXT');
       });
 
+      // Comments table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          post_id INTEGER REFERENCES posts(id),
+          user_id INTEGER REFERENCES users(id),
+          content TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          is_edited BOOLEAN DEFAULT 0
+        )
+      `);
+
+      // Notifications table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER REFERENCES users(id),
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          message TEXT NOT NULL,
+          data TEXT,
+          is_read BOOLEAN DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          related_post_id INTEGER REFERENCES posts(id),
+          related_comment_id INTEGER REFERENCES comments(id),
+          from_user_id INTEGER REFERENCES users(id)
+        )
+      `);
+
       // Audit log table
       db.run(`
         CREATE TABLE IF NOT EXISTS audit_log (
