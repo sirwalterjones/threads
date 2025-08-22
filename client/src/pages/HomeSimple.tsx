@@ -655,9 +655,14 @@ const HomeSimple: React.FC = () => {
         )}
 
         {/* Advanced Filters - Separate Section */}
-        <Card sx={{ mb: 4 }}>
+        <Card sx={{ 
+          mb: 4,
+          backgroundColor: '#16181C',
+          border: '1px solid #2F3336',
+          borderRadius: 2
+        }}>
           <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, color: '#1F2937', fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: '#E7E9EA', fontWeight: 600 }}>
               Advanced Filters
             </Typography>
 
@@ -674,18 +679,108 @@ const HomeSimple: React.FC = () => {
                 onChange={(_, newValue) => {
                   handleCategoryFilter(newValue?.id?.toString() || '');
                 }}
-                renderInput={(params) => <TextField {...params} label="Category" />}
+                renderInput={(params) => (
+                  <TextField 
+                    {...params} 
+                    label="Category"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        color: '#E7E9EA',
+                        '& fieldset': {
+                          borderColor: '#2F3336',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#71767B',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#1D9BF0',
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#71767B',
+                        '&.Mui-focused': {
+                          color: '#1D9BF0',
+                        },
+                      },
+                    }}
+                  />
+                )}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
+                PaperComponent={({ children, ...props }) => (
+                  <div
+                    {...props}
+                    style={{
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      borderRadius: '8px',
+                      marginTop: '4px',
+                      ...props.style,
+                    }}
+                  >
+                    {children}
+                  </div>
+                )}
+                sx={{
+                  '& .MuiAutocomplete-option': {
+                    color: '#E7E9EA',
+                    '&:hover': {
+                      backgroundColor: '#2F3336',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                    },
+                  },
+                }}
               />
 
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: '#E7E9EA',
+                  '& fieldset': {
+                    borderColor: '#2F3336',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#71767B',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1D9BF0',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#71767B',
+                  '&.Mui-focused': {
+                    color: '#1D9BF0',
+                  },
+                },
+              }}>
                 <InputLabel>Origin</InputLabel>
                 <Select value={origin} label="Origin" onChange={(e)=> {
                   const val = e.target.value as 'all'|'wordpress'|'manual';
                   setOrigin(val);
                   setCurrentPage(1);
                   loadData(1, { ...(val !== 'all' ? { origin: val } as any : {}), ...(mineOnly ? { mine: true } as any : {}) });
-                }}>
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': {
+                          backgroundColor: '#2F3336',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+                >
                   <MenuItem value="all">All</MenuItem>
                   <MenuItem value="wordpress">From WordPress</MenuItem>
                   <MenuItem value="manual">My Threads</MenuItem>
@@ -693,7 +788,26 @@ const HomeSimple: React.FC = () => {
               </FormControl>
 
 {authors.length > 0 ? (
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={{
+                  '& .MuiOutlinedInput-root': {
+                    color: '#E7E9EA',
+                    '& fieldset': {
+                      borderColor: '#2F3336',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#71767B',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1D9BF0',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#71767B',
+                    '&.Mui-focused': {
+                      color: '#1D9BF0',
+                    },
+                  },
+                }}>
                   <InputLabel>Author</InputLabel>
                   <Select
                     value={authorFilter}
@@ -702,6 +816,26 @@ const HomeSimple: React.FC = () => {
                       setAuthorFilter(e.target.value);
                       setCurrentPage(1);
                       loadData(1, { author: e.target.value, ...(origin !== 'all' ? { origin } as any : {}), ...(mineOnly ? { mine: true } as any : {}) });
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: '#16181C',
+                          border: '1px solid #2F3336',
+                          '& .MuiMenuItem-root': {
+                            color: '#E7E9EA',
+                            '&:hover': {
+                              backgroundColor: '#2F3336',
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                              '&:hover': {
+                                backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                              },
+                            },
+                          },
+                        },
+                      },
                     }}
                   >
                     <MenuItem value="">All Authors</MenuItem>
@@ -721,6 +855,29 @@ const HomeSimple: React.FC = () => {
                   value={authorFilter}
                   onChange={(e) => setAuthorFilter(e.target.value)}
                   helperText="Authors API unavailable - type author name manually"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      color: '#E7E9EA',
+                      '& fieldset': {
+                        borderColor: '#2F3336',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#71767B',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1D9BF0',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#71767B',
+                      '&.Mui-focused': {
+                        color: '#1D9BF0',
+                      },
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: '#71767B',
+                    },
+                  }}
                 />
               )}
 
@@ -732,6 +889,26 @@ const HomeSimple: React.FC = () => {
                 value={dateFromFilter}
                 onChange={(e) => setDateFromFilter(e.target.value)}
                 InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    color: '#E7E9EA',
+                    '& fieldset': {
+                      borderColor: '#2F3336',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#71767B',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1D9BF0',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#71767B',
+                    '&.Mui-focused': {
+                      color: '#1D9BF0',
+                    },
+                  },
+                }}
               />
 
               <TextField
@@ -742,11 +919,71 @@ const HomeSimple: React.FC = () => {
                 value={dateToFilter}
                 onChange={(e) => setDateToFilter(e.target.value)}
                 InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    color: '#E7E9EA',
+                    '& fieldset': {
+                      borderColor: '#2F3336',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#71767B',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1D9BF0',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#71767B',
+                    '&.Mui-focused': {
+                      color: '#1D9BF0',
+                    },
+                  },
+                }}
               />
 
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: '#E7E9EA',
+                  '& fieldset': {
+                    borderColor: '#2F3336',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#71767B',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1D9BF0',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#71767B',
+                  '&.Mui-focused': {
+                    color: '#1D9BF0',
+                  },
+                },
+              }}>
                 <InputLabel>Sort By</InputLabel>
-                <Select value={sortBy} label="Sort By" onChange={(e)=> setSortBy(e.target.value as any)}>
+                <Select value={sortBy} label="Sort By" onChange={(e)=> setSortBy(e.target.value as any)}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': {
+                          backgroundColor: '#2F3336',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+                >
                   <MenuItem value="wp_published_date">Published Date</MenuItem>
                   <MenuItem value="title">Title</MenuItem>
                   <MenuItem value="author_name">Author</MenuItem>
@@ -754,9 +991,49 @@ const HomeSimple: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <FormControl fullWidth>
+              <FormControl fullWidth sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: '#E7E9EA',
+                  '& fieldset': {
+                    borderColor: '#2F3336',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#71767B',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#1D9BF0',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#71767B',
+                  '&.Mui-focused': {
+                    color: '#1D9BF0',
+                  },
+                },
+              }}>
                 <InputLabel>Order</InputLabel>
-                <Select value={sortOrder} label="Order" onChange={(e)=> setSortOrder(e.target.value as any)}>
+                <Select value={sortOrder} label="Order" onChange={(e)=> setSortOrder(e.target.value as any)}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': {
+                          backgroundColor: '#2F3336',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+                >
                   <MenuItem value="DESC">Newest First</MenuItem>
                   <MenuItem value="ASC">Oldest First</MenuItem>
                 </Select>
