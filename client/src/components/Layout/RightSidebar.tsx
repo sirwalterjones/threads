@@ -35,27 +35,35 @@ const RightSidebar: React.FC = () => {
 
   useEffect(() => {
     loadSidebarData();
+    
+    // Auto-refresh every 2 minutes to show new posts
+    const interval = setInterval(() => {
+      loadSidebarData();
+    }, 120000); // 2 minutes
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadSidebarData = async () => {
     try {
       setLoading(true);
       
-      // Load recent threads
+      // Load recent threads - get more posts to ensure we have today's posts
       const recentResponse = await apiService.getPosts({
-        limit: 50, // Increased to show more threads in the full sidebar
-        sortBy: 'wp_published_date',
+        limit: 100, // Increased to ensure we get today's posts
+        sortBy: 'ingested_at', // Use ingested_at instead of wp_published_date
         sortOrder: 'DESC'
       });
       
-      // Sort posts by published date (newest first) since backend sorting is temporarily disabled
+      // Sort posts by ingested_at date (newest first) and ensure we show today's posts
       const sortedPosts = recentResponse.posts.sort((a, b) => {
-        const dateA = new Date(a.wp_published_date || a.ingested_at || 0);
-        const dateB = new Date(b.wp_published_date || b.ingested_at || 0);
+        const dateA = new Date(a.ingested_at || a.wp_published_date || 0);
+        const dateB = new Date(b.ingested_at || b.wp_published_date || 0);
         return dateB.getTime() - dateA.getTime(); // Newest first
       });
       
-      setRecentThreads(sortedPosts);
+      // Take the first 20 posts (most recent)
+      setRecentThreads(sortedPosts.slice(0, 20));
 
       // Load top categories
       const categoriesResponse = await apiService.getCategories();
@@ -144,19 +152,30 @@ const RightSidebar: React.FC = () => {
             </Button>
           </Box>
           
-          <Box sx={{ p: 1, pb: 0.5 }}>
-            <Typography variant="body2" sx={{ 
+          <Box sx={{ mb: 2 }}>
+            <Typography sx={{ 
               color: '#E7E9EA', 
-              fontWeight: 700, 
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              textAlign: 'center',
-              justifyContent: 'center'
+              mb: 1, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between' 
             }}>
-              <Schedule sx={{ color: '#1D9BF0', fontSize: 16 }} />
-              Recent Threads
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Schedule sx={{ color: '#1D9BF0', fontSize: 16, mr: 1 }} />
+                Recent Threads
+              </Box>
+              <IconButton 
+                size="small" 
+                onClick={loadSidebarData}
+                sx={{ 
+                  color: '#1DA1F2', 
+                  '&:hover': { backgroundColor: 'rgba(29, 161, 242, 0.1)' },
+                  ml: 1
+                }}
+                title="Refresh recent threads"
+              >
+                <TrendingUp fontSize="small" />
+              </IconButton>
             </Typography>
           </Box>
           
