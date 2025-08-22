@@ -498,4 +498,80 @@ router.get('/direct-wordpress-test', async (req, res) => {
     }
 });
 
+// Get server IP and network info
+router.get('/server-info', async (req, res) => {
+    try {
+        // Get server's IP address
+        const serverIP = req.connection.remoteAddress || 
+                        req.socket.remoteAddress || 
+                        req.connection.socket?.remoteAddress ||
+                        'unknown';
+        
+        // Get Vercel-specific info
+        const vercelInfo = {
+            isVercel: !!process.env.VERCEL,
+            vercelUrl: process.env.VERCEL_URL,
+            vercelRegion: process.env.VERCEL_REGION,
+            vercelDeploymentUrl: process.env.VERCEL_DEPLOYMENT_URL
+        };
+        
+        // Get request headers that might show IP
+        const headers = {
+            'x-forwarded-for': req.headers['x-forwarded-for'],
+            'x-real-ip': req.headers['x-real-ip'],
+            'x-vercel-forwarded-for': req.headers['x-vercel-forwarded-for'],
+            'cf-connecting-ip': req.headers['cf-connecting-ip']
+        };
+        
+        res.json({
+            serverIP,
+            headers,
+            vercelInfo,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// Check external IP address
+router.get('/external-ip', async (req, res) => {
+    try {
+        const axios = require('axios');
+        const results = {};
+        
+        // Try multiple IP checking services
+        const ipServices = [
+            'https://api.ipify.org?format=json',
+            'https://ipinfo.io/json',
+            'https://httpbin.org/ip'
+        ];
+        
+        for (const service of ipServices) {
+            try {
+                const response = await axios.get(service, { timeout: 5000 });
+                results[service] = response.data;
+            } catch (error) {
+                results[service] = { error: error.message };
+            }
+        }
+        
+        res.json({
+            message: 'External IP check results',
+            results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
