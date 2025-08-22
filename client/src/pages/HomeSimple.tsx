@@ -747,6 +747,7 @@ const HomeSimple: React.FC = () => {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         color: '#E7E9EA',
+                        backgroundColor: '#16181C',
                         '& fieldset': {
                           borderColor: '#2F3336',
                         },
@@ -755,6 +756,9 @@ const HomeSimple: React.FC = () => {
                         },
                         '&.Mui-focused fieldset': {
                           borderColor: '#1D9BF0',
+                        },
+                        '& .MuiInputBase-input': {
+                          color: '#E7E9EA !important',
                         },
                       },
                       '& .MuiInputLabel-root': {
@@ -797,6 +801,7 @@ const HomeSimple: React.FC = () => {
               <FormControl fullWidth sx={{
                 '& .MuiOutlinedInput-root': {
                   color: '#E7E9EA',
+                  backgroundColor: '#16181C',
                   '& fieldset': {
                     borderColor: '#2F3336',
                   },
@@ -805,6 +810,13 @@ const HomeSimple: React.FC = () => {
                   },
                   '&.Mui-focused fieldset': {
                     borderColor: '#1D9BF0',
+                  },
+                  '& .MuiSelect-select': {
+                    color: '#E7E9EA !important',
+                    backgroundColor: 'transparent',
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#E7E9EA !important',
                   },
                 },
                 '& .MuiInputLabel-root': {
@@ -1005,6 +1017,7 @@ const HomeSimple: React.FC = () => {
               <FormControl fullWidth sx={{
                 '& .MuiOutlinedInput-root': {
                   color: '#E7E9EA',
+                  backgroundColor: '#16181C',
                   '& fieldset': {
                     borderColor: '#2F3336',
                   },
@@ -1013,6 +1026,13 @@ const HomeSimple: React.FC = () => {
                   },
                   '&.Mui-focused fieldset': {
                     borderColor: '#1D9BF0',
+                  },
+                  '& .MuiSelect-select': {
+                    color: '#E7E9EA !important',
+                    backgroundColor: 'transparent',
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#E7E9EA !important',
                   },
                 },
                 '& .MuiInputLabel-root': {
@@ -1055,6 +1075,7 @@ const HomeSimple: React.FC = () => {
               <FormControl fullWidth sx={{
                 '& .MuiOutlinedInput-root': {
                   color: '#E7E9EA',
+                  backgroundColor: '#16181C',
                   '& fieldset': {
                     borderColor: '#2F3336',
                   },
@@ -1063,6 +1084,13 @@ const HomeSimple: React.FC = () => {
                   },
                   '&.Mui-focused fieldset': {
                     borderColor: '#1D9BF0',
+                  },
+                  '& .MuiSelect-select': {
+                    color: '#E7E9EA !important',
+                    backgroundColor: 'transparent',
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#E7E9EA !important',
                   },
                 },
                 '& .MuiInputLabel-root': {
