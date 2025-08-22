@@ -497,6 +497,25 @@ const Dashboard: React.FC = () => {
                     fontSize: '0.75rem'
                   }}
                 />
+                {/* Comment Count Indicator */}
+                {post.comment_count && post.comment_count > 0 && (
+                  <Chip 
+                    size="small" 
+                    label={`💬 ${post.comment_count}`}
+                    color="secondary"
+                    variant="filled"
+                    sx={{ 
+                      fontSize: '0.75rem',
+                      backgroundColor: '#8B5CF6',
+                      color: 'white',
+                      '& .MuiChip-label': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '2px'
+                      }
+                    }}
+                  />
+                )}
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -625,6 +644,25 @@ const Dashboard: React.FC = () => {
                   color: '#6B7280'
                 }}
               />
+              {/* Comment Count Indicator */}
+              {post.comment_count && post.comment_count > 0 && (
+                <Chip 
+                  size="small" 
+                  label={`💬 ${post.comment_count}`}
+                  color="secondary"
+                  variant="filled"
+                  sx={{ 
+                    fontSize: '0.75rem',
+                    backgroundColor: '#8B5CF6',
+                    color: 'white',
+                    '& .MuiChip-label': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '2px'
+                    }
+                  }}
+                />
+              )}
             </Box>
 
             {/* Media attachments preview */}

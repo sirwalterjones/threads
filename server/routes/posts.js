@@ -218,7 +218,11 @@ router.get('/',
            JOIN files f ON pa.file_id = f.id 
            WHERE pa.post_id = p.id), 
           '[]'::json
-        ) as attachments
+        ) as attachments,
+        COALESCE(
+          (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
+          0
+        ) as comment_count
       FROM posts p
       LEFT JOIN categories c ON p.category_id = c.id
       ${whereClause}

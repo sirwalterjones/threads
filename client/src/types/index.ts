@@ -37,6 +37,7 @@ export interface Post {
   attachments?: MediaFile[];
   metadata?: any;
   rank?: number;
+  comment_count?: number;
 }
 
 export interface PostComment {
