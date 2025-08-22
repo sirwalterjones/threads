@@ -102,11 +102,15 @@ const NotificationBell: React.FC = () => {
 
   const handleClearAllNotifications = async () => {
     try {
-      await apiService.clearAllNotifications();
+      console.log('Clearing all notifications...');
+      const response = await apiService.clearAllNotifications();
+      console.log('Clear notifications response:', response);
       setNotifications([]);
       setUnreadCount(0);
+      handleClose(); // Close the dropdown after clearing
     } catch (error) {
       console.error('Failed to clear all notifications:', error);
+      alert('Failed to clear notifications. Please try again.');
     }
   };
 
