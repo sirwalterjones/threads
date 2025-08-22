@@ -145,8 +145,13 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    console.log('Selected files:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
     files.forEach(handleFileUpload);
-    e.target.value = ''; // Reset input
+    // Force reset the input to prevent caching issues
+    e.target.value = '';
+    // Also reset the input element completely
+    const input = e.target as HTMLInputElement;
+    input.files = null;
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -169,6 +174,14 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
 
   const handleRemoveAttachment = (index: number) => {
     setUploads(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveFailedUpload = (file: File) => {
+    setUploadingFiles(prev => prev.filter(f => f.file !== file));
+  };
+
+  const handleClearAllFailedUploads = () => {
+    setUploadingFiles(prev => prev.filter(f => f.status !== 'error'));
   };
 
   const [editorRef, setEditorRef] = useState<any>(null);
@@ -196,8 +209,9 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         return;
       }
       
-      // Check if any files are still uploading
-      if (uploadingFiles.length > 0) {
+      // Check if any files are still uploading (only block if actively uploading)
+      const activeUploads = uploadingFiles.filter(f => f.status === 'uploading');
+      if (activeUploads.length > 0) {
         setError('Please wait for all files to finish uploading before creating the thread');
         return;
       }
@@ -222,11 +236,15 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       console.log('Submitting payload:', payload);
       
       if (post) {
-        await apiService.updatePost(post.id, payload);
+        console.log('Updating post with payload:', payload);
+        const updatedPost = await apiService.updatePost(post.id, payload);
+        console.log('Post updated successfully:', updatedPost);
         // Track edit
         await auditService.trackEdit('post', post.id, { title, content, excerpt });
       } else {
+        console.log('Creating post with payload:', payload);
         const result = await apiService.createPost(payload);
+        console.log('Post created successfully:', result);
         // Track creation
         await auditService.trackCreate('post', result.id || 'new', { title, content, excerpt });
       }
@@ -519,9 +537,29 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
               mb: 2
             }}
           >
-            <Typography variant="subtitle2" sx={{ mb: 2, color: '#374151', fontWeight: 600 }}>
-              Uploading Files ({uploadingFiles.length})
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ color: '#374151', fontWeight: 600 }}>
+                Uploading Files ({uploadingFiles.length})
+              </Typography>
+              {uploadingFiles.some(f => f.status === 'error') && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleClearAllFailedUploads}
+                  sx={{
+                    fontSize: '12px',
+                    color: '#EF4444',
+                    borderColor: '#EF4444',
+                    '&:hover': {
+                      backgroundColor: '#FEF2F2',
+                      borderColor: '#DC2626'
+                    }
+                  }}
+                >
+                  Clear All Failed
+                </Button>
+              )}
+            </Box>
             <Stack spacing={2}>
               {uploadingFiles.map((fileData, i) => (
                 <Box key={i} sx={{ 
@@ -558,7 +596,21 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                     <CheckCircle sx={{ color: '#10B981', fontSize: 20 }} />
                   )}
                   {fileData.status === 'error' && (
-                    <Error sx={{ color: '#EF4444', fontSize: 20 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Error sx={{ color: '#EF4444', fontSize: 20 }} />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveFailedUpload(fileData.file)}
+                        sx={{ 
+                          color: '#EF4444',
+                          '&:hover': { 
+                            backgroundColor: '#FEF2F2'
+                          }
+                        }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
                   )}
                 </Box>
               ))}
