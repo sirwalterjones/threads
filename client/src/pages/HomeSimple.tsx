@@ -965,6 +965,7 @@ const HomeSimple: React.FC = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     color: '#E7E9EA',
+                    backgroundColor: '#16181C',
                     '& fieldset': {
                       borderColor: '#2F3336',
                     },
@@ -974,9 +975,12 @@ const HomeSimple: React.FC = () => {
                     '&.Mui-focused fieldset': {
                       borderColor: '#1D9BF0',
                     },
+                    '& .MuiInputBase-input': {
+                      color: '#E7E9EA !important',
+                    },
                   },
                   '& .MuiInputLabel-root': {
-                    color: '#71767B',
+                    color: '#E7E9EA',
                     '&.Mui-focused': {
                       color: '#1D9BF0',
                     },
@@ -995,6 +999,7 @@ const HomeSimple: React.FC = () => {
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     color: '#E7E9EA',
+                    backgroundColor: '#16181C',
                     '& fieldset': {
                       borderColor: '#2F3336',
                     },
@@ -1004,9 +1009,12 @@ const HomeSimple: React.FC = () => {
                     '&.Mui-focused fieldset': {
                       borderColor: '#1D9BF0',
                     },
+                    '& .MuiInputBase-input': {
+                      color: '#E7E9EA !important',
+                    },
                   },
                   '& .MuiInputLabel-root': {
-                    color: '#71767B',
+                    color: '#E7E9EA',
                     '&.Mui-focused': {
                       color: '#1D9BF0',
                     },
@@ -1211,6 +1219,24 @@ const HomeSimple: React.FC = () => {
                 exclusive
                 onChange={(_, newMode) => newMode && setViewMode(newMode)}
                 size="small"
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    color: '#E7E9EA',
+                    borderColor: '#2F3336',
+                    '&:hover': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                      borderColor: '#1D9BF0',
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                      color: '#1D9BF0',
+                      borderColor: '#1D9BF0',
+                      '&:hover': {
+                        backgroundColor: 'rgba(29, 155, 240, 0.3)',
+                      },
+                    },
+                  },
+                }}
               >
                 <ToggleButton value="grid">
                   <ViewModule />
