@@ -34,7 +34,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       setTitle(post.title || '');
       setContent(post.content || '');
       setExcerpt(post.excerpt || '');
-      setCategoryId(post.category_slug ? String(post.category_slug) : '');
+      setCategoryId(post.category_id ? String(post.category_id) : '');
     } else {
       setTitle(''); setContent(''); setExcerpt(''); setCategoryId('');
     }

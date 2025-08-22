@@ -205,7 +205,7 @@ router.get('/',
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
-          p.metadata, c.name as category_name, c.slug as category_slug,
+          p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
           COALESCE(
             (SELECT json_agg(
               json_build_object(
@@ -444,12 +444,29 @@ router.put('/:id',
   auditLog('update_post', 'posts'),
   async (req, res) => {
     try {
+      console.log('Update post route called with:', { id: req.params.id, body: req.body, user: req.user });
+      
       const { id } = req.params;
       const { title, content, excerpt, categoryId, retentionDays, attachments } = req.body;
+      
+      console.log('Parsed request data:', {
+        id,
+        title,
+        content: content ? `${content.substring(0, 100)}...` : null,
+        excerpt: excerpt ? `${excerpt.substring(0, 100)}...` : null,
+        categoryId,
+        categoryIdType: typeof categoryId,
+        retentionDays,
+        attachments: attachments ? `${attachments.length} items` : null
+      });
 
       // Check if post exists
+      console.log('Checking if post exists with ID:', id);
       const existingPost = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
+      console.log('Existing post query result:', { rowCount: existingPost.rows.length, post: existingPost.rows[0] });
+      
       if (existingPost.rows.length === 0) {
+        console.log('Post not found, returning 404');
         return res.status(404).json({ error: 'Post not found' });
       }
 
@@ -476,9 +493,17 @@ router.put('/:id',
         paramIndex++;
       }
 
-      if (categoryId) {
+      if (categoryId !== undefined && categoryId !== null && categoryId !== '') {
+        // Convert categoryId to integer if it's a valid number
+        const categoryIdNum = parseInt(categoryId);
+        if (isNaN(categoryIdNum)) {
+          console.log('Invalid categoryId:', categoryId, 'type:', typeof categoryId);
+          return res.status(400).json({ error: 'Invalid category ID format' });
+        }
+        
+        console.log('Setting category_id to:', categoryIdNum);
         updateFields.push(`category_id = $${paramIndex}`);
-        queryParams.push(categoryId);
+        queryParams.push(categoryIdNum);
         paramIndex++;
       }
 

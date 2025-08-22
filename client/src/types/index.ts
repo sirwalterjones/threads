@@ -30,6 +30,7 @@ export interface Post {
   wp_modified_date?: string;
   ingested_at: string;
   retention_date: string;
+  category_id?: number;
   category_name?: string;
   category_slug?: string;
   featured_media_id?: number;
