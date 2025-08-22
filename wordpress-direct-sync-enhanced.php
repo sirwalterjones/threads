@@ -64,7 +64,7 @@ class ThreadsIntelPushSyncEnhanced {
         // Schedule the push sync every 5 minutes
         if (!wp_next_scheduled('threads_intel_push_sync_hook')) {
             wp_schedule_event(time(), 'five_minutes', 'threads_intel_push_sync_hook');
-            $this->log_message('Push sync scheduled for every 5 minutes', 'info');
+            $this->log_message("Push sync scheduled for every 5 minutes", 'info');
         }
         
         // Log cron status
