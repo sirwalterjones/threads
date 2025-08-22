@@ -222,37 +222,101 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Typography variant="h6" sx={{ mb: 2, color: '#1F2937', fontWeight: 600 }}>
-        Comments ({comments.length})
-      </Typography>
+      {/* Prominent Comment Section Header */}
+      <Box sx={{ 
+        mb: 3, 
+        p: 2, 
+        backgroundColor: '#0F1419', 
+        borderRadius: 2, 
+        border: '2px solid #1DA1F2',
+        textAlign: 'center',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: 'linear-gradient(90deg, #1DA1F2, #794BC4, #E91E63)',
+          borderRadius: '2px 2px 0 0'
+        }
+      }}>
+        <Typography variant="h5" sx={{ 
+          color: '#E7E9EA', 
+          fontWeight: 700, 
+          mb: 1,
+          textTransform: 'uppercase',
+          letterSpacing: '1px'
+        }}>
+          💬 Comments ({comments.length})
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#71767B' }}>
+          Join the conversation and share your thoughts!
+        </Typography>
+      </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ 
+          mb: 2, 
+          backgroundColor: '#1C1F23',
+          color: '#E7E9EA',
+          border: '1px solid #EF4444',
+          '& .MuiAlert-icon': { color: '#EF4444' }
+        }}>
           {error}
         </Alert>
       )}
 
       {/* Add new comment */}
       {user && (
-        <Paper elevation={1} sx={{ p: 2, mb: 3, backgroundColor: '#F9FAFB' }}>
+        <Paper elevation={0} sx={{ 
+          p: 3, 
+          mb: 3, 
+          backgroundColor: '#1C1F23',
+          border: '1px solid #2F3336',
+          borderRadius: 2
+        }}>
+          <Typography variant="subtitle2" sx={{ 
+            mb: 2, 
+            color: '#1DA1F2', 
+            fontWeight: 600,
+            fontSize: '16px'
+          }}>
+            ✍️ Add Your Comment
+          </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
             <TextField
               ref={textFieldRef}
               fullWidth
               multiline
-              rows={2}
-              placeholder="Add a comment... Use @ to mention users"
+              rows={3}
+              placeholder="Share your thoughts... Use @ to mention users"
               value={newComment}
               onChange={handleCommentChange}
               disabled={submitting}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
+                  backgroundColor: '#16181C',
+                  color: '#E7E9EA',
+                  '& fieldset': {
+                    borderColor: '#2F3336'
+                  },
                   '&:hover fieldset': {
-                    borderColor: '#3B82F6'
+                    borderColor: '#1DA1F2'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#3B82F6'
+                    borderColor: '#1DA1F2'
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#71767B'
+                },
+                '& .MuiInputBase-input': {
+                  color: '#E7E9EA',
+                  '&::placeholder': {
+                    color: '#71767B',
+                    opacity: 1
                   }
                 }
               }}
@@ -265,18 +329,30 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               placement="bottom-start"
               style={{ zIndex: 1300 }}
             >
-              <Paper sx={{ maxHeight: 200, overflow: 'auto', minWidth: 200 }}>
+              <Paper sx={{ 
+                maxHeight: 200, 
+                overflow: 'auto', 
+                minWidth: 200,
+                backgroundColor: '#1C1F23',
+                border: '1px solid #2F3336'
+              }}>
                 <List>
                   {mentionUsers.map((user) => (
                     <ListItem
                       key={user.id}
                       onClick={() => handleMentionSelect(user.username)}
-                      sx={{ py: 1, cursor: 'pointer', '&:hover': { backgroundColor: '#F3F4F6' } }}
+                      sx={{ 
+                        py: 1, 
+                        cursor: 'pointer', 
+                        '&:hover': { backgroundColor: '#2F3336' },
+                        color: '#E7E9EA'
+                      }}
                     >
                       <ListItemText
                         primary={`@${user.username}`}
                         secondary={user.role}
-                        primaryTypographyProps={{ fontWeight: 500 }}
+                        primaryTypographyProps={{ fontWeight: 500, color: '#E7E9EA' }}
+                        secondaryTypographyProps={{ color: '#71767B' }}
                       />
                     </ListItem>
                   ))}
@@ -289,12 +365,24 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
               disabled={!newComment.trim() || submitting}
               startIcon={<SendIcon />}
               sx={{
-                backgroundColor: '#3B82F6',
-                '&:hover': { backgroundColor: '#2563EB' },
-                '&:disabled': { backgroundColor: '#9CA3AF' }
+                backgroundColor: '#1DA1F2',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                '&:hover': { 
+                  backgroundColor: '#1A8CD8',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(29, 161, 242, 0.3)'
+                },
+                '&:disabled': { 
+                  backgroundColor: '#2F3336',
+                  color: '#71767B'
+                },
+                transition: 'all 0.2s ease'
               }}
             >
-              Post
+              {submitting ? 'Posting...' : 'Post Comment'}
             </Button>
           </Box>
         </Paper>
@@ -302,40 +390,61 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
 
       {/* Comments list */}
       {comments.length === 0 ? (
-        <Box sx={{ p: 3, textAlign: 'center', color: '#6B7280' }}>
-          <Typography>No comments yet. Be the first to comment!</Typography>
+        <Box sx={{ 
+          p: 4, 
+          textAlign: 'center', 
+          backgroundColor: '#1C1F23',
+          border: '1px solid #2F3336',
+          borderRadius: 2
+        }}>
+          <Typography sx={{ color: '#71767B', fontSize: '16px' }}>
+            💭 No comments yet. Be the first to start the conversation!
+          </Typography>
         </Box>
       ) : (
         <List sx={{ p: 0 }}>
           {comments.map((comment, index) => (
             <React.Fragment key={comment.id}>
               <ListItem sx={{ 
-                p: 2, 
-                backgroundColor: 'white',
-                borderRadius: 1,
-                mb: 1,
-                border: '1px solid #E5E7EB'
+                p: 3, 
+                backgroundColor: '#1C1F23',
+                borderRadius: 2,
+                mb: 2,
+                border: '1px solid #2F3336',
+                '&:hover': {
+                  backgroundColor: '#16181C',
+                  borderColor: '#3F4144'
+                },
+                transition: 'all 0.2s ease'
               }}>
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1F2937' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#E7E9EA' }}>
                         {comment.username}
                       </Typography>
                       {comment.role === 'admin' && (
                         <Chip 
                           label="Admin" 
                           size="small" 
-                          color="primary" 
-                          variant="outlined"
+                          sx={{ 
+                            backgroundColor: '#1DA1F2',
+                            color: '#FFFFFF',
+                            fontWeight: 600,
+                            border: 'none'
+                          }}
                         />
                       )}
                       {comment.is_edited && (
                         <Chip 
                           label="Edited" 
                           size="small" 
-                          color="secondary" 
-                          variant="outlined"
+                          sx={{ 
+                            backgroundColor: '#794BC4',
+                            color: '#FFFFFF',
+                            fontWeight: 600,
+                            border: 'none'
+                          }}
                         />
                       )}
                     </Box>
@@ -352,7 +461,20 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                             onChange={(e) => setEditContent(e.target.value)}
                             sx={{
                               '& .MuiOutlinedInput-root': {
-                                backgroundColor: '#F9FAFB'
+                                backgroundColor: '#16181C',
+                                color: '#E7E9EA',
+                                '& fieldset': {
+                                  borderColor: '#2F3336'
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: '#1DA1F2'
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#1DA1F2'
+                                }
+                              },
+                              '& .MuiInputBase-input': {
+                                color: '#E7E9EA'
                               }
                             }}
                           />
@@ -362,6 +484,10 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                               variant="contained"
                               onClick={handleEditComment}
                               disabled={!editContent.trim() || submitting}
+                              sx={{
+                                backgroundColor: '#1DA1F2',
+                                '&:hover': { backgroundColor: '#1A8CD8' }
+                              }}
                             >
                               Save
                             </Button>
@@ -370,17 +496,35 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                               variant="outlined"
                               onClick={cancelEditing}
                               disabled={submitting}
+                              sx={{
+                                borderColor: '#2F3336',
+                                color: '#71767B',
+                                '&:hover': { 
+                                  borderColor: '#3F4144',
+                                  backgroundColor: 'rgba(113, 118, 123, 0.1)'
+                                }
+                              }}
                             >
                               Cancel
                             </Button>
                           </Box>
                         </Box>
                       ) : (
-                        <Typography variant="body2" sx={{ color: '#374151', whiteSpace: 'pre-wrap' }}>
+                        <Typography variant="body2" sx={{ 
+                          color: '#E7E9EA', 
+                          whiteSpace: 'pre-wrap',
+                          lineHeight: 1.6,
+                          fontSize: '15px'
+                        }}>
                           {highlightMentions(comment.content)}
                         </Typography>
                       )}
-                      <Typography variant="caption" sx={{ color: '#9CA3AF', mt: 1, display: 'block' }}>
+                      <Typography variant="caption" sx={{ 
+                        color: '#71767B', 
+                        mt: 2, 
+                        display: 'block',
+                        fontSize: '13px'
+                      }}>
                         {format(new Date(comment.created_at), 'MMM dd, yyyy HH:mm')}
                         {comment.updated_at !== comment.created_at && (
                           <span> (edited {format(new Date(comment.updated_at), 'MMM dd, yyyy HH:mm')})</span>
@@ -397,7 +541,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                       <IconButton
                         size="small"
                         onClick={() => startEditing(comment)}
-                        sx={{ color: '#6B7280' }}
+                        sx={{ 
+                          color: '#71767B',
+                          '&:hover': { 
+                            backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                            color: '#1DA1F2'
+                          }
+                        }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -406,7 +556,13 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                       <IconButton
                         size="small"
                         onClick={() => handleDeleteComment(comment.id)}
-                        sx={{ color: '#EF4444' }}
+                        sx={{ 
+                          color: '#EF4444',
+                          '&:hover': { 
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            color: '#DC2626'
+                          }
+                        }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -414,7 +570,12 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
                   </Box>
                 )}
               </ListItem>
-              {index < comments.length - 1 && <Divider />}
+              {index < comments.length - 1 && (
+                <Divider sx={{ 
+                  borderColor: '#2F3336',
+                  my: 1
+                }} />
+              )}
             </React.Fragment>
           ))}
         </List>
