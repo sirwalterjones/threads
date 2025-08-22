@@ -35,8 +35,22 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       setContent(post.content || '');
       setExcerpt(post.excerpt || '');
       setCategoryId(post.category_id ? String(post.category_id) : '');
+      // Load existing attachments for editing - convert MediaFile to uploads format
+      if (post.attachments && post.attachments.length > 0) {
+        const convertedAttachments = post.attachments.map(attachment => ({
+          url: `/api/files/${attachment.id}/${encodeURIComponent(attachment.filename)}`,
+          path: attachment.filename,
+          mimeType: attachment.mime_type,
+          name: attachment.original_name,
+          id: attachment.id
+        }));
+        setUploads(convertedAttachments);
+      } else {
+        setUploads([]);
+      }
     } else {
       setTitle(''); setContent(''); setExcerpt(''); setCategoryId('');
+      setUploads([]);
     }
   }, [open, post]);
 
