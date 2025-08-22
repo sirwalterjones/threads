@@ -459,28 +459,56 @@ class WordPressService {
           
           console.log(`📂 Processing category: ${category.id} - ${category.name}`);
           
-          const result = await pool.query(`
-            INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
-            VALUES ($1, $2, $3, NULL, $4)
-            ON CONFLICT (wp_category_id)
-            DO UPDATE SET
-              name = EXCLUDED.name,
-              slug = EXCLUDED.slug,
-              post_count = EXCLUDED.post_count
-            RETURNING id, wp_category_id
-          `, [
-            category.id,
-            category.name.trim(),
-            category.slug.trim(),
-            parseInt(category.count) || 0
-          ]);
-          
-          if (result.rowCount === 0) {
-            throw new Error(`Category ${category.id}: Database insertion failed - no rows affected`);
+          // Check if category exists and is hidden
+          const existingCategory = await pool.query(
+            'SELECT id, is_hidden FROM categories WHERE wp_category_id = $1',
+            [category.id]
+          );
+
+          if (existingCategory.rows.length > 0) {
+            // Category exists - only update if it's not hidden
+            if (!existingCategory.rows[0].is_hidden) {
+              const result = await pool.query(`
+                UPDATE categories 
+                SET name = $1, slug = $2, post_count = $3, updated_at = NOW()
+                WHERE wp_category_id = $4 AND is_hidden = false
+                RETURNING id, wp_category_id
+              `, [
+                category.name.trim(),
+                category.slug.trim(),
+                parseInt(category.count) || 0,
+                category.id
+              ]);
+              
+              if (result.rowCount === 0) {
+                console.log(`⚠️ Category ${category.id} is hidden, skipping update`);
+              } else {
+                console.log(`✅ Category updated: ${category.id} -> DB ID ${result.rows[0].id}`);
+                categoriesIngested++;
+              }
+            } else {
+              console.log(`⚠️ Category ${category.id} is hidden, preserving hidden state`);
+            }
+          } else {
+            // Category doesn't exist - insert new one
+            const result = await pool.query(`
+              INSERT INTO categories (wp_category_id, name, slug, parent_id, post_count)
+              VALUES ($1, $2, $3, NULL, $4)
+              RETURNING id, wp_category_id
+            `, [
+              category.id,
+              category.name.trim(),
+              category.slug.trim(),
+              parseInt(category.count) || 0
+            ]);
+            
+            if (result.rowCount === 0) {
+              throw new Error(`Category ${category.id}: Database insertion failed - no rows affected`);
+            }
+            
+            console.log(`✅ Category inserted: ${category.id} -> DB ID ${result.rows[0].id}`);
+            categoriesIngested++;
           }
-          
-          console.log(`✅ Category processed: ${category.id} -> DB ID ${result.rows[0].id}`);
-          categoriesIngested++;
         } catch (catError) {
           const errorMsg = `Category ${category.id}: ${catError.message}`;
           console.error(`❌ ${errorMsg}`);

@@ -57,6 +57,16 @@ const CategoriesManage: React.FC = () => {
     }
   };
 
+  // Filter categories based on user role and visibility
+  const getVisibleCategories = (categories: Category[]) => {
+    if (!user || user.role !== 'admin') {
+      // Non-admin users only see non-hidden categories
+      return categories.filter(cat => !cat.is_hidden);
+    }
+    // Admin users see all categories
+    return categories;
+  };
+
   const filterAndSortCategories = React.useCallback(() => {
     console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder, 'Tab:', currentTab);
     
@@ -144,16 +154,6 @@ const CategoriesManage: React.FC = () => {
     } finally {
       setUpdatingCategory(null);
     }
-  };
-
-  // Filter categories based on user role and visibility
-  const getVisibleCategories = (categories: Category[]) => {
-    if (!user || user.role !== 'admin') {
-      // Non-admin users only see non-hidden categories
-      return categories.filter(cat => !cat.is_hidden);
-    }
-    // Admin users see all categories
-    return categories;
   };
 
   useEffect(() => {
