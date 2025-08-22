@@ -61,75 +61,85 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ 
       display: 'flex', 
+      flexDirection: 'column',
       minHeight: '100vh', 
-      backgroundColor: '#0F0F0F' // Dark background like social media
+      backgroundColor: '#0F0F0F'
     }}>
-      {/* Left Sidebar - Navigation */}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Full-width Header */}
+      <Header />
       
-      {/* Main Layout - Center + Right Sidebar */}
-      <Box 
-        sx={{ 
-          flexGrow: 1, 
-          marginLeft: { xs: 0, md: '280px' },
-          minHeight: '100vh',
-          display: 'flex'
-        }}
-      >
-        {/* Center Content Area */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            borderLeft: '1px solid #2F3336',
-            borderRight: '1px solid #2F3336',
-            backgroundColor: '#000000',
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column'
+      {/* Main Layout Container - Below Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        flex: 1,
+        pt: '64px' // Account for fixed header height
+      }}>
+        {/* Left Sidebar - Navigation */}
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        
+        {/* Main Layout - Center + Right Sidebar */}
+        <Box 
+          sx={{ 
+            flexGrow: 1, 
+            marginLeft: { xs: 0, md: '280px' },
+            minHeight: 'calc(100vh - 64px)', // Subtract header height
+            display: 'flex'
           }}
         >
-          {/* Header */}
-          <Header />
-
-          {/* Mobile Menu Button - only show on mobile */}
+          {/* Center Content Area */}
           <Box
             sx={{
-              display: { xs: 'block', md: 'none' },
-              position: 'sticky',
-              top: 0,
-              zIndex: 10,
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              backdropFilter: 'blur(12px)',
-              borderBottom: '1px solid #2F3336',
-              p: 2
+              flexGrow: 1,
+              borderLeft: '1px solid #2F3336',
+              borderRight: '1px solid #2F3336',
+              backgroundColor: '#000000',
+              minHeight: 'calc(100vh - 64px)',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
-            <IconButton
-              edge="start"
-              onClick={handleSidebarToggle}
-              sx={{ color: '#E7E9EA' }}
+            {/* Mobile Menu Button - only show on mobile */}
+            <Box
+              sx={{
+                display: { xs: 'block', md: 'none' },
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: '1px solid #2F3336',
+                p: 2
+              }}
             >
-              <MenuIcon />
-            </IconButton>
+              <IconButton
+                edge="start"
+                onClick={handleSidebarToggle}
+                sx={{ color: '#E7E9EA' }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+
+            {/* Main Content Feed */}
+            <Box sx={{ backgroundColor: '#000000', flexGrow: 1 }}>
+              {children}
+            </Box>
           </Box>
 
-          {/* Main Content Feed */}
-          <Box sx={{ backgroundColor: '#000000', flexGrow: 1 }}>
-            {children}
+          {/* Right Sidebar - Suggestions & Trends */}
+          <Box
+            sx={{
+              width: { xs: 0, lg: '320px' },
+              minWidth: '320px',
+              display: { xs: 'none', lg: 'block' },
+              p: 2,
+              backgroundColor: '#000000',
+              height: 'calc(100vh - 64px)', // Match sidebar height
+              overflowY: 'auto'
+            }}
+          >
+            <RightSidebar />
           </Box>
-        </Box>
-
-        {/* Right Sidebar - Suggestions & Trends */}
-        <Box
-          sx={{
-            width: { xs: 0, lg: '320px' },
-            minWidth: '320px',
-            display: { xs: 'none', lg: 'block' },
-            p: 2,
-            backgroundColor: '#000000'
-          }}
-        >
-          <RightSidebar />
         </Box>
       </Box>
       

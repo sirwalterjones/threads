@@ -83,24 +83,30 @@ const Header: React.FC = () => {
   };
 
   return (
-    <AppBar position="static" color="primary" enableColorOnDark sx={{
+    <AppBar position="fixed" color="primary" enableColorOnDark sx={{
       backgroundColor: '#000000',
       color: '#E7E9EA',
-      borderBottom: '1px solid #2F3336'
+      borderBottom: '1px solid #2F3336',
+      boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)',
+      zIndex: 1300,
+      top: 0,
+      left: 0,
+      right: 0
     }}>
-      <Toolbar>
+      <Toolbar sx={{ justifyContent: 'space-between', px: 3 }}>
         <Typography
-          variant="h6"
+          variant="h4"
           component="div"
           sx={{ 
-            flexGrow: 1, 
             cursor: 'pointer',
-            fontWeight: 'bold',
-            color: 'inherit'
+            fontWeight: 700,
+            color: '#E7E9EA',
+            fontSize: '1.875rem',
+            letterSpacing: '-0.025em'
           }}
           onClick={() => navigate('/')}
         >
-          Vector
+          VECTOR
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>

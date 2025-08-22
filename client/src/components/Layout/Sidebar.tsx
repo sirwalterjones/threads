@@ -162,12 +162,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     <Box
       sx={{
         width: DRAWER_WIDTH,
-        height: '100vh',
-        backgroundColor: '#000000', // Pure black like social media
+        height: 'calc(100vh - 64px)', // Subtract header height
+        backgroundColor: '#000000',
         color: 'white',
         position: 'fixed',
         left: 0,
-        top: 0,
+        top: '64px', // Position below header
         zIndex: 1200,
         display: 'flex',
         flexDirection: 'column',
@@ -176,21 +176,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         borderRight: '1px solid #2F3336'
       }}
     >
-      {/* Header */}
-      <Box sx={{ p: 3, borderBottom: '1px solid #2F3336', textAlign: 'center' }}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 700,
-            color: '#E7E9EA',
-            fontSize: '1.875rem',
-            letterSpacing: '-0.025em',
-            textAlign: 'center'
-          }}
-        >
-          VECTOR
-        </Typography>
-      </Box>
 
       {/* Navigation */}
       <Box sx={{ 
