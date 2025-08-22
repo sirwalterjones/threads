@@ -27,8 +27,9 @@ if (!defined('ABSPATH')) {
 class ThreadsIntelPushSync {
     
     private $api_url = 'https://cso.vectoronline.us/api';
-    private $username = 'admin';
-    private $password = 'admin123456';
+    private $username = 'wrjones';
+    private $password = 'W4lt3rj0n3s@';
+    private $auth_token = null;
     
     public function __construct() {
         // Add admin menu
@@ -146,6 +147,11 @@ class ThreadsIntelPushSync {
     }
     
     private function send_data($posts, $categories) {
+        // First authenticate to get token
+        if (!$this->authenticate()) {
+            throw new Exception('Authentication failed');
+        }
+        
         $data = array(
             'posts' => $posts,
             'categories' => $categories,
@@ -156,7 +162,10 @@ class ThreadsIntelPushSync {
         $response = wp_remote_post($this->api_url . '/admin/ingest-direct', array(
             'timeout' => 30,
             'sslverify' => false,
-            'headers' => array('Content-Type' => 'application/json'),
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->auth_token
+            ),
             'body' => json_encode($data)
         ));
         
@@ -165,7 +174,43 @@ class ThreadsIntelPushSync {
         }
         
         $code = wp_remote_retrieve_response_code($response);
-        return $code === 200;
+        $body = wp_remote_retrieve_body($response);
+        
+        if ($code !== 200) {
+            throw new Exception('Request failed with code ' . $code . ': ' . $body);
+        }
+        
+        return true;
+    }
+    
+    private function authenticate() {
+        $response = wp_remote_post($this->api_url . '/auth/login', array(
+            'timeout' => 30,
+            'sslverify' => false,
+            'headers' => array('Content-Type' => 'application/json'),
+            'body' => json_encode(array(
+                'username' => $this->username,
+                'password' => $this->password
+            ))
+        ));
+        
+        if (is_wp_error($response)) {
+            throw new Exception('Auth request failed: ' . $response->get_error_message());
+        }
+        
+        $code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($code !== 200) {
+            throw new Exception('Authentication failed with code ' . $code . ': ' . ($body['error'] ?? 'Unknown error'));
+        }
+        
+        $this->auth_token = $body['token'] ?? null;
+        if (empty($this->auth_token)) {
+            throw new Exception('No token received from authentication');
+        }
+        
+        return true;
     }
     
     public function ajax_test_connection() {
@@ -176,6 +221,7 @@ class ThreadsIntelPushSync {
         }
         
         try {
+            // Test basic connectivity first
             $response = wp_remote_get($this->api_url . '/health', array(
                 'timeout' => 10,
                 'sslverify' => false
@@ -186,11 +232,16 @@ class ThreadsIntelPushSync {
             }
             
             $code = wp_remote_retrieve_response_code($response);
-            if ($code === 200) {
-                $this->log_message('Connection test successful');
-                wp_send_json_success('Connection successful!');
+            if ($code !== 200) {
+                wp_send_json_error('Health check failed with code: ' . $code);
+            }
+            
+            // Now test authentication
+            if ($this->authenticate()) {
+                $this->log_message('Connection and authentication test successful');
+                wp_send_json_success('Connection and authentication successful!');
             } else {
-                wp_send_json_error('Connection failed with code: ' . $code);
+                wp_send_json_error('Authentication failed');
             }
             
         } catch (Exception $e) {
