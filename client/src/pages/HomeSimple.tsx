@@ -1012,15 +1012,24 @@ const HomeSimple: React.FC = () => {
                         </Box>
                       )}
 
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      {/* Action Buttons - Centered at bottom */}
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
                         {showCount ? (
                           <Badge badgeContent={contentCount} color="secondary">
                             <Button
                               startIcon={<Visibility />}
                               size="small"
+                              variant="contained"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handlePostClick(post.id);
+                              }}
+                              sx={{
+                                backgroundColor: '#000000',
+                                color: '#ffffff',
+                                '&:hover': {
+                                  backgroundColor: '#1a1a1a'
+                                }
                               }}
                             >
                               View Details
@@ -1030,9 +1039,17 @@ const HomeSimple: React.FC = () => {
                           <Button
                             startIcon={<Visibility />}
                             size="small"
+                            variant="contained"
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePostClick(post.id);
+                            }}
+                            sx={{
+                              backgroundColor: '#000000',
+                              color: '#ffffff',
+                              '&:hover': {
+                                backgroundColor: '#1a1a1a'
+                              }
                             }}
                           >
                             View Details
@@ -1048,6 +1065,14 @@ const HomeSimple: React.FC = () => {
                               const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
                               window.dispatchEvent(evt);
                             }}
+                            sx={{
+                              borderColor: '#2F3336',
+                              color: '#E7E9EA',
+                              '&:hover': {
+                                borderColor: '#1D9BF0',
+                                backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                              }
+                            }}
                           >
                             Edit
                           </Button>
@@ -1056,7 +1081,15 @@ const HomeSimple: React.FC = () => {
                           <Button
                             size="small"
                             color="error"
+                            variant="outlined"
                             onClick={(e)=>{ e.stopPropagation(); handleDelete(post.id); }}
+                            sx={{
+                              borderColor: '#dc2626',
+                              color: '#dc2626',
+                              '&:hover': {
+                                backgroundColor: 'rgba(220, 38, 38, 0.1)'
+                              }
+                            }}
                           >
                             Delete
                           </Button>

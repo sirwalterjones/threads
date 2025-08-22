@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Stack, Chip, Alert, Divider, Paper, Typography } from '@mui/material';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Box, Stack, Chip, Alert, Divider, Paper, Typography, LinearProgress, IconButton } from '@mui/material';
+import { CloudUpload, Delete, CheckCircle, Error } from '@mui/icons-material';
 import DOMPurify from 'dompurify';
 import { Editor } from '@tinymce/tinymce-react';
 import apiService from '../services/api';
@@ -13,21 +14,21 @@ interface Props { open: boolean; onClose: () => void; onCreated?: () => void; po
 
 const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const { user } = useAuth();
-  const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string; id?:number}[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<{file: File; progress: number; status: 'uploading' | 'success' | 'error'; error?: string}[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setEditorRef(null);
       return;
     }
-    apiService.getCategories().then(setCategories).catch(()=>{});
     if (post) {
       setTitle(post.title || '');
       setContent(post.content || '');
@@ -38,22 +39,10 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     }
   }, [open, post]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setError('');
-    
-    console.log('Uploading file:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      sizeInMB: (file.size / (1024 * 1024)).toFixed(2)
-    });
-    
+  const validateFile = (file: File): string | null => {
     // Validate file size (50MB limit)
     if (file.size > 50 * 1024 * 1024) {
-      setError('File too large. Maximum size is 50MB.');
-      return;
+      return 'File too large. Maximum size is 50MB.';
     }
     
     // Validate file type
@@ -65,40 +54,77 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     ];
     
     if (!allowedTypes.includes(file.type)) {
-      setError(`Unsupported file type: ${file.type}. Please upload images, PDFs, or media files.`);
-      return;
+      return `Unsupported file type: ${file.type}. Please upload images, PDFs, or media files.`;
     }
     
+    return null;
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setError('');
+    
+    // Add file to uploading list
+    const uploadingFile = { file, progress: 0, status: 'uploading' as const };
+    setUploadingFiles(prev => [...prev, uploadingFile]);
+    
+    let progressInterval: NodeJS.Timeout | undefined;
+    
     try {
-      console.log('Creating FormData...');
       const form = new FormData();
       form.append('file', file);
       
-      console.log('FormData entries:');
-      for (let [key, value] of Array.from(form.entries())) {
-        console.log(key, value);
+      // Simulate progress updates (since we don't have real progress from the API)
+      progressInterval = setInterval(() => {
+        setUploadingFiles(prev => prev.map(f => 
+          f.file === file 
+            ? { ...f, progress: Math.min(f.progress + Math.random() * 20, 90) }
+            : f
+        ));
+      }, 200);
+      
+      const resp = await apiService.uploadFile(form);
+      clearInterval(progressInterval);
+      
+      // Mark as complete
+      setUploadingFiles(prev => prev.map(f => 
+        f.file === file 
+          ? { ...f, progress: 100, status: 'success' as const }
+          : f
+      ));
+      
+      // Add to uploads after a brief delay to show completion
+      setTimeout(() => {
+        setUploads(prev => [...prev, { 
+          url: resp.url, 
+          path: resp.path, 
+          mimeType: resp.mimeType, 
+          name: resp.originalName || file.name,
+          id: resp.id 
+        }]);
+        
+        // Remove from uploading list
+        setUploadingFiles(prev => prev.filter(f => f.file !== file));
+      }, 500);
+      
+    } catch (err: any) {
+      if (progressInterval) {
+        clearInterval(progressInterval);
       }
       
-      console.log('Calling API upload...');
-      const resp = await apiService.uploadFile(form);
-      console.log('Upload successful:', resp);
+      // Mark as error
+      setUploadingFiles(prev => prev.map(f => 
+        f.file === file 
+          ? { ...f, status: 'error' as const, error: 'Upload failed' }
+          : f
+      ));
       
-      setUploads(prev => [...prev, { 
-        url: resp.url, 
-        path: resp.path, 
-        mimeType: resp.mimeType, 
-        name: resp.originalName || file.name,
-        id: resp.id 
-      }]);
-    } catch (err:any) {
-      console.error('Upload error details:', {
-        message: err?.message,
-        status: err?.response?.status,
-        statusText: err?.response?.statusText,
-        data: err?.response?.data,
-        config: err?.config
-      });
-      
+      console.error('Upload error:', err);
       let errorMsg = 'Upload failed';
       if (err?.response?.status === 400) {
         errorMsg = err?.response?.data?.error || 'Bad request - invalid file or request format';
@@ -116,20 +142,35 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     }
   };
 
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(handleFileUpload);
+    e.target.value = ''; // Reset input
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(handleFileUpload);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
   const handleRemoveAttachment = (index: number) => {
     setUploads(prev => prev.filter((_, i) => i !== index));
   };
 
   const [editorRef, setEditorRef] = useState<any>(null);
-
-  const insertHtml = (html: string) => {
-    const safe = DOMPurify.sanitize(html);
-    if (editorRef) {
-      editorRef.insertContent(safe);
-    } else {
-      setContent(prev => prev + safe);
-    }
-  };
 
   const generateExcerpt = (html: string) => {
     const div = document.createElement('div');
@@ -151,6 +192,12 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       }
       if (!content?.trim()) {
         setError('Thread content is required');
+        return;
+      }
+      
+      // Check if any files are still uploading
+      if (uploadingFiles.length > 0) {
+        setError('Please wait for all files to finish uploading before creating the thread');
         return;
       }
       
@@ -353,7 +400,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           </Paper>
         </Box>
 
-        {/* Media Upload */}
+        {/* Media Upload Dropzone */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" sx={{ 
             mb: 1, 
@@ -363,26 +410,119 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
             Media Attachments
           </Typography>
           
-          <Button 
-            variant="outlined" 
-            component="label"
+          <Paper
+            elevation={0}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             sx={{
+              border: '2px dashed',
+              borderColor: isDragOver ? '#3B82F6' : '#D1D5DB',
               borderRadius: 2,
-              borderStyle: 'dashed',
-              borderWidth: 2,
-              py: 2,
-              px: 3,
-              backgroundColor: 'white',
+              backgroundColor: isDragOver ? '#F0F9FF' : 'white',
+              p: 4,
+              textAlign: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: '#F9FAFB',
-                borderColor: '#3B82F6'
+                borderColor: '#3B82F6',
+                backgroundColor: '#F0F9FF'
               }
             }}
+            onClick={() => document.getElementById('file-input')?.click()}
           >
-            📎 Upload Media Files
-            <input type="file" hidden onChange={handleUpload} />
-          </Button>
+            <CloudUpload sx={{ fontSize: 48, color: '#6B7280', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#374151', mb: 1 }}>
+              Drop files here or click to browse
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#6B7280', mb: 2 }}>
+              Supports images, PDFs, audio, and video files (max 50MB each)
+            </Typography>
+            <Button 
+              variant="outlined" 
+              component="label"
+              sx={{
+                borderRadius: 2,
+                borderColor: '#3B82F6',
+                color: '#3B82F6',
+                '&:hover': {
+                  backgroundColor: '#EFF6FF',
+                  borderColor: '#2563EB'
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Choose Files
+              <input 
+                id="file-input"
+                type="file" 
+                multiple 
+                hidden 
+                onChange={handleFileInput}
+                accept="image/*,application/pdf,audio/*,video/*"
+              />
+            </Button>
+          </Paper>
         </Box>
+
+        {/* Uploading Files */}
+        {uploadingFiles.length > 0 && (
+          <Paper 
+            elevation={0}
+            sx={{ 
+              p: 2, 
+              backgroundColor: 'white',
+              border: '1px solid #E5E7EB',
+              borderRadius: 2,
+              mb: 2
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 2, color: '#374151', fontWeight: 600 }}>
+              Uploading Files ({uploadingFiles.length})
+            </Typography>
+            <Stack spacing={2}>
+              {uploadingFiles.map((fileData, i) => (
+                <Box key={i} sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 2, 
+                  p: 2,
+                  backgroundColor: '#F9FAFB',
+                  borderRadius: 2
+                }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                      {fileData.file.name}
+                    </Typography>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={fileData.progress} 
+                      sx={{ 
+                        height: 6, 
+                        borderRadius: 3,
+                        backgroundColor: '#E5E7EB',
+                        '& .MuiLinearProgress-bar': {
+                          backgroundColor: fileData.status === 'error' ? '#EF4444' : '#10B981'
+                        }
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ color: '#6B7280', mt: 0.5, display: 'block' }}>
+                      {fileData.status === 'uploading' && `${Math.round(fileData.progress)}% uploaded`}
+                      {fileData.status === 'success' && 'Upload complete!'}
+                      {fileData.status === 'error' && fileData.error}
+                    </Typography>
+                  </Box>
+                  {fileData.status === 'success' && (
+                    <CheckCircle sx={{ color: '#10B981', fontSize: 20 }} />
+                  )}
+                  {fileData.status === 'error' && (
+                    <Error sx={{ color: '#EF4444', fontSize: 20 }} />
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        )}
 
         {/* Uploaded Files */}
         {uploads.length > 0 && (
@@ -406,55 +546,31 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                   gap: 2, 
                   p: 2,
                   backgroundColor: '#F9FAFB',
-                  borderRadius: 2,
-                  flexWrap: 'wrap' 
+                  borderRadius: 2
                 }}>
                   <Chip 
                     label={u.name || u.path} 
                     size="small" 
                     sx={{ backgroundColor: 'white' }}
                   />
-                  <Button 
-                    size="small" 
-                    variant="outlined"
-                    onClick={() => insertHtml(`<a href="${u.url}" target="_blank" rel="noopener noreferrer">${u.name || 'attachment'}</a>`)}
-                    sx={{ fontSize: '12px', borderRadius: 1 }}
-                  >
-                    Insert Link
-                  </Button>
-                  {u.mimeType.startsWith('image/') && (
-                    <Button 
-                      size="small" 
-                      variant="contained"
-                      onClick={() => insertHtml(`<img src="${u.url}" style="max-width:100%" />`)}
-                      sx={{ 
-                        fontSize: '12px', 
-                        borderRadius: 1,
-                        backgroundColor: '#10B981',
-                        '&:hover': { backgroundColor: '#059669' }
-                      }}
-                    >
-                      Insert Image
-                    </Button>
-                  )}
-                  <Button 
-                    size="small" 
-                    variant="outlined"
-                    color="error"
+                  <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                    {u.mimeType.startsWith('image/') ? 'Image' : 
+                     u.mimeType.startsWith('video/') ? 'Video' :
+                     u.mimeType.startsWith('audio/') ? 'Audio' : 'Document'}
+                  </Typography>
+                  <Box sx={{ flex: 1 }} />
+                  <IconButton 
+                    size="small"
                     onClick={() => handleRemoveAttachment(i)}
                     sx={{ 
-                      fontSize: '12px', 
-                      borderRadius: 1,
-                      borderColor: '#EF4444',
                       color: '#EF4444',
                       '&:hover': { 
-                        backgroundColor: '#FEF2F2',
-                        borderColor: '#DC2626'
+                        backgroundColor: '#FEF2F2'
                       }
                     }}
                   >
-                    Remove
-                  </Button>
+                    <Delete />
+                  </IconButton>
                 </Box>
               ))}
             </Stack>
@@ -485,7 +601,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           <Button 
             variant="contained" 
             onClick={submit} 
-            disabled={!title || !content || saving}
+            disabled={!title || !content || saving || uploadingFiles.length > 0}
             sx={{
               borderRadius: 2,
               px: 4,
