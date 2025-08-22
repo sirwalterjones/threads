@@ -241,11 +241,11 @@ const Dashboard: React.FC = () => {
       {/* Dashboard Stats Cards removed */}
 
       {/* Search Bar with Buttons */}
-      <Box sx={{ mb: 4, px: 3, mt: 4 }}>
+      <Box sx={{ mb: 4, px: { xs: 2, sm: 3, md: 3 }, mt: 4 }}>
         <Box sx={{ 
           position: 'relative',
           width: '100%',
-          maxWidth: '700px',
+          maxWidth: { xs: '100%', sm: '600px', md: '700px' },
           margin: '0 auto'
         }}>
           <TextField
@@ -257,10 +257,10 @@ const Dashboard: React.FC = () => {
             onKeyPress={handleKeyPress}
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: '50px',
+                borderRadius: { xs: '25px', sm: '50px' },
                 backgroundColor: '#16181C',
-                fontSize: '18px',
-                height: '50px',
+                fontSize: { xs: '16px', sm: '18px' },
+                height: { xs: '45px', sm: '50px' },
                 border: '1px solid #2F3336',
                 '&:hover': {
                   borderColor: '#1D9BF0'
@@ -273,8 +273,8 @@ const Dashboard: React.FC = () => {
                   border: 'none'
                 },
                 '& input': {
-                  padding: '12px 24px 12px 50px',
-                  fontSize: '18px',
+                  padding: { xs: '10px 20px 10px 45px', sm: '12px 24px 12px 50px' },
+                  fontSize: { xs: '16px', sm: '18px' },
                   color: '#E7E9EA',
                   '&::placeholder': {
                     color: '#71767B',
@@ -287,12 +287,12 @@ const Dashboard: React.FC = () => {
               startAdornment: (
                 <Box sx={{ 
                   position: 'absolute', 
-                  left: 20, 
+                  left: { xs: 15, sm: 20 }, 
                   zIndex: 1,
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
+                  <SearchIcon sx={{ color: '#71767B', fontSize: { xs: 18, sm: 20 } }} />
                 </Box>
               )
             }}
@@ -302,22 +302,24 @@ const Dashboard: React.FC = () => {
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'center', 
-            gap: 2, 
-            mt: 2 
+            gap: { xs: 1, sm: 2 }, 
+            mt: { xs: 1.5, sm: 2 },
+            flexDirection: { xs: 'column', sm: 'row' }
           }}>
             <Button 
               variant="outlined" 
               onClick={handleSearch}
               disabled={searchLoading || !searchQuery.trim()}
-              size="small"
+              size={window.innerWidth < 600 ? "medium" : "small"}
+              fullWidth={window.innerWidth < 600}
               sx={{ 
                 borderRadius: '8px',
                 borderColor: '#2F3336',
                 color: '#E7E9EA',
-                fontSize: '14px',
+                fontSize: { xs: '16px', sm: '14px' },
                 fontWeight: 500,
-                px: 3,
-                py: 1,
+                px: { xs: 4, sm: 3 },
+                py: { xs: 1.5, sm: 1 },
                 textTransform: 'none',
                 '&:hover': {
                   borderColor: '#1D9BF0',
@@ -339,15 +341,16 @@ const Dashboard: React.FC = () => {
               variant="outlined" 
               onClick={handleClearSearch}
               disabled={!searchQuery && searchResults.length === 0}
-              size="small"
+              size={window.innerWidth < 600 ? "medium" : "small"}
+              fullWidth={window.innerWidth < 600}
               sx={{ 
                 borderRadius: '8px',
                 borderColor: '#2F3336',
                 color: '#71767B',
-                fontSize: '14px',
+                fontSize: { xs: '16px', sm: '14px' },
                 fontWeight: 500,
-                px: 3,
-                py: 1,
+                px: { xs: 4, sm: 3 },
+                py: { xs: 1.5, sm: 1 },
                 textTransform: 'none',
                 '&:hover': {
                   borderColor: '#71767B',
@@ -371,11 +374,11 @@ const Dashboard: React.FC = () => {
 
 {/* Manual Posts Grid - Show when no search results */}
 {searchResults.length === 0 && manualPosts.length > 0 && (
-  <Box sx={{ mb: 4, px: 3 }}>
+  <Box sx={{ mb: 4, px: { xs: 2, sm: 3, md: 3 } }}>
     <Box sx={{ 
       display: 'grid', 
       gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
-      gap: 2,
+      gap: { xs: 2, sm: 2, md: 3 },
       maxWidth: '100%', 
       mx: 'auto',
       overflow: 'hidden'
@@ -541,15 +544,28 @@ const Dashboard: React.FC = () => {
     {/* Results Header */}
     <Typography variant="h5" sx={{ 
       color: '#1F2937', 
-      mb: 3, 
+      mb: { xs: 2, sm: 3 }, 
       textAlign: 'center',
-      fontWeight: 600 
+      fontWeight: 600,
+      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' },
+      px: { xs: 2, sm: 0 }
     }}>
       Search Results ({searchResults.length})
     </Typography>
 
     {/* Results Grid */}
-    <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', maxWidth: '1200px', mx: 'auto' }}>
+    <Box sx={{ 
+      display: 'grid', 
+      gap: { xs: 2, sm: 2, md: 3 }, 
+      gridTemplateColumns: { 
+        xs: 'repeat(1, 1fr)', 
+        sm: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        md: 'repeat(auto-fit, minmax(300px, 1fr))' 
+      }, 
+      maxWidth: { xs: '100%', sm: '100%', md: '1200px' }, 
+      mx: 'auto',
+      px: { xs: 2, sm: 2, md: 0 }
+    }}>
       {searchResults.map((post) => (
         <Card
           key={post.id}
@@ -578,13 +594,26 @@ const Dashboard: React.FC = () => {
                   const imageUrls = extractImageUrls(post.content).slice(0, 5);
                   if (imageUrls.length === 0) return null;
                   return (
-                    <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                    <Box sx={{ 
+                      mb: 2, 
+                      display: 'flex', 
+                      gap: { xs: 0.5, sm: 1 }, 
+                      overflowX: 'auto', 
+                      pb: 1,
+                      px: { xs: 0.5, sm: 0 }
+                    }}>
                       {imageUrls.map((url, idx) => (
                         <img
                           key={idx}
                           src={resolveContentImageUrl(url)}
                           alt={`Post image ${idx + 1}`}
-                          style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                          style={{ 
+                            width: window.innerWidth < 600 ? 120 : 160, 
+                            height: window.innerWidth < 600 ? 90 : 120, 
+                            objectFit: 'cover', 
+                            borderRadius: '8px', 
+                            flex: '0 0 auto' 
+                          }}
                           onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
                         />
                       ))}
@@ -611,47 +640,58 @@ const Dashboard: React.FC = () => {
               );
             })()}
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: { xs: 0.25, sm: 0.5 }, 
+              mb: 1 
+            }}>
               {post.category_name && (
                 <Chip 
-                  size="small" 
+                  size={window.innerWidth < 600 ? "medium" : "small"}
                   label={post.category_name} 
                   color="primary"
                   variant="outlined"
-                  sx={{ fontSize: '0.75rem' }}
+                  sx={{ 
+                    fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                    height: { xs: '28px', sm: '24px' }
+                  }}
                 />
               )}
               <Chip 
-                size="small" 
+                size={window.innerWidth < 600 ? "medium" : "small"}
                 label={post.author_name} 
                 variant="outlined"
                 sx={{ 
                   borderColor: '#E5E7EB',
                   color: '#6B7280',
-                  fontSize: '0.75rem'
+                  fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                  height: { xs: '28px', sm: '24px' }
                 }}
               />
               <Chip 
-                size="small" 
+                size={window.innerWidth < 600 ? "medium" : "small"}
                 label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
                 variant="outlined"
                 sx={{ 
                   borderColor: '#E5E7EB',
                   color: '#6B7280',
-                  fontSize: '0.75rem'
+                  fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                  height: { xs: '28px', sm: '24px' }
                 }}
               />
               {/* Comment Count Indicator */}
               {post.comment_count && post.comment_count > 0 && (
                 <Chip 
-                  size="small" 
+                  size={window.innerWidth < 600 ? "medium" : "small"}
                   label={`💬 ${post.comment_count}`}
                   color="secondary"
                   variant="filled"
                   sx={{ 
-                    fontSize: '0.75rem',
+                    fontSize: { xs: '0.875rem', sm: '0.75rem' },
                     backgroundColor: '#8B5CF6',
                     color: 'white',
+                    height: { xs: '28px', sm: '24px' },
                     '& .MuiChip-label': {
                       display: 'flex',
                       alignItems: 'center',
@@ -676,7 +716,14 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Action Buttons - Centered at bottom */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: { xs: 0.5, sm: 1 }, 
+              mt: 'auto', 
+              pt: 1,
+              flexDirection: { xs: 'column', sm: 'row' }
+            }}>
               {(() => {
                 const contentText = stripHtmlTags(post.content || '');
                 const contentCount = countMatches(contentText, searchQuery);
@@ -686,8 +733,9 @@ const Dashboard: React.FC = () => {
                   <Badge badgeContent={contentCount} color="secondary">
                     <Button
                       startIcon={<Visibility />}
-                      size="small"
+                      size={window.innerWidth < 600 ? "medium" : "small"}
                       variant="contained"
+                      fullWidth={window.innerWidth < 600}
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePostClick(post.id);
@@ -695,6 +743,9 @@ const Dashboard: React.FC = () => {
                       sx={{
                         backgroundColor: '#000000',
                         color: '#ffffff',
+                        fontSize: { xs: '14px', sm: '12px' },
+                        px: { xs: 3, sm: 2 },
+                        py: { xs: 1, sm: 0.5 },
                         '&:hover': {
                           backgroundColor: '#1a1a1a'
                         }

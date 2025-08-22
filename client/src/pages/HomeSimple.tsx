@@ -581,14 +581,15 @@ const HomeSimple: React.FC = () => {
             display: 'flex', 
             justifyContent: 'center', 
             alignItems: 'center', 
-            mb: 4,
-            gap: 2,
-            flexWrap: 'wrap'
+            mb: { xs: 3, sm: 4 },
+            gap: { xs: 1, sm: 2 },
+            flexWrap: 'wrap',
+            px: { xs: 2, sm: 0 }
           }}>
             <Box sx={{ 
               position: 'relative',
               width: '100%',
-              maxWidth: '500px'
+              maxWidth: { xs: '100%', sm: '500px' }
             }}>
               <TextField
                 fullWidth
@@ -599,10 +600,10 @@ const HomeSimple: React.FC = () => {
                 onKeyPress={handleKeyPress}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '50px',
+                    borderRadius: { xs: '25px', sm: '50px' },
                     backgroundColor: '#16181C',
-                    fontSize: '18px',
-                    height: '50px',
+                    fontSize: { xs: '16px', sm: '18px' },
+                    height: { xs: '45px', sm: '50px' },
                     border: '1px solid #2F3336',
                     '&:hover': {
                       borderColor: '#1D9BF0'
@@ -615,8 +616,8 @@ const HomeSimple: React.FC = () => {
                       border: 'none'
                     },
                     '& input': {
-                      padding: '12px 24px 12px 50px',
-                      fontSize: '18px',
+                      padding: { xs: '10px 20px 10px 45px', sm: '12px 24px 12px 50px' },
+                      fontSize: { xs: '16px', sm: '18px' },
                       color: '#E7E9EA',
                       '&::placeholder': {
                         color: '#71767B',
@@ -629,16 +630,16 @@ const HomeSimple: React.FC = () => {
                   startAdornment: (
                     <Box sx={{ 
                       position: 'absolute', 
-                      left: 20, 
+                      left: { xs: 15, sm: 20 }, 
                       zIndex: 1,
                       display: 'flex',
                       alignItems: 'center'
                     }}>
-                      <SearchIcon sx={{ color: '#71767B', fontSize: 20 }} />
+                      <SearchIcon sx={{ color: '#71767B', fontSize: { xs: 18, sm: 20 } }} />
                     </Box>
                   ),
                   endAdornment: (
-                    <Box sx={{ position: 'absolute', right: 20, zIndex: 1 }}>
+                    <Box sx={{ position: 'absolute', right: { xs: 15, sm: 20 }, zIndex: 1 }}>
                       <Tooltip title="Search syntax">
                         <IconButton aria-label="search help" onClick={()=> setHelpOpen(true)} size="small">
                           <HelpOutline sx={{ color: '#71767B' }} />
@@ -654,15 +655,16 @@ const HomeSimple: React.FC = () => {
               variant="outlined" 
               onClick={handleSearch}
               disabled={loading || !searchTerm.trim()}
-              size="small"
+              size={window.innerWidth < 600 ? "medium" : "small"}
+              fullWidth={window.innerWidth < 600}
               sx={{ 
                 borderRadius: '8px',
                 borderColor: '#2F3336',
                 color: '#E7E9EA',
-                fontSize: '14px',
+                fontSize: { xs: '16px', sm: '14px' },
                 fontWeight: 500,
-                px: 3,
-                py: 1,
+                px: { xs: 4, sm: 3 },
+                py: { xs: 1.5, sm: 1 },
                 textTransform: 'none',
                 '&:hover': {
                   borderColor: '#1D9BF0',
@@ -1272,7 +1274,18 @@ const HomeSimple: React.FC = () => {
                 </Typography>
               </Box>
             ) : viewMode === 'grid' ? (
-              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', maxWidth: '1200px', mx: 'auto' }}>
+              <Box sx={{ 
+                display: 'grid', 
+                gap: { xs: 2, sm: 2, md: 3 }, 
+                gridTemplateColumns: { 
+                  xs: 'repeat(1, 1fr)', 
+                  sm: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                  md: 'repeat(auto-fit, minmax(300px, 1fr))' 
+                }, 
+                maxWidth: { xs: '100%', sm: '100%', md: '1200px' }, 
+                mx: 'auto',
+                px: { xs: 2, sm: 2, md: 0 }
+              }}>
                 {posts.map((post) => {
                   const titleText = stripHtmlTags(post.title);
                   const excerptText = stripHtmlTags(post.excerpt || '');
@@ -1307,13 +1320,26 @@ const HomeSimple: React.FC = () => {
                             const imageUrls = extractImageUrls(post.content).slice(0, 5);
                             if (imageUrls.length === 0) return null;
                             return (
-                              <Box sx={{ mb: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
+                              <Box sx={{ 
+                                mb: 2, 
+                                display: 'flex', 
+                                gap: { xs: 0.5, sm: 1 }, 
+                                overflowX: 'auto', 
+                                pb: 1,
+                                px: { xs: 0.5, sm: 0 }
+                              }}>
                                 {imageUrls.map((url, idx) => (
                                   <img
                                     key={idx}
                                     src={resolveContentImageUrl(url)}
                                     alt={`Post image ${idx + 1}`}
-                                    style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
+                                    style={{ 
+                                      width: window.innerWidth < 600 ? 120 : 160, 
+                                      height: window.innerWidth < 600 ? 90 : 120, 
+                                      objectFit: 'cover', 
+                                      borderRadius: '8px', 
+                                      flex: '0 0 auto' 
+                                    }}
                                     onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
                                   />
                                 ))}
@@ -1340,47 +1366,58 @@ const HomeSimple: React.FC = () => {
                         );
                       })()}
 
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: { xs: 0.25, sm: 0.5 }, 
+                        mb: 1 
+                      }}>
                         {post.category_name && (
                           <Chip 
-                            size="small" 
+                            size={window.innerWidth < 600 ? "medium" : "small"}
                             label={post.category_name} 
                             color="primary"
                             variant="outlined"
-                            sx={{ fontSize: '0.75rem' }}
+                            sx={{ 
+                              fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                              height: { xs: '28px', sm: '24px' }
+                            }}
                           />
                         )}
                         <Chip 
-                          size="small" 
+                          size={window.innerWidth < 600 ? "medium" : "small"}
                           label={post.author_name} 
                           variant="outlined"
                           sx={{ 
                             borderColor: '#E5E7EB',
                             color: '#6B7280',
-                            fontSize: '0.75rem'
+                            fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                            height: { xs: '28px', sm: '24px' }
                           }}
                         />
                         <Chip 
-                          size="small" 
+                          size={window.innerWidth < 600 ? "medium" : "small"}
                           label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
                           variant="outlined"
                           sx={{ 
                             borderColor: '#E5E7EB',
                             color: '#6B7280',
-                            fontSize: '0.75rem'
+                            fontSize: { xs: '0.875rem', sm: '0.75rem' },
+                            height: { xs: '28px', sm: '24px' }
                           }}
                         />
                         {/* Comment Count Indicator */}
                         {post.comment_count && post.comment_count > 0 && (
                           <Chip 
-                            size="small" 
+                            size={window.innerWidth < 600 ? "medium" : "small"}
                             label={`💬 ${post.comment_count}`}
                             color="secondary"
                             variant="filled"
                             sx={{ 
-                              fontSize: '0.75rem',
+                              fontSize: { xs: '0.875rem', sm: '0.75rem' },
                               backgroundColor: '#8B5CF6',
                               color: 'white',
+                              height: { xs: '28px', sm: '24px' },
                               '& .MuiChip-label': {
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1405,13 +1442,21 @@ const HomeSimple: React.FC = () => {
                       )}
 
                       {/* Action Buttons - Centered at bottom */}
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        gap: { xs: 0.5, sm: 1 }, 
+                        mt: 'auto', 
+                        pt: 1,
+                        flexDirection: { xs: 'column', sm: 'row' }
+                      }}>
                         {showCount ? (
                           <Badge badgeContent={contentCount} color="secondary">
                             <Button
                               startIcon={<Visibility />}
-                              size="small"
+                              size={window.innerWidth < 600 ? "medium" : "small"}
                               variant="contained"
+                              fullWidth={window.innerWidth < 600}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handlePostClick(post.id);
@@ -1419,6 +1464,9 @@ const HomeSimple: React.FC = () => {
                               sx={{
                                 backgroundColor: '#000000',
                                 color: '#ffffff',
+                                fontSize: { xs: '14px', sm: '12px' },
+                                px: { xs: 3, sm: 2 },
+                                py: { xs: 1, sm: 0.5 },
                                 '&:hover': {
                                   backgroundColor: '#1a1a1a'
                                 }
@@ -1430,8 +1478,9 @@ const HomeSimple: React.FC = () => {
                         ) : (
                           <Button
                             startIcon={<Visibility />}
-                            size="small"
+                            size={window.innerWidth < 600 ? "medium" : "small"}
                             variant="contained"
+                            fullWidth={window.innerWidth < 600}
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePostClick(post.id);
@@ -1439,6 +1488,9 @@ const HomeSimple: React.FC = () => {
                             sx={{
                               backgroundColor: '#000000',
                               color: '#ffffff',
+                              fontSize: { xs: '14px', sm: '12px' },
+                              px: { xs: 3, sm: 2 },
+                              py: { xs: 1, sm: 0.5 },
                               '&:hover': {
                                 backgroundColor: '#1a1a1a'
                               }
@@ -1450,8 +1502,9 @@ const HomeSimple: React.FC = () => {
                         {/* Edit/Delete for manual posts authored by current user (server still enforces) */}
                         {!post.wp_post_id && (
                           <Button
-                            size="small"
+                            size={window.innerWidth < 600 ? "medium" : "small"}
                             variant="outlined"
+                            fullWidth={window.innerWidth < 600}
                             onClick={(e) => {
                               e.stopPropagation();
                               const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
@@ -1460,6 +1513,9 @@ const HomeSimple: React.FC = () => {
                             sx={{
                               borderColor: '#2F3336',
                               color: '#E7E9EA',
+                              fontSize: { xs: '14px', sm: '12px' },
+                              px: { xs: 3, sm: 2 },
+                              py: { xs: 1, sm: 0.5 },
                               '&:hover': {
                                 borderColor: '#1D9BF0',
                                 backgroundColor: 'rgba(29, 155, 240, 0.1)'
@@ -1471,13 +1527,17 @@ const HomeSimple: React.FC = () => {
                         )}
                         {!post.wp_post_id && (
                           <Button
-                            size="small"
+                            size={window.innerWidth < 600 ? "medium" : "small"}
                             color="error"
                             variant="outlined"
+                            fullWidth={window.innerWidth < 600}
                             onClick={(e)=>{ e.stopPropagation(); handleDelete(post.id); }}
                             sx={{
                               borderColor: '#dc2626',
                               color: '#dc2626',
+                              fontSize: { xs: '14px', sm: '12px' },
+                              px: { xs: 3, sm: 2 },
+                              py: { xs: 1, sm: 0.5 },
                               '&:hover': {
                                 backgroundColor: 'rgba(220, 38, 38, 0.1)'
                               }
@@ -1492,17 +1552,21 @@ const HomeSimple: React.FC = () => {
                 );})}
               </Box>
             ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Title</TableCell>
-                      <TableCell>Author</TableCell>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Published</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
+              <Box sx={{ 
+                display: { xs: 'none', md: 'block' },
+                overflowX: 'auto'
+              }}>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Author</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Published</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
                   <TableBody>
                     {posts.map((post) => {
                       const titleText = stripHtmlTags(post.title);
@@ -1570,6 +1634,7 @@ const HomeSimple: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              </Box>
             )}
 
             {totalPages > 1 && (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +6,8 @@ import {
   IconButton,
   Typography,
   Box,
-  Button
+  Button,
+  Alert
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { API_BASE_URL } from '../services/api';
@@ -24,6 +25,13 @@ interface AttachmentViewerModalProps {
 }
 
 const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onClose, attachment }) => {
+  const [pdfError, setPdfError] = useState(false);
+  
+  // Reset error state when attachment changes
+  useEffect(() => {
+    setPdfError(false);
+  }, [attachment?.url]);
+  
   if (!attachment) return null;
 
   const rawUrl = attachment.url;
@@ -89,50 +97,146 @@ const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({ open, onC
           />
         )}
         {isPdf && (
-          <Box sx={{ height: '80vh', width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'background.paper' }}>
-            <Typography variant="h6">📄 PDF Document</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
-              Due to security restrictions on the WordPress server, this PDF cannot be displayed inline.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-              <Button 
-                variant="contained" 
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = finalUrl;
-                  link.target = '_blank';
-                  link.rel = 'noopener noreferrer';
-                  link.download = attachment.title || 'document.pdf';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                sx={{ minWidth: 160 }}
-              >
-                📥 Download PDF
-              </Button>
-              <Button 
-                variant="outlined"
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = finalUrl;
-                  link.target = '_blank';
-                  link.rel = 'noopener noreferrer';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                sx={{ minWidth: 160 }}
-              >
-                🔗 Open in New Tab
-              </Button>
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
-              {attachment.title || 'PDF Document'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7, fontSize: '0.75rem' }}>
-              The file will be accessed through a secure proxy to bypass server restrictions.
-            </Typography>
+          <Box sx={{ height: '80vh', width: '100%', position: 'relative' }}>
+            {!pdfError ? (
+              <>
+                <iframe
+                  src={`${finalUrl}#view=FitH`}
+                  width="100%"
+                  height="100%"
+                  title={attachment.title || 'PDF Document'}
+                  style={{ border: 'none', borderRadius: 4 }}
+                  onError={() => setPdfError(true)}
+                  onLoad={(e) => {
+                    // Check if iframe loaded successfully
+                    try {
+                      const iframe = e.currentTarget as HTMLIFrameElement;
+                      if (iframe.contentDocument === null) {
+                        setPdfError(true);
+                      }
+                    } catch (error) {
+                      // Cross-origin restrictions prevent access
+                      // This is normal for external PDFs, so don't set error
+                    }
+                  }}
+                />
+                
+                {/* Fallback buttons overlay */}
+                <Box sx={{ 
+                  position: 'absolute', 
+                  top: 16, 
+                  right: 16, 
+                  display: 'flex', 
+                  gap: 1,
+                  zIndex: 1
+                }}>
+                  <Button 
+                    size="small"
+                    variant="contained" 
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = finalUrl;
+                      link.target = '_blank';
+                      link.rel = 'noopener noreferrer';
+                      link.download = attachment.title || 'document.pdf';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    sx={{ 
+                      minWidth: 'auto',
+                      backgroundColor: 'rgba(0,0,0,0.7)',
+                      '&:hover': { backgroundColor: 'rgba(0,0,0,0.9)' }
+                    }}
+                  >
+                    📥
+                  </Button>
+                  <Button 
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = finalUrl;
+                      link.target = '_blank';
+                      link.rel = 'noopener noreferrer';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    sx={{ 
+                      minWidth: 'auto',
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      '&:hover': { backgroundColor: 'rgba(255,255,255,1)' }
+                    }}
+                  >
+                    🔗
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              // Fallback UI when PDF preview fails
+              <Box sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: 2, 
+                bgcolor: 'background.paper' 
+              }}>
+                <Alert severity="info" sx={{ mb: 2, maxWidth: 500 }}>
+                  PDF preview is not available. This may be due to browser security restrictions or server configuration.
+                </Alert>
+                
+                <Typography variant="h6">📄 PDF Document</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 400 }}>
+                  {attachment.title || 'PDF Document'}
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <Button 
+                    variant="contained" 
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = finalUrl;
+                      link.target = '_blank';
+                      link.rel = 'noopener noreferrer';
+                      link.download = attachment.title || 'document.pdf';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    sx={{ minWidth: 160 }}
+                  >
+                    📥 Download PDF
+                  </Button>
+                  <Button 
+                    variant="outlined"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = finalUrl;
+                      link.target = '_blank';
+                      link.rel = 'noopener noreferrer';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    sx={{ minWidth: 160 }}
+                  >
+                    🔗 Open in New Tab
+                  </Button>
+                </Box>
+                
+                <Button 
+                  variant="text"
+                  size="small"
+                  onClick={() => setPdfError(false)}
+                  sx={{ mt: 1 }}
+                >
+                  Try Preview Again
+                </Button>
+              </Box>
+            )}
           </Box>
         )}
         {isVideo && (

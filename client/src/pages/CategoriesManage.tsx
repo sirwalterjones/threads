@@ -57,21 +57,14 @@ const CategoriesManage: React.FC = () => {
     }
   };
 
-  // Filter categories based on user role and visibility
-  const getVisibleCategories = (categories: Category[]) => {
-    if (!user || user.role !== 'admin') {
-      // Non-admin users only see non-hidden categories
-      return categories.filter(cat => !cat.is_hidden);
-    }
-    // Admin users see all categories
-    return categories;
-  };
 
   const filterAndSortCategories = React.useCallback(() => {
     console.log('Filtering categories. Original count:', categories.length, 'Search:', searchQuery, 'Sort:', sortBy, sortOrder, 'Tab:', currentTab);
     
-    // Start with categories based on tab selection and user role
-    let filtered = getVisibleCategories(categories);
+    // Start with all categories for admin or visible ones for non-admin
+    let filtered = (!user || user.role !== 'admin') 
+      ? categories.filter(cat => !cat.is_hidden)
+      : categories;
 
     // Apply tab-based filtering
     if (currentTab === 'visible') {
@@ -79,7 +72,7 @@ const CategoriesManage: React.FC = () => {
     } else if (currentTab === 'hidden') {
       filtered = filtered.filter(cat => cat.is_hidden);
     }
-    // 'all' tab shows all categories (already handled by getVisibleCategories)
+    // 'all' tab shows all categories (already handled above)
 
     if (searchQuery && searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -90,9 +83,9 @@ const CategoriesManage: React.FC = () => {
       console.log('After search filter:', filtered.length);
     }
 
-    // Ensure we have a valid array before sorting
+    // Sort the filtered array
     if (filtered && filtered.length > 0) {
-      filtered.sort((a, b) => {
+      filtered = [...filtered].sort((a, b) => {
         let aVal, bVal;
         switch (sortBy) {
           case 'post_count':
@@ -116,7 +109,7 @@ const CategoriesManage: React.FC = () => {
 
     console.log('Final filtered categories:', filtered.length);
     setFilteredCategories(filtered || []);
-  }, [categories, searchQuery, sortBy, sortOrder, currentTab, user, getVisibleCategories]);
+  }, [categories, searchQuery, sortBy, sortOrder, currentTab, user]);
 
   const handleToggleCategoryVisibility = async (category: Category, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
@@ -162,7 +155,7 @@ const CategoriesManage: React.FC = () => {
 
   useEffect(() => {
     filterAndSortCategories();
-  }, [filterAndSortCategories, currentTab]);
+  }, [filterAndSortCategories]);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -236,8 +229,11 @@ const CategoriesManage: React.FC = () => {
       <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
         <CardContent>
           {/* Centered Search Field */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <Box sx={{ width: { xs: '100%', sm: '80%', md: '60%', lg: '50%' } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 2, sm: 3 } }}>
+            <Box sx={{ 
+              width: { xs: '100%', sm: '90%', md: '70%', lg: '60%' },
+              px: { xs: 1, sm: 0 }
+            }}>
               <TextField
                 fullWidth
                 variant="outlined"
@@ -279,8 +275,18 @@ const CategoriesManage: React.FC = () => {
           </Box>
           
           {/* Sort Controls */}
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap', color: '#E7E9EA' }}>
-            <Box sx={{ minWidth: 200 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: { xs: 2, sm: 3 }, 
+            justifyContent: 'center', 
+            flexWrap: 'wrap', 
+            color: '#E7E9EA',
+            flexDirection: { xs: 'column', sm: 'row' }
+          }}>
+            <Box sx={{ 
+              minWidth: { xs: '100%', sm: 200 },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#9CA3AF' }}>Sort by</InputLabel>
                 <Select
@@ -301,7 +307,10 @@ const CategoriesManage: React.FC = () => {
                 </Select>
               </FormControl>
             </Box>
-            <Box sx={{ minWidth: 200 }}>
+            <Box sx={{ 
+              minWidth: { xs: '100%', sm: 200 },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#9CA3AF' }}>Order</InputLabel>
                 <Select
@@ -355,8 +364,13 @@ const CategoriesManage: React.FC = () => {
       ) : (
         <Box sx={{ 
           display: 'grid', 
-          gap: 3, 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' 
+          gap: { xs: 2, sm: 2, md: 3 }, 
+          gridTemplateColumns: { 
+            xs: 'repeat(1, 1fr)', 
+            sm: 'repeat(auto-fit, minmax(300px, 1fr))', 
+            md: 'repeat(auto-fit, minmax(320px, 1fr))' 
+          },
+          px: { xs: 1, sm: 0 }
         }}>
           {filteredCategories.map((category) => (
           <Card 
@@ -374,53 +388,71 @@ const CategoriesManage: React.FC = () => {
               }
             }}
           >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 } }}>
                 <CategoryIcon sx={{ color: '#1D9BF0', mt: 0.5 }} />
                 <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: { xs: 0.5, sm: 1 }, 
+                    mb: 1,
+                    flexWrap: 'wrap'
+                  }}>
                     <Typography variant="h6" sx={{ 
                       color: '#E7E9EA', 
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: { xs: '1rem', sm: '1.125rem' }
                     }}>
                       {category.name}
                     </Typography>
                     {category.is_hidden && (
                       <Chip
                         label="Hidden"
-                        size="small"
+                        size={window.innerWidth < 600 ? "medium" : "small"}
                         color="warning"
-                        sx={{ fontSize: '10px', height: '20px' }}
+                        sx={{ 
+                          fontSize: { xs: '12px', sm: '10px' }, 
+                          height: { xs: '24px', sm: '20px' } 
+                        }}
                       />
                     )}
                   </Box>
                   
                   <Typography variant="body2" sx={{ 
                     color: '#71767B', 
-                    mb: 2,
-                    lineHeight: 1.5 
+                    mb: { xs: 1.5, sm: 2 },
+                    lineHeight: 1.5,
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' }
                   }}>
                     {category.parent_name ? `Parent: ${category.parent_name}` : 'Top-level category'} • Created {format(new Date(category.created_at), 'MMM dd, yyyy')}
                   </Typography>
                   
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: { xs: 0.5, sm: 1 }, 
+                    flexWrap: 'wrap', 
+                    alignItems: 'center' 
+                  }}>
                     <Chip
                       label={`${category.post_count || 0} posts`}
-                      size="small"
+                      size={window.innerWidth < 600 ? "medium" : "small"}
                       sx={{
                         backgroundColor: '#1D9BF0',
                         color: 'white',
-                        fontSize: '12px'
+                        fontSize: { xs: '14px', sm: '12px' },
+                        height: { xs: '28px', sm: '24px' }
                       }}
                     />
                     <Chip
                       label={category.slug}
-                      size="small"
+                      size={window.innerWidth < 600 ? "medium" : "small"}
                       variant="outlined"
                       sx={{
                         borderColor: '#2F3336',
                         color: '#71767B',
-                        fontSize: '12px'
+                        fontSize: { xs: '14px', sm: '12px' },
+                        height: { xs: '28px', sm: '24px' }
                       }}
                     />
                     
