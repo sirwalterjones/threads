@@ -751,6 +751,226 @@ class WordPressService {
       throw error;
     }
   }
+
+    /**
+     * Pull data from WordPress using REST API endpoints
+     * This replaces the old push-based approach
+     */
+    async pullFromWordPressAPI(wordpressUrl) {
+        try {
+            console.log(`Starting pull-based sync from WordPress: ${wordpressUrl}`);
+            
+            // Ensure URL ends with /
+            const baseUrl = wordpressUrl.endsWith('/') ? wordpressUrl : `${wordpressUrl}/`;
+            
+            // Test connection first
+            const statusResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/status`);
+            if (!statusResponse.ok) {
+                throw new Error(`WordPress status endpoint failed: ${statusResponse.status} ${statusResponse.statusText}`);
+            }
+            
+            const status = await statusResponse.json();
+            console.log('WordPress status:', status);
+            
+            // Get categories
+            console.log('Fetching categories from WordPress...');
+            const categoriesResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/categories`);
+            if (!categoriesResponse.ok) {
+                throw new Error(`Failed to fetch categories: ${categoriesResponse.status}`);
+            }
+            
+            const categories = await categoriesResponse.json();
+            console.log(`Found ${categories.length} categories in WordPress`);
+            
+            // Get posts with pagination
+            console.log('Fetching posts from WordPress...');
+            let allPosts = [];
+            let page = 1;
+            let hasMore = true;
+            
+            while (hasMore) {
+                const postsResponse = await fetch(`${baseUrl}wp-json/threads-intel/v1/posts?per_page=100&page=${page}`);
+                if (!postsResponse.ok) {
+                    throw new Error(`Failed to fetch posts page ${page}: ${postsResponse.status}`);
+                }
+                
+                const postsData = await postsResponse.json();
+                const posts = postsData.posts || [];
+                
+                if (posts.length === 0) {
+                    hasMore = false;
+                } else {
+                    allPosts = allPosts.concat(posts);
+                    console.log(`Fetched page ${page}: ${posts.length} posts (total: ${allPosts.length})`);
+                    
+                    // Check if there are more pages
+                    const pagination = postsData.pagination;
+                    hasMore = pagination && page < pagination.total_pages;
+                    page++;
+                }
+            }
+            
+            console.log(`Total posts fetched from WordPress: ${allPosts.length}`);
+            
+            // Process and ingest the data
+            const result = await this.processWordPressData(allPosts, categories);
+            
+            console.log('Pull-based sync completed successfully:', result);
+            return result;
+            
+        } catch (error) {
+            console.error('Pull-based sync failed:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Process WordPress data and ingest it into the database
+     */
+    async processWordPressData(posts, categories) {
+        try {
+            console.log('Processing WordPress data...');
+            
+            // Process categories first
+            const categoryResults = await this.processCategories(categories);
+            console.log(`Processed ${categoryResults.length} categories`);
+            
+            // Process posts
+            const postResults = await this.processPosts(posts);
+            console.log(`Processed ${postResults.length} posts`);
+            
+            return {
+                categoriesIngested: categoryResults.length,
+                postsIngested: postResults.length,
+                totalPostsInDB: await this.getTotalPostsCount(),
+                timestamp: new Date().toISOString(),
+                type: 'pull'
+            };
+            
+        } catch (error) {
+            console.error('Failed to process WordPress data:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Process WordPress categories
+     */
+    async processCategories(categories) {
+        const results = [];
+        
+        for (const category of categories) {
+            try {
+                const result = await pool.query(
+                    `INSERT INTO categories (wp_term_id, name, slug, description, parent_id, count, is_hidden) 
+                     VALUES ($1, $2, $3, $4, $5, $6, false)
+                     ON CONFLICT (wp_term_id) DO UPDATE SET
+                     name = EXCLUDED.name,
+                     slug = EXCLUDED.slug,
+                     description = EXCLUDED.description,
+                     parent_id = EXCLUDED.parent_id,
+                     count = EXCLUDED.count,
+                     updated_at = NOW()`,
+                    [
+                        category.id,
+                        category.name,
+                        category.slug,
+                        category.description || '',
+                        category.parent || null,
+                        category.count || 0
+                    ]
+                );
+                
+                results.push({ id: category.id, success: true });
+                
+            } catch (error) {
+                console.error(`Failed to process category ${category.id}:`, error);
+                results.push({ id: category.id, success: false, error: error.message });
+            }
+        }
+        
+        return results;
+    }
+    
+    /**
+     * Process WordPress posts
+     */
+    async processPosts(posts) {
+        const results = [];
+        
+        for (const post of posts) {
+            try {
+                // Get category ID from the database
+                let categoryId = null;
+                if (post.categories && post.categories.length > 0) {
+                    const categoryResult = await pool.query(
+                        'SELECT id FROM categories WHERE wp_term_id = $1',
+                        [post.categories[0]]
+                    );
+                    if (categoryResult.rows.length > 0) {
+                        categoryId = categoryResult.rows[0].id;
+                    }
+                }
+                
+                // Insert or update post
+                const result = await pool.query(
+                    `INSERT INTO posts (wp_post_id, title, content, excerpt, slug, status, author_id, author_name, 
+                     published_at, modified_at, category_id, is_sticky, post_format, comment_count) 
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                     ON CONFLICT (wp_post_id) DO UPDATE SET
+                     title = EXCLUDED.title,
+                     content = EXCLUDED.content,
+                     excerpt = EXCLUDED.excerpt,
+                     slug = EXCLUDED.slug,
+                     status = EXCLUDED.status,
+                     author_name = EXCLUDED.author_name,
+                     modified_at = EXCLUDED.modified_at,
+                     category_id = EXCLUDED.category_id,
+                     is_sticky = EXCLUDED.is_sticky,
+                     post_format = EXCLUDED.post_format,
+                     comment_count = EXCLUDED.comment_count,
+                     updated_at = NOW()`,
+                    [
+                        post.id,
+                        post.title?.rendered || post.title || '',
+                        post.content?.rendered || post.content || '',
+                        post.excerpt?.rendered || post.excerpt || '',
+                        post.slug,
+                        post.status,
+                        post.author,
+                        post.author_name,
+                        new Date(post.date),
+                        new Date(post.modified),
+                        categoryId,
+                        post.sticky || false,
+                        post.format || 'standard',
+                        post.comment_count || 0
+                    ]
+                );
+                
+                results.push({ id: post.id, success: true });
+                
+            } catch (error) {
+                console.error(`Failed to process post ${post.id}:`, error);
+                results.push({ id: post.id, success: false, error: error.message });
+            }
+        }
+        
+        return results;
+    }
+    
+    /**
+     * Get total posts count in database
+     */
+    async getTotalPostsCount() {
+        try {
+            const result = await pool.query('SELECT COUNT(*) as count FROM posts');
+            return parseInt(result.rows[0].count) || 0;
+        } catch (error) {
+            console.error('Failed to get posts count:', error);
+            return 0;
+        }
+    }
 }
 
 module.exports = WordPressService;

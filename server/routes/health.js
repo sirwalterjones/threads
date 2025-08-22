@@ -158,34 +158,65 @@ router.get('/sync', async (req, res) => {
   }
 });
 
-// Force sync endpoint (admin only)
+// Force sync endpoint
 router.post('/sync/force', async (req, res) => {
-  try {
-    // Check if cron service is available
-    if (!global.cronService) {
-      return res.status(503).json({
-        status: 'error',
-        message: 'Cron service not available'
-      });
+    try {
+        console.log('Force sync triggered via API');
+        
+        // Get WordPress URL from request body or use default
+        const { wordpressUrl } = req.body;
+        const targetUrl = wordpressUrl || process.env.WORDPRESS_URL || 'https://cmansrms.us';
+        
+        console.log(`Starting force sync from WordPress: ${targetUrl}`);
+        
+        // Perform the sync
+        const result = await global.cronService.wordpressService.pullFromWordPressAPI(targetUrl);
+        
+        res.json({
+            status: 'success',
+            message: 'Force sync completed',
+            timestamp: new Date().toISOString(),
+            result: result
+        });
+        
+    } catch (error) {
+        console.error('Force sync failed:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Force sync failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
+});
 
-    // Force a sync
-    console.log('🔄 Force sync requested via health endpoint');
-    await global.cronService.performWordPressSync();
-
-    res.json({
-      status: 'success',
-      message: 'Force sync completed',
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Force sync error:', error);
-    res.status(500).json({
-      status: 'error',
-      error: error.message
-    });
-  }
+// Pull-based sync endpoint
+router.post('/sync/pull', async (req, res) => {
+    try {
+        const { wordpressUrl } = req.body;
+        const targetUrl = wordpressUrl || process.env.WORDPRESS_URL || 'https://cmansrms.us';
+        
+        console.log(`Pull-based sync triggered for: ${targetUrl}`);
+        
+        // Perform the sync
+        const result = await global.cronService.wordpressService.pullFromWordPressAPI(targetUrl);
+        
+        res.json({
+            status: 'success',
+            message: 'Pull-based sync completed',
+            timestamp: new Date().toISOString(),
+            result: result
+        });
+        
+    } catch (error) {
+        console.error('Pull-based sync failed:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Pull-based sync failed',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // System metrics endpoint

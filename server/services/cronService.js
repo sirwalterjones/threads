@@ -89,56 +89,48 @@ class CronService {
     console.log('🛡️ Backup sync scheduled: every hour');
   }
 
-  // Perform WordPress sync with multiple fallback mechanisms
+  /**
+   * Perform WordPress sync using pull-based approach
+   */
   async performWordPressSync() {
-    if (this.isRunning) {
-      console.log('⚠️ WordPress sync already running, skipping...');
-      return;
-    }
-
-    this.isRunning = true;
-    this.lastSyncStatus.lastAttempt = new Date();
-
     try {
-      console.log('🔄 Starting WordPress sync...');
+      console.log('Starting WordPress sync (pull-based)...');
       
-      // Method 1: Try direct WordPress API sync
-      let success = await this.syncFromWordPressAPI();
+      // Get WordPress URL from environment or use default
+      const wordpressUrl = process.env.WORDPRESS_URL || 'https://cmansrms.us';
       
-      if (!success) {
-        console.log('⚠️ WordPress API sync failed, trying fallback methods...');
-        
-        // Method 2: Try WordPress plugin endpoint
-        success = await this.syncFromWordPressPlugin();
-        
-        if (!success) {
-          console.log('⚠️ WordPress plugin sync failed, trying manual sync...');
-          
-          // Method 3: Manual sync with retry logic
-          success = await this.performManualSync();
-        }
-      }
-
-      if (success) {
-        this.lastSyncStatus.success = true;
-        this.lastSyncStatus.lastSuccess = new Date();
-        this.lastSyncStatus.errorCount = 0;
-        this.lastSyncStatus.lastError = null;
-        console.log('✅ WordPress sync completed successfully');
-      } else {
-        throw new Error('All sync methods failed');
-      }
-
+      // Use the new pull-based method
+      const result = await this.wordpressService.pullFromWordPressAPI(wordpressUrl);
+      
+      console.log('WordPress sync completed successfully:', result);
+      
+      // Update sync status
+      this.lastSyncStatus = {
+        success: true,
+        lastAttempt: new Date(),
+        lastSuccess: new Date(),
+        errorCount: 0,
+        lastError: null
+      };
+      
+      return result;
+      
     } catch (error) {
-      console.error('❌ WordPress sync failed:', error.message);
-      this.lastSyncStatus.success = false;
-      this.lastSyncStatus.errorCount++;
-      this.lastSyncStatus.lastError = error.message;
+      console.error('WordPress sync failed:', error);
       
-      // Log error to database for monitoring
-      await this.logSyncError(error);
-    } finally {
-      this.isRunning = false;
+      // Update sync status
+      this.lastSyncStatus = {
+        success: false,
+        lastAttempt: new Date(),
+        lastSuccess: this.lastSyncStatus?.lastSuccess || null,
+        errorCount: (this.lastSyncStatus?.errorCount || 0) + 1,
+        lastError: error.message
+      };
+      
+      // Log the error
+      this.logSyncError(error);
+      
+      throw error;
     }
   }
 

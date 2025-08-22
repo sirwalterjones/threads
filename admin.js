@@ -1,82 +1,60 @@
 jQuery(document).ready(function($) {
-    'use strict';
+    // Test endpoints
+    $('#test-status').on('click', function() {
+        testEndpoint('status');
+    });
     
-    // Refresh status every 30 seconds
-    setInterval(refreshStatus, 30000);
+    $('#test-posts').on('click', function() {
+        testEndpoint('posts');
+    });
     
-    // Initial load
-    refreshStatus();
-    loadLogs();
+    $('#test-categories').on('click', function() {
+        testEndpoint('categories');
+    });
     
-    // Manual sync button
-    $('#manual-sync').on('click', function() {
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('Triggering Sync...');
+    function testEndpoint(endpoint) {
+        const button = $(`#test-${endpoint}`);
+        const originalText = button.text();
+        
+        button.prop('disabled', true).text('Testing...');
+        
+        const siteUrl = window.location.origin;
+        const url = `${siteUrl}/wp-json/threads-intel/v1/${endpoint}`;
         
         $.ajax({
-            url: threadsIntel.ajaxUrl,
-            type: 'POST',
-            data: {
-                action: 'threads_intel_enhanced_sync',
-                nonce: threadsIntel.nonce
-            },
+            url: url,
+            method: 'GET',
+            timeout: 10000,
             success: function(response) {
-                if (response.success) {
-                    alert('Manual sync triggered successfully!');
-                    refreshStatus();
-                    loadLogs();
-                } else {
-                    alert('Failed to trigger sync: ' + (response.data || 'Unknown error'));
-                }
+                $('#test-results').html(`
+                    <div class="notice notice-success">
+                        <p><strong>✅ ${endpoint.toUpperCase()} endpoint working!</strong></p>
+                        <p><strong>URL:</strong> <code>${url}</code></p>
+                        <p><strong>Response:</strong></p>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                `);
             },
-            error: function() {
-                alert('Failed to trigger sync. Please try again.');
+            error: function(xhr, status, error) {
+                $('#test-results').html(`
+                    <div class="notice notice-error">
+                        <p><strong>❌ ${endpoint.toUpperCase()} endpoint failed!</strong></p>
+                        <p><strong>URL:</strong> <code>${url}</code></p>
+                        <p><strong>Status:</strong> ${xhr.status} ${xhr.statusText}</p>
+                        <p><strong>Error:</strong> ${error}</p>
+                        <p><strong>Response:</strong></p>
+                        <pre>${xhr.responseText}</pre>
+                    </div>
+                `);
             },
             complete: function() {
-                $btn.prop('disabled', false).text('Trigger Manual Sync');
-            }
-        });
-    });
-    
-    // Refresh status button
-    $('#refresh-status').on('click', function() {
-        refreshStatus();
-        loadLogs();
-    });
-    
-    function refreshStatus() {
-        $.ajax({
-            url: threadsIntel.ajaxUrl,
-            type: 'POST',
-            data: {
-                action: 'threads_intel_get_status',
-                nonce: threadsIntel.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    updateStatus(response.data);
-                }
-            },
-            error: function() {
-                $('#sync-status').html('<p style="color: red;">Failed to load status</p>');
+                button.prop('disabled', false).text(originalText);
             }
         });
     }
     
-    function updateStatus(data) {
-        var statusHtml = '<table class="widefat">';
-        statusHtml += '<tr><td><strong>Last Sync:</strong></td><td>' + (data.last_sync || 'Never') + '</td></tr>';
-        statusHtml += '<tr><td><strong>Sync Attempts:</strong></td><td>' + data.sync_attempts + '</td></tr>';
-        statusHtml += '<tr><td><strong>Currently Running:</strong></td><td>' + (data.is_running ? 'Yes' : 'No') + '</td></tr>';
-        statusHtml += '<tr><td><strong>Next Scheduled:</strong></td><td>' + (data.next_scheduled ? new Date(data.next_scheduled * 1000).toLocaleString() : 'Not scheduled') + '</td></tr>';
-        statusHtml += '<tr><td><strong>WP Cron Disabled:</strong></td><td>' + (data.cron_disabled ? 'Yes (This may cause sync issues)' : 'No') + '</td></tr>';
-        statusHtml += '</table>';
-        
-        $('#sync-status').html(statusHtml);
-    }
-    
-    function loadLogs() {
-        // For now, we'll just show a message since logs are stored in WordPress options
-        $('#sync-logs').html('<p>Recent sync logs are stored in WordPress options. Check the WordPress error log for detailed information.</p>');
-    }
+    // Auto-test status endpoint on page load
+    setTimeout(function() {
+        $('#test-status').click();
+    }, 1000);
 });
