@@ -106,7 +106,7 @@ const CategoriesManage: React.FC = () => {
 
     console.log('Final filtered categories:', filtered.length);
     setFilteredCategories(filtered || []);
-  }, [categories, searchQuery, sortBy, sortOrder, currentTab, user]);
+  }, [categories, searchQuery, sortBy, sortOrder, currentTab, user, getVisibleCategories]);
 
   const handleToggleCategoryVisibility = async (category: Category, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
@@ -162,7 +162,7 @@ const CategoriesManage: React.FC = () => {
 
   useEffect(() => {
     filterAndSortCategories();
-  }, [filterAndSortCategories]);
+  }, [filterAndSortCategories, currentTab]);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -329,16 +329,36 @@ const CategoriesManage: React.FC = () => {
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" sx={{ color: '#71767B' }}>
           Showing {filteredCategories.length} of {categories.length} categories
+          {currentTab !== 'all' && ` (${currentTab} only)`}
         </Typography>
       </Box>
 
       {/* Categories Grid */}
-      <Box sx={{ 
-        display: 'grid', 
-        gap: 3, 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' 
-      }}>
-        {filteredCategories.map((category) => (
+      {filteredCategories.length === 0 ? (
+        <Box sx={{ 
+          textAlign: 'center', 
+          py: 6, 
+          color: '#71767B',
+          backgroundColor: '#16181C',
+          border: '1px solid #2F3336',
+          borderRadius: 2
+        }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            No categories found
+          </Typography>
+          <Typography variant="body2">
+            {currentTab === 'visible' && 'No visible categories match your search criteria.'}
+            {currentTab === 'hidden' && 'No hidden categories found.'}
+            {currentTab === 'all' && 'No categories match your search criteria.'}
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ 
+          display: 'grid', 
+          gap: 3, 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' 
+        }}>
+          {filteredCategories.map((category) => (
           <Card 
             key={category.id}
             sx={{ 
@@ -434,7 +454,8 @@ const CategoriesManage: React.FC = () => {
             </CardContent>
           </Card>
         ))}
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };
