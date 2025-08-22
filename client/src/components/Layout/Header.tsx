@@ -7,9 +7,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Box,
-  Chip,
-  Avatar
+  Box
 } from '@mui/material';
 import {
   AccountCircle,
@@ -69,18 +67,6 @@ const Header: React.FC = () => {
     handleMenuClose();
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'error';
-      case 'edit':
-        return 'warning';
-      case 'view':
-        return 'info';
-      default:
-        return 'default';
-    }
-  };
 
   return (
     <AppBar position="fixed" color="primary" enableColorOnDark sx={{
@@ -115,42 +101,6 @@ const Header: React.FC = () => {
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: '40px', justifyContent: 'center' }}>
               <NotificationBell />
-            </Box>
-          )}
-          
-          {/* User Role Chip */}
-          {user && (
-            <Chip
-              label={user.role.toUpperCase()}
-              color={getRoleColor(user.role) as any}
-              variant="outlined"
-              size="small"
-              sx={{ color: '#E7E9EA', borderColor: '#2F3336', bgcolor: 'transparent', whiteSpace: 'nowrap' }}
-            />
-          )}
-          
-          {/* New Post Button */}
-          {user && (user.role === 'admin' || user.role === 'edit') && (
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={() => setOpenNew(true)}
-              sx={{ whiteSpace: 'nowrap' }}
-            >
-              New Post
-            </Button>
-          )}
-          
-          {/* User Avatar and Name */}
-          {user && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, whiteSpace: 'nowrap' }}>
-              <Avatar sx={{ width: 28, height: 28, bgcolor: 'secondary.main', color: 'common.white' }}>
-                {user.username.charAt(0).toUpperCase()}
-              </Avatar>
-              <Typography variant="body2" sx={{ color: '#E7E9EA', fontSize: '0.875rem' }}>
-                {user.username}
-              </Typography>
             </Box>
           )}
 
