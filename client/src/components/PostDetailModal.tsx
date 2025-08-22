@@ -92,7 +92,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
         return `\\b\\w*${escaped}\\w*\\b`;
       });
       const re = new RegExp(`(${patterns.join('|')})`, 'gi');
-      safe = safe.replace(re, '<mark style="background-color: #FFEB3B; padding: 2px; border-radius: 2px;">$1</mark>');
+      safe = safe.replace(re, '<mark style="background-color: #F59E0B; color: #000000; padding: 2px; border-radius: 2px; font-weight: 600;">$1</mark>');
     }
     return safe;
   };
@@ -146,11 +146,31 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
       maxWidth="md"
       fullWidth
       scroll="paper"
+      PaperProps={{
+        sx: {
+          backgroundColor: '#16181C',
+          color: '#E7E9EA',
+          '& .MuiDialogTitle-root': {
+            backgroundColor: '#16181C',
+            color: '#E7E9EA'
+          },
+          '& .MuiDialogContent-root': {
+            backgroundColor: '#16181C',
+            color: '#E7E9EA'
+          },
+          '& .MuiDialogActions-root': {
+            backgroundColor: '#16181C',
+            color: '#E7E9EA'
+          }
+        }
+      }}
     >
       <DialogTitle sx={{ 
         pr: 6, 
         pb: 2,
-        borderBottom: '1px solid #e0e0e0'
+        borderBottom: '1px solid #2F3336',
+        backgroundColor: '#16181C',
+        color: '#E7E9EA'
       }}>
         <IconButton
           onClick={handleClose}
@@ -158,30 +178,43 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             position: 'absolute',
             right: 8,
             top: 8,
-            color: 'grey.500',
+            color: '#71767B',
+            '&:hover': {
+              backgroundColor: '#2F3336',
+              color: '#E7E9EA'
+            }
           }}
         >
           <CloseIcon />
         </IconButton>
         
         {loading ? (
-          'Loading...'
+          <Typography variant="h5" component="h2" sx={{ color: '#E7E9EA' }}>
+            Loading...
+          </Typography>
         ) : post ? (
-          <Typography variant="h5" component="h2" dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.title)) }} />
+          <Typography 
+            variant="h5" 
+            component="h2" 
+            sx={{ color: '#E7E9EA' }}
+            dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.title)) }} 
+          />
         ) : (
-          'Post Details'
+          <Typography variant="h5" component="h2" sx={{ color: '#E7E9EA' }}>
+            Post Details
+          </Typography>
         )}
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent sx={{ pt: 3, backgroundColor: '#16181C', color: '#E7E9EA' }}>
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+            <CircularProgress sx={{ color: '#1D9BF0' }} />
           </Box>
         )}
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, backgroundColor: '#2F3336', color: '#E7E9EA' }}>
             {error}
           </Alert>
         )}
@@ -191,60 +224,89 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             {/* Post Metadata */}
             <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               <Chip
-                icon={<Person />}
+                icon={<Person sx={{ color: '#71767B' }} />}
                 label={`Author: ${post.author_name}`}
                 variant="outlined"
                 size="small"
+                sx={{
+                  borderColor: '#2F3336',
+                  color: '#E7E9EA',
+                  backgroundColor: '#0F1115',
+                  '& .MuiChip-label': { color: '#E7E9EA' }
+                }}
               />
               <Chip
-                icon={<DateRange />}
+                icon={<DateRange sx={{ color: '#71767B' }} />}
                 label={`Published: ${format(new Date(post.wp_published_date), 'MMM dd, yyyy HH:mm')}`}
                 variant="outlined"
                 size="small"
+                sx={{
+                  borderColor: '#2F3336',
+                  color: '#E7E9EA',
+                  backgroundColor: '#0F1115',
+                  '& .MuiChip-label': { color: '#E7E9EA' }
+                }}
               />
               {post.category_name && (
                 <Chip
-                  icon={<CategoryIcon />}
+                  icon={<CategoryIcon sx={{ color: '#1D9BF0' }} />}
                   label={`Category: ${post.category_name}`}
                   variant="outlined"
                   size="small"
-                  color="primary"
+                  sx={{
+                    borderColor: '#1D9BF0',
+                    color: '#1D9BF0',
+                    backgroundColor: '#0F1115',
+                    '& .MuiChip-label': { color: '#1D9BF0' }
+                  }}
                 />
               )}
               <Chip
-                icon={<Schedule />}
+                icon={<Schedule sx={{ color: '#F59E0B' }} />}
                 label={`Retention: ${format(new Date(post.retention_date), 'MMM dd, yyyy')}`}
                 variant="outlined"
                 size="small"
-                color="warning"
+                sx={{
+                  borderColor: '#F59E0B',
+                  color: '#F59E0B',
+                  backgroundColor: '#0F1115',
+                  '& .MuiChip-label': { color: '#F59E0B' }
+                }}
               />
             </Box>
 
             {/* Post Excerpt */}
             {post.excerpt && (
-              <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="subtitle2" color="primary" gutterBottom>
+              <Box sx={{ mb: 3, p: 2, bgcolor: '#0F1115', borderRadius: 1, border: '1px solid #2F3336' }}>
+                <Typography variant="subtitle2" sx={{ color: '#1D9BF0', fontWeight: 600 }} gutterBottom>
                   Summary
                 </Typography>
-                <Typography variant="body2" color="textSecondary" dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.excerpt)) }} />
+                <Typography variant="body2" sx={{ color: '#E7E9EA', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.excerpt)) }} />
               </Box>
             )}
 
             {/* Full Post Content */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="primary" gutterBottom>
+              <Typography variant="subtitle2" sx={{ color: '#1D9BF0', fontWeight: 600 }} gutterBottom>
                 Full Details
               </Typography>
               <Box
                 sx={{
                   lineHeight: 1.8,
+                  color: '#E7E9EA',
                   '& img': { 
                     maxWidth: '100%', 
                     borderRadius: 1,
                     '&:not([src])': { display: 'none' }
                   },
-                  '& p': { margin: '0 0 12px' },
-                  '& h1, & h2, & h3': { marginTop: '16px' }
+                  '& p': { margin: '0 0 12px', color: '#E7E9EA' },
+                  '& h1, & h2, & h3': { marginTop: '16px', color: '#E7E9EA' },
+                  '& a': { color: '#1D9BF0', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } },
+                  '& strong, & b': { color: '#E7E9EA', fontWeight: 600 },
+                  '& em, & i': { color: '#E7E9EA', fontStyle: 'italic' },
+                  '& code': { backgroundColor: '#2F3336', color: '#E7E9EA', padding: '2px 4px', borderRadius: '3px', fontSize: '0.9em' },
+                  '& pre': { backgroundColor: '#0F1115', color: '#E7E9EA', padding: '12px', borderRadius: '4px', overflow: 'auto', border: '1px solid #2F3336' },
+                  '& blockquote': { borderLeft: '4px solid #1D9BF0', paddingLeft: '16px', margin: '16px 0', fontStyle: 'italic', color: '#B1B5B8' }
                 }}
                 ref={contentRef}
                 dangerouslySetInnerHTML={{ __html: (() => {
@@ -300,7 +362,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                     const escaped = highlightTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
                     const re = new RegExp(`(${escaped.join('|')})`, 'gi');
                     sanitized = sanitized.replace(/>([^<]+)</g, (m, text) => {
-                      const replaced = text.replace(re, '<mark style="background-color: yellow; padding:0;">$1</mark>');
+                      const replaced = text.replace(re, '<mark style="background-color: #F59E0B; color: #000000; padding: 2px; border-radius: 2px; font-weight: 600;">$1</mark>');
                       return '>' + replaced + '<';
                     });
                   }
@@ -312,14 +374,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             {/* Media and Attachments */}
             {(post.featured_media_url || (post.attachments && post.attachments.length > 0)) && (
               <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle2" color="primary" gutterBottom>
+                <Typography variant="subtitle2" sx={{ color: '#1D9BF0', fontWeight: 600 }} gutterBottom>
                   Media & Attachments
                 </Typography>
                 
                 {/* Featured Media */}
                 {post.featured_media_url && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                    <Typography variant="body2" sx={{ color: '#B1B5B8' }} gutterBottom>
                       Featured Image:
                     </Typography>
                     <img
@@ -327,7 +389,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         ? post.featured_media_url 
                         : `https://cso.vectoronline.us${post.featured_media_url}`}
                       alt="Featured media"
-                      style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px' }}
+                      style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #2F3336' }}
                     />
                   </Box>
                 )}
@@ -335,7 +397,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                 {/* Additional Attachments */}
                 {post.attachments && post.attachments.length > 0 && (
                   <Box>
-                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                    <Typography variant="body2" sx={{ color: '#B1B5B8' }} gutterBottom>
                       Additional Attachments:
                     </Typography>
                     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))' }}>
@@ -361,7 +423,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                               <img
                                 src={url}
                                 alt={att.original_name}
-                                style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, border: '1px solid #e0e0e0' }}
+                                style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, border: '1px solid #2F3336' }}
                               />
                             </Box>
                           );
@@ -369,9 +431,19 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
 
                         if (isPdf) {
                           return (
-                            <Box key={index} onClick={openViewer} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1, cursor: 'pointer' }}>
+                            <Box key={index} onClick={openViewer} sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1, 
+                              p: 1, 
+                              border: '1px solid #2F3336', 
+                              borderRadius: 1, 
+                              cursor: 'pointer',
+                              backgroundColor: '#0F1115',
+                              '&:hover': { backgroundColor: '#2F3336' }
+                            }}>
                               <span role="img" aria-label="PDF">📄</span>
-                              <Typography variant="caption" noWrap>PDF</Typography>
+                              <Typography variant="caption" noWrap sx={{ color: '#E7E9EA' }}>PDF</Typography>
                             </Box>
                           );
                         }
@@ -379,7 +451,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         if (isVideo) {
                           return (
                             <Box key={index} onClick={openViewer} sx={{ cursor: 'pointer' }}>
-                              <video style={{ width: '100%', height: 100, borderRadius: 4, border: '1px solid #e0e0e0' }}>
+                              <video style={{ width: '100%', height: 100, borderRadius: 4, border: '1px solid #2F3336' }}>
                                 <source src={url} />
                               </video>
                             </Box>
@@ -397,9 +469,19 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                         }
 
                         return (
-                          <Box key={index} onClick={openViewer} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1, cursor: 'pointer' }}>
+                          <Box key={index} onClick={openViewer} sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1, 
+                            p: 1, 
+                            border: '1px solid #2F3336', 
+                            borderRadius: 1, 
+                            cursor: 'pointer',
+                            backgroundColor: '#0F1115',
+                            '&:hover': { backgroundColor: '#2F3336' }
+                          }}>
                             <span role="img" aria-label="File">📎</span>
-                            <Typography variant="caption" noWrap>{att.original_name}</Typography>
+                            <Typography variant="caption" noWrap sx={{ color: '#E7E9EA' }}>{att.original_name}</Typography>
                           </Box>
                         );
                       })}
@@ -413,11 +495,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
 
             {/* Additional Metadata */}
             {post.metadata && (
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="subtitle2" color="primary" gutterBottom>
+              <Box sx={{ mt: 3, p: 2, bgcolor: '#0F1115', borderRadius: 1, border: '1px solid #2F3336' }}>
+                <Typography variant="subtitle2" sx={{ color: '#1D9BF0', fontWeight: 600 }} gutterBottom>
                   Additional Information
                 </Typography>
-                <Typography variant="caption" color="textSecondary">
+                <Typography variant="caption" sx={{ color: '#B1B5B8' }}>
                   Post ID: {post.wp_post_id} | 
                   Status: {post.status} | 
                   Ingested: {format(new Date(post.ingested_at), 'MMM dd, yyyy HH:mm')}
@@ -431,8 +513,19 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} variant="contained">
+      <DialogActions sx={{ px: 3, pb: 2, backgroundColor: '#16181C' }}>
+        <Button 
+          onClick={handleClose} 
+          variant="contained"
+          sx={{
+            backgroundColor: '#1D9BF0',
+            color: '#000000',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#1A8CD8'
+            }
+          }}
+        >
           Close
         </Button>
       </DialogActions>
