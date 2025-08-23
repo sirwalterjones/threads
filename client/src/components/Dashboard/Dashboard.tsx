@@ -92,37 +92,8 @@ const Dashboard: React.FC = () => {
     if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
     else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
 
-    // Debug: Log the URL to see what we're dealing with
-    console.log('resolveContentImageUrl (Dashboard): Processing URL:', { rawUrl, absolute, remoteBase });
-
-    // If it's a WordPress URL, proxy it through our media endpoint
-    // Check for various WordPress URL patterns
-    const isWordPressUrl = absolute.includes('cmansrms.us') || 
-                           absolute.includes('wordpress') || 
-                           absolute.includes('wp-content') ||
-                           absolute.includes('wp-includes') ||
-                           absolute.includes('uploads') ||
-                           absolute.startsWith(remoteBase);
-
-    if (isWordPressUrl) {
-      // Test if media proxy is working now with proper credentials
-      const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
-      const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
-      const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
-      
-      // Log each property separately to avoid "Object" display
-      console.log('resolveContentImageUrl (Dashboard): Using media proxy');
-      console.log('  Original URL:', absolute);
-      console.log('  Proxy URL:', proxyUrl);
-      console.log('  Has Token:', !!token);
-      console.log('  Token Length:', token.length);
-      console.log('  Token Preview:', token ? `${token.substring(0, 20)}...${token.substring(token.length - 20)}` : 'none');
-      
-      return proxyUrl;
-    }
-
-    // For other external URLs, return as-is
-    console.log('resolveContentImageUrl (Dashboard): Using direct URL:', absolute);
+    // For now, skip the proxy and use direct URLs to ensure images display
+    console.log('resolveContentImageUrl (Dashboard): Using direct URL (proxy disabled):', absolute);
     return absolute;
   };
 
@@ -550,7 +521,7 @@ const Dashboard: React.FC = () => {
                       maxWidth: '100%', 
                       height: 'auto', 
                       borderRadius: '8px',
-                      border: '1px solid red' // Debug border to see if image is there
+                      border: 'none'
                     }}
                     onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
                   />
