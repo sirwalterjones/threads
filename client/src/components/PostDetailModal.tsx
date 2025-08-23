@@ -44,16 +44,26 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
   // Resolve content image URLs through media proxy to avoid IP restriction issues
   const resolveContentImageUrl = (rawUrl: string): string => {
     if (!rawUrl) return rawUrl;
+    
+    // If it's already a local file URL (served by Threads Intel), return as-is
+    if (rawUrl.startsWith('/api/files/') || rawUrl.startsWith(`${process.env.REACT_APP_API_URL || ''}/files/`)) {
+      return rawUrl;
+    }
+    
     const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
     let absolute = rawUrl;
     if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
     else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
-    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
-    const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
     
-    // Always use media proxy for WordPress media to avoid IP restriction issues
-    // This ensures all media is accessible regardless of user's IP address
-    return `${process.env.REACT_APP_API_URL || ''}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+    // If it's a WordPress URL, proxy it through our media endpoint
+    if (absolute.includes('cmansrms.us') || absolute.includes('wordpress') || absolute.includes('wp-content')) {
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+      const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+      return `${process.env.REACT_APP_API_URL || ''}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+    }
+    
+    // For other external URLs, return as-is
+    return absolute;
   };
 
   const highlightTerms = useMemo(() => {
