@@ -86,9 +86,12 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Request logging middleware
+// Request logging middleware (exclude health checks to reduce log noise)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
+  // Skip logging for health checks and frequent polling endpoints
+  if (!req.path.includes('/health') && !req.path.includes('/api/health')) {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
+  }
   next();
 });
 

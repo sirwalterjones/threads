@@ -76,8 +76,6 @@ router.get('/sync', async (req, res) => {
         WHERE table_name = 'audit_log'
       `);
       
-      console.log('Available columns in audit_log:', tableInfoResult.rows.map(r => r.column_name));
-      
       // Use the correct timestamp column (try common names)
       const timestampColumn = tableInfoResult.rows.find(r => 
         ['created_at', 'timestamp', 'created', 'date_created'].includes(r.column_name)
@@ -85,9 +83,6 @@ router.get('/sync', async (req, res) => {
       
       // Check if details column exists
       const hasDetailsColumn = tableInfoResult.rows.some(r => r.column_name === 'details');
-      
-      console.log('Using timestamp column:', timestampColumn);
-      console.log('Has details column:', hasDetailsColumn);
       
       // Build query based on available columns
       const selectColumns = hasDetailsColumn ? `${timestampColumn}, details` : timestampColumn;
@@ -183,10 +178,10 @@ router.get('/sync', async (req, res) => {
           if (simpleSyncResult.rows.length > 0) {
             syncStatus.lastSync = simpleSyncResult.rows[0][timestampColumn];
             syncStatus.status = 'recent';
-            console.log('Found recent sync activity using simple query');
+            // Found recent sync activity
           }
         } catch (simpleError) {
-          console.log('Simple sync query also failed:', simpleError.message);
+          // Simple sync query failed, continuing with fallback status
         }
       }
 
