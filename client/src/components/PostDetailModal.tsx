@@ -171,6 +171,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
       maxWidth="md"
       fullWidth
       scroll="paper"
+      disableEscapeKeyDown={false}
       PaperProps={{
         sx: {
           backgroundColor: '#16181C',
@@ -199,18 +200,25 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
       }}>
         <IconButton
           onClick={handleClose}
+          aria-label="Close modal"
           sx={{
             position: 'absolute',
             right: 8,
             top: 8,
             color: '#71767B',
+            minWidth: 48,
+            minHeight: 48,
             '&:hover': {
               backgroundColor: '#2F3336',
               color: '#E7E9EA'
-            }
+            },
+            '&:active': {
+              backgroundColor: 'rgba(47, 51, 54, 0.8)'
+            },
+            zIndex: 1000
           }}
         >
-          <CloseIcon />
+          <CloseIcon fontSize="medium" />
         </IconButton>
         
         {loading ? (
@@ -413,6 +421,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                       src={resolveContentImageUrl(post.featured_media_url)}
                       alt="Featured media"
                       style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #2F3336' }}
+                      onError={(e) => {
+                        console.log('Featured media failed to load, falling back to direct URL:', post.featured_media_url);
+                        const img = e.currentTarget as HTMLImageElement;
+                        // Fallback to direct WordPress URL if proxy fails
+                        if (post.featured_media_url && (post.featured_media_url.includes('cmansrms.us') || post.featured_media_url.includes('wordpress'))) {
+                          img.src = post.featured_media_url.startsWith('http') ? post.featured_media_url : `https://cmansrms.us${post.featured_media_url.startsWith('/') ? post.featured_media_url : `/${post.featured_media_url}`}`;
+                        }
+                      }}
                     />
                   </Box>
                 )}

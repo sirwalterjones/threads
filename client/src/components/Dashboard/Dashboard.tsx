@@ -80,20 +80,21 @@ const Dashboard: React.FC = () => {
 
   const resolveContentImageUrl = (rawUrl: string): string => {
     if (!rawUrl) return rawUrl;
-    
+
     // If it's already a local file URL (served by Threads Intel), return as-is
     if (rawUrl.startsWith('/api/files/') || rawUrl.startsWith(`${API_BASE_URL}/files/`)) {
+      console.log('resolveContentImageUrl (Dashboard): Using local file URL:', rawUrl);
       return rawUrl;
     }
-    
+
     const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
     let absolute = rawUrl;
     if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
     else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
-    
+
     // Debug: Log the URL to see what we're dealing with
-    console.log('resolveContentImageUrl (Dashboard):', { rawUrl, absolute, remoteBase });
-    
+    console.log('resolveContentImageUrl (Dashboard): Processing URL:', { rawUrl, absolute, remoteBase });
+
     // If it's a WordPress URL, proxy it through our media endpoint
     // Check for various WordPress URL patterns
     const isWordPressUrl = absolute.includes('cmansrms.us') || 
@@ -102,22 +103,26 @@ const Dashboard: React.FC = () => {
                            absolute.includes('wp-includes') ||
                            absolute.includes('uploads') ||
                            absolute.startsWith(remoteBase);
-    
+
     if (isWordPressUrl) {
       // Test if media proxy is working now with proper credentials
       const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
       const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
       const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
-      console.log('Testing media proxy with credentials (Dashboard):', { original: absolute, proxy: proxyUrl });
-      return proxyUrl;
       
-      // Fallback to direct URLs if proxy fails:
-      // console.log('Media proxy is currently down (502 errors), using direct WordPress URL (Dashboard):', absolute);
-      // return absolute;
+      // Log each property separately to avoid "Object" display
+      console.log('resolveContentImageUrl (Dashboard): Using media proxy');
+      console.log('  Original URL:', absolute);
+      console.log('  Proxy URL:', proxyUrl);
+      console.log('  Has Token:', !!token);
+      console.log('  Token Length:', token.length);
+      console.log('  Token Preview:', token ? `${token.substring(0, 20)}...${token.substring(token.length - 20)}` : 'none');
+      
+      return proxyUrl;
     }
-    
+
     // For other external URLs, return as-is
-    console.log('Using direct URL (Dashboard):', absolute);
+    console.log('resolveContentImageUrl (Dashboard): Using direct URL:', absolute);
     return absolute;
   };
 
@@ -449,7 +454,16 @@ const Dashboard: React.FC = () => {
                             src={resolveContentImageUrl(url)}
                             alt={`Post image ${idx + 1}`}
                             style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: '8px', flex: '0 0 auto' }}
-                            onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }}
+                            onError={(e) => {
+                              console.log('Image failed to load, falling back to direct URL:', url);
+                              const img = e.currentTarget as HTMLImageElement;
+                              // Fallback to direct WordPress URL if proxy fails
+                              if (url.includes('cmansrms.us') || url.includes('wordpress')) {
+                                img.src = url.startsWith('http') ? url : `https://cmansrms.us${url.startsWith('/') ? url : `/${url}`}`;
+                              } else {
+                                img.style.display = 'none';
+                              }
+                            }}
                           />
                         ))}
                       </Box>
@@ -740,11 +754,19 @@ const Dashboard: React.FC = () => {
             {/* Media attachments preview */}
             {post.featured_media_url && (
               <Box sx={{ mb: 2 }}>
-                <img 
-                  src={resolveContentImageUrl(post.featured_media_url)}
-                  alt="Featured media"
-                  style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
-                />
+                                 <img 
+                   src={resolveContentImageUrl(post.featured_media_url)}
+                   alt="Featured media"
+                   style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                   onError={(e) => {
+                     console.log('Featured media failed to load, falling back to direct URL:', post.featured_media_url);
+                     const img = e.currentTarget as HTMLImageElement;
+                     // Fallback to direct WordPress URL if proxy fails
+                     if (post.featured_media_url && (post.featured_media_url.includes('cmansrms.us') || post.featured_media_url.includes('wordpress'))) {
+                       img.src = post.featured_media_url.startsWith('http') ? post.featured_media_url : `https://cmansrms.us${post.featured_media_url.startsWith('/') ? post.featured_media_url : `/${post.featured_media_url}`}`;
+                     }
+                   }}
+                 />
               </Box>
             )}
 

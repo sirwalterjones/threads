@@ -7,13 +7,16 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Box
+  Box,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   AccountCircle,
   ExitToApp,
   Settings,
-  Add
+  Add,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -22,9 +25,15 @@ import NotificationBell from '../Notifications/NotificationBell';
 import SyncNotification from '../Notifications/SyncNotification';
 import apiService from '../../services/api';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onSidebarToggle?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openNew, setOpenNew] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
@@ -76,21 +85,68 @@ const Header: React.FC = () => {
       left: 0,
       right: 0
     }}>
-      <Toolbar sx={{ justifyContent: 'space-between', px: 3 }}>
-        <Typography
-          variant="h4"
-          component="div"
-          sx={{ 
-            cursor: 'pointer',
-            fontWeight: 700,
-            color: '#E7E9EA',
-            fontSize: '1.875rem',
-            letterSpacing: '-0.025em'
-          }}
-          onClick={() => navigate('/')}
-        >
-          VECTOR
-        </Typography>
+      <Toolbar sx={{ 
+        justifyContent: isMobile ? 'space-between' : 'space-between', 
+        px: 2,
+        position: 'relative'
+      }}>
+        {/* Left Side - Hamburger menu (mobile only) */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {isMobile && user && onSidebarToggle && (
+            <IconButton
+              edge="start"
+              onClick={onSidebarToggle}
+              sx={{ 
+                color: '#E7E9EA',
+                mr: 1
+              }}
+              aria-label="open sidebar"
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          {!isMobile && (
+            <Typography
+              variant="h4"
+              component="div"
+              sx={{ 
+                cursor: 'pointer',
+                fontWeight: 700,
+                color: '#E7E9EA',
+                fontSize: '1.875rem',
+                letterSpacing: '-0.025em'
+              }}
+              onClick={() => navigate('/')}
+            >
+              VECTOR
+            </Typography>
+          )}
+        </Box>
+
+        {/* Center - VECTOR text (mobile only) */}
+        {isMobile && (
+          <Box sx={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1
+          }}>
+            <Typography
+              variant="h4"
+              component="div"
+              sx={{ 
+                cursor: 'pointer',
+                fontWeight: 700,
+                color: '#E7E9EA',
+                fontSize: '1.875rem',
+                letterSpacing: '-0.025em'
+              }}
+              onClick={() => navigate('/')}
+            >
+              VECTOR
+            </Typography>
+          </Box>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap' }}>
           {/* Sync Notification - Show when system is ingesting data */}

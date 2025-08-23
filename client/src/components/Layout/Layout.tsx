@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Box, IconButton, useMediaQuery, useTheme } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import Header from './Header';
@@ -66,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       backgroundColor: '#0F0F0F'
     }}>
       {/* Full-width Header */}
-      <Header />
+      <Header onSidebarToggle={handleSidebarToggle} />
       
       {/* Main Layout Container - Below Header */}
       <Box sx={{ 
@@ -98,27 +97,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               flexDirection: 'column'
             }}
           >
-            {/* Mobile Menu Button - only show on mobile */}
-            <Box
-              sx={{
-                display: { xs: 'block', md: 'none' },
-                position: 'sticky',
-                top: 0,
-                zIndex: 10,
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid #2F3336',
-                p: 2
-              }}
-            >
-              <IconButton
-                edge="start"
-                onClick={handleSidebarToggle}
-                sx={{ color: '#E7E9EA' }}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Box>
 
             {/* Main Content Feed */}
             <Box sx={{ backgroundColor: '#000000', flexGrow: 1 }}>

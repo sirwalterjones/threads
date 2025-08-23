@@ -5,46 +5,105 @@ const { pool } = require('../config/database');
 
 const router = express.Router();
 
+// Test endpoint to debug outbound requests
+router.get('/test', async (req, res) => {
+  try {
+    console.log('Media proxy test endpoint called');
+    
+    // Test basic HTTP request
+    try {
+      const testResponse = await axios.get('https://httpbin.org/get', { timeout: 10000 });
+      console.log('✅ Basic HTTP test successful:', testResponse.status);
+    } catch (e) {
+      console.log('❌ Basic HTTP test failed:', e.message);
+    }
+    
+    // Test WordPress request
+    try {
+      const wpResponse = await axios.get('https://cmansrms.us/wp-json/', { timeout: 10000 });
+      console.log('✅ WordPress API test successful:', wpResponse.status);
+    } catch (e) {
+      console.log('❌ WordPress API test failed:', e.message, e.code);
+    }
+    
+    res.json({ 
+      message: 'Test completed',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    });
+    
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Proxy remote WordPress media through our server with Basic/JWT auth
 // Accept JWT via Authorization header or token query param since <img>/<video> cannot set headers
 router.get('/', async (req, res) => {
   try {
+    console.log('Media proxy request received:', {
+      url: req.query.url,
+      hasAuthHeader: !!req.headers['authorization'],
+      hasTokenQuery: !!req.query.token,
+      hasTQuery: !!req.query.t,
+      userAgent: req.headers['user-agent']
+    });
+
     const authHeader = req.headers['authorization'] || '';
     const headerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const queryToken = typeof req.query.token === 'string' ? req.query.token : (typeof req.query.t === 'string' ? req.query.t : null);
     const token = headerToken || queryToken;
 
     if (!token) {
+      console.log('Media proxy: No token provided');
       return res.status(401).json({ error: 'Access token required' });
     }
+
+    console.log('Media proxy: Token received, length:', token.length);
 
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Media proxy: JWT verified for user:', decoded.userId);
     } catch (e) {
+      console.log('Media proxy: JWT verification failed:', e.message);
       return res.status(403).json({ error: 'Invalid token' });
     }
 
     const userResult = await pool.query('SELECT id, role, is_active FROM users WHERE id = ?', [decoded.userId]);
     if (userResult.rows.length === 0 || !userResult.rows[0].is_active) {
+      console.log('Media proxy: User not found or inactive:', decoded.userId);
       return res.status(403).json({ error: 'Invalid or inactive user' });
     }
 
+    console.log('Media proxy: User authenticated:', { userId: decoded.userId, role: userResult.rows[0].role });
+
     const { url } = req.query;
-    if (!url) return res.status(400).json({ error: 'Missing url parameter' });
+    if (!url) {
+      console.log('Media proxy: Missing url parameter');
+      return res.status(400).json({ error: 'Missing url parameter' });
+    }
 
     // Support relative paths like /wp-content/uploads/...
     const siteUrl = process.env.WORDPRESS_SITE_URL || (process.env.WORDPRESS_API_URL ? new URL(process.env.WORDPRESS_API_URL).origin : '');
     let absoluteUrl = url;
     if (typeof absoluteUrl === 'string' && absoluteUrl.startsWith('/')) {
-      if (!siteUrl) return res.status(400).json({ error: 'Cannot resolve relative URL without WORDPRESS_SITE_URL' });
+      if (!siteUrl) {
+        console.log('Media proxy: Cannot resolve relative URL without WORDPRESS_SITE_URL');
+        return res.status(400).json({ error: 'Cannot resolve relative URL without WORDPRESS_SITE_URL' });
+      }
       absoluteUrl = new URL(absoluteUrl, siteUrl).toString();
     }
+
+    console.log('Media proxy: Processing URL:', { original: url, absolute: absoluteUrl, siteUrl });
 
     let target;
     try {
       target = new URL(absoluteUrl);
+      console.log('Media proxy: Target URL parsed:', target.toString());
     } catch (e) {
+      console.log('Media proxy: Invalid URL:', e.message);
       return res.status(400).json({ error: 'Invalid URL' });
     }
 
@@ -60,9 +119,16 @@ router.get('/', async (req, res) => {
         try { allowedHosts.add(new URL(h).host); } catch { allowedHosts.add(h); }
       });
     }
+    
+    console.log('Media proxy: Allowed hosts:', Array.from(allowedHosts));
+    console.log('Media proxy: Target host:', target.host);
+    
     if (!allowedHosts.has(target.host)) {
+      console.log('Media proxy: Host not allowed:', target.host);
       return res.status(403).json({ error: 'URL not allowed' });
     }
+
+    console.log('Media proxy: Host allowed, creating axios client...');
 
     const client = axios.create({
       timeout: 20000,
@@ -74,16 +140,26 @@ router.get('/', async (req, res) => {
     });
 
     if (process.env.WORDPRESS_BASIC_USER && process.env.WORDPRESS_BASIC_PASS) {
+      console.log('Media proxy: Using Basic auth with user:', process.env.WORDPRESS_BASIC_USER);
       client.defaults.auth = {
         username: process.env.WORDPRESS_BASIC_USER,
         password: process.env.WORDPRESS_BASIC_PASS
       };
+    } else {
+      console.log('Media proxy: No Basic auth credentials found');
     }
+    
     if (process.env.WORDPRESS_JWT_TOKEN) {
+      console.log('Media proxy: Using WordPress JWT token');
       client.defaults.headers.Authorization = `Bearer ${process.env.WORDPRESS_JWT_TOKEN}`;
+    } else {
+      console.log('Media proxy: No WordPress JWT token found');
     }
 
+          console.log('Media proxy: Starting fetch with fallbacks...');
+
     const fetchWithFallbacks = async () => {
+      console.log('Media proxy: Creating candidates list...');
       const tried = new Set();
       const candidates = [];
       const originalUrl = target.toString();
@@ -222,7 +298,15 @@ router.get('/', async (req, res) => {
     upstream.data.pipe(res);
   } catch (error) {
     const status = error.response?.status || 502;
-    console.error('Media proxy failure:', status, error.message);
+    console.error('Media proxy failure:', {
+      status,
+      message: error.message,
+      code: error.code,
+      responseStatus: error.response?.status,
+      responseStatusText: error.response?.statusText,
+      responseData: error.response?.data,
+      stack: error.stack
+    });
     res.status(status).json({ error: 'Failed to fetch media' });
   }
 });

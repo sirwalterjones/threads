@@ -328,6 +328,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       onClose={handleClose}
       maxWidth="md" 
       fullWidth
+      disableEscapeKeyDown={false}
       PaperProps={{
         sx: {
           backgroundColor: '#16181C',
@@ -353,16 +354,22 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
           onClick={handleClose}
           sx={{
             position: 'absolute',
-            right: 16,
-            top: 16,
+            right: 8,
+            top: 8,
             color: '#71767B',
+            minWidth: 48,
+            minHeight: 48,
             '&:hover': {
               backgroundColor: 'rgba(113, 118, 123, 0.1)',
               color: '#E7E9EA'
-            }
+            },
+            '&:active': {
+              backgroundColor: 'rgba(113, 118, 123, 0.2)'
+            },
+            zIndex: 1000
           }}
         >
-          <Close />
+          <Close fontSize="medium" />
         </IconButton>
       </DialogTitle>
       
