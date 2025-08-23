@@ -796,13 +796,28 @@ const HomeSimple: React.FC = () => {
                 )}
                 sx={{
                   '& .MuiAutocomplete-option': {
-                    color: '#E7E9EA',
+                    color: '#E7E9EA !important',
+                    backgroundColor: '#16181C !important',
                     '&:hover': {
-                      backgroundColor: '#2F3336',
+                      backgroundColor: '#2F3336 !important',
+                      color: '#E7E9EA !important',
                     },
                     '&.Mui-focused': {
-                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                      backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                      color: '#E7E9EA !important',
                     },
+                    '&[aria-selected="true"]': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                      color: '#E7E9EA !important',
+                    },
+                  },
+                  '& .MuiAutocomplete-listbox': {
+                    backgroundColor: '#16181C !important',
+                    color: '#E7E9EA !important',
+                  },
+                  '& .MuiAutocomplete-paper': {
+                    backgroundColor: '#16181C !important',
+                    border: '1px solid #2F3336 !important',
                   },
                 }}
               />

@@ -69,7 +69,7 @@ const AuditLog: React.FC = () => {
   const [actionFilter, setActionFilter] = useState('');
   const [userFilter, setUserFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [itemsPerPage] = useState(20);
+  const [itemsPerPage] = useState(10); // Reduce items per page for better performance
   const [expandedEntries, setExpandedEntries] = useState<Set<number>>(new Set());
   const [detailDialog, setDetailDialog] = useState<{ open: boolean; entry: any }>({ open: false, entry: null });
 
@@ -84,7 +84,8 @@ const AuditLog: React.FC = () => {
   const loadAuditLog = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getAuditLog({ page: 1, limit: 1000 });
+      // Load smaller chunks for better performance
+      const response = await apiService.getAuditLog({ page: 1, limit: 100 });
       setEntries(response.auditEntries || []);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Failed to load audit log');
@@ -331,6 +332,26 @@ const AuditLog: React.FC = () => {
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }
                   }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: '#16181C',
+                        border: '1px solid #2F3336',
+                        '& .MuiMenuItem-root': {
+                          color: '#E7E9EA',
+                          '&:hover': {
+                            backgroundColor: '#2F3336',
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  }}
                 >
                   <MenuItem value="">All Actions</MenuItem>
                   {uniqueActions.map(action => (
@@ -356,6 +377,26 @@ const AuditLog: React.FC = () => {
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: '#16181C',
+                        border: '1px solid #2F3336',
+                        '& .MuiMenuItem-root': {
+                          color: '#E7E9EA',
+                          '&:hover': {
+                            backgroundColor: '#2F3336',
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                            },
+                          },
+                        },
+                      },
+                    },
                   }}
                 >
                   <MenuItem value="">All Users</MenuItem>
@@ -396,236 +437,411 @@ const AuditLog: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Audit Entries - Table Based Layout */}
-      <TableContainer component={Paper} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-        <Table sx={{ minWidth: 650 }} aria-label="audit log table">
-          <TableHead sx={{ backgroundColor: '#0F1115', borderBottom: '1px solid #2F3336' }}>
-            <TableRow>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Timestamp</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>User</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Resource</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action Details</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Actions</TableCell>
-              <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }} align="right">IP Address</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedEntries.map((entry: any) => {
-              let details: any = null;
-              try { 
-                details = entry.new_values ? JSON.parse(entry.new_values) : null; 
-              } catch {}
+      {/* Desktop Table View */}
+      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <TableContainer component={Paper} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+          <Table sx={{ minWidth: 650 }} aria-label="audit log table">
+            <TableHead sx={{ backgroundColor: '#0F1115', borderBottom: '1px solid #2F3336' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Timestamp</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>User</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Resource</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Action Details</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Actions</TableCell>
+                <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }} align="right">IP Address</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedEntries.map((entry: any) => {
+                let details: any = null;
+                try { 
+                  details = entry.new_values ? JSON.parse(entry.new_values) : null; 
+                } catch {}
 
-              const isExpanded = expandedEntries.has(entry.id);
-              const actionColor = getActionColor(entry.action);
-              
-              return (
-                <React.Fragment key={entry.id}>
-                  <TableRow
-                    sx={{ 
-                      '&:last-child td, &:last-child th': { border: 0 },
-                      '&:hover': {
-                        backgroundColor: '#1C1F23',
-                        borderColor: '#1D9BF0',
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
-                      }
-                    }}
-                  >
-                    <TableCell sx={{ color: '#E7E9EA' }}>{format(new Date(entry.timestamp), 'MMM dd, yyyy HH:mm:ss')}</TableCell>
-                    <TableCell sx={{ color: '#E7E9EA' }}>{entry.username || 'System'}</TableCell>
-                    <TableCell sx={{ color: '#E7E9EA' }}>{entry.action}</TableCell>
-                    <TableCell sx={{ color: '#E7E9EA' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {entry.table_name && (
-                          <Chip
-                            icon={getResourceIcon(entry.table_name)}
-                            label={entry.table_name}
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              borderColor: '#2F3336',
-                              color: '#E7E9EA',
-                              backgroundColor: '#0F1115'
-                            }}
-                          />
-                        )}
-                        {entry.record_id && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="caption" sx={{ color: '#71767B' }}>
-                              ID:
-                            </Typography>
-                            {entry.table_name === 'posts' ? 
-                              renderPostLink(entry.record_id, details?.meta?.title) :
-                              <Typography variant="caption" sx={{ color: '#E7E9EA', fontWeight: 500 }}>
-                                {entry.record_id}
-                              </Typography>
-                            }
-                          </Box>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#E7E9EA' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip
-                          icon={getActionIcon(entry.action)}
-                          label={entry.action || 'UNKNOWN'}
-                          size="small"
-                          sx={{
-                            backgroundColor: `${actionColor}20`,
-                            color: actionColor,
-                            border: `1px solid ${actionColor}40`,
-                            fontWeight: 600,
-                            '& .MuiChip-icon': { color: actionColor }
-                          }}
-                        />
-                        {details?.meta && (
-                          <Typography variant="caption" sx={{ color: '#71767B' }}>
-                            {details.meta.method && details.meta.path && (
-                              <>API: {details.meta.method} {details.meta.path}</>
-                            )}
-                            {details.meta.status && (
-                              <> • Status: {details.meta.status}</>
-                            )}
-                            {details.meta.durationMs && (
-                              <> • {details.meta.durationMs}ms</>
-                            )}
-                            {details.meta.title && (
-                              <> • {details.meta.title}</>
-                            )}
-                          </Typography>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#E7E9EA' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {(details?.body || details?.meta?.changes || details?.meta?.data) && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                            onClick={() => toggleExpanded(entry.id)}
-                            sx={{
-                              borderColor: '#2F3336',
-                              color: '#E7E9EA',
-                              '&:hover': { borderColor: '#1D9BF0' }
-                            }}
-                          >
-                            {isExpanded ? 'Less' : 'Details'}
-                          </Button>
-                        )}
-                        <Button
-                          size="small"
-                          variant="text"
-                          onClick={() => openDetailDialog(entry)}
-                          sx={{ color: '#1D9BF0' }}
-                        >
-                          Full Details
-                        </Button>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ color: '#E7E9EA', fontFamily: 'monospace' }} align="right">{entry.ip_address}</TableCell>
-                  </TableRow>
-                  
-                  {/* Expandable Details Row */}
-                  {isExpanded && (
-                    <TableRow>
-                      <TableCell colSpan={7} sx={{ p: 0, border: 0 }}>
-                        <Box sx={{ p: 2, backgroundColor: '#0F1115', borderTop: '1px solid #2F3336' }}>
-                          {/* Edit Changes */}
-                          {details?.meta?.changes && (
-                            <Box sx={{ mb: 2 }}>
-                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                                Changes Made:
-                              </Typography>
-                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-                                <CardContent sx={{ p: 2 }}>
-                                  <pre style={{ 
-                                    color: '#E7E9EA', 
-                                    fontSize: '0.875rem', 
-                                    fontFamily: 'monospace',
-                                    whiteSpace: 'pre-wrap',
-                                    margin: 0
-                                  }}>
-                                    {JSON.stringify(details.meta.changes, null, 2)}
-                                  </pre>
-                                </CardContent>
-                              </Card>
-                            </Box>
+                const isExpanded = expandedEntries.has(entry.id);
+                const actionColor = getActionColor(entry.action);
+                
+                return (
+                  <React.Fragment key={entry.id}>
+                    <TableRow
+                      sx={{ 
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        '&:hover': {
+                          backgroundColor: '#1C1F23',
+                          borderColor: '#1D9BF0',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
+                        }
+                      }}
+                    >
+                      <TableCell sx={{ color: '#E7E9EA' }}>{format(new Date(entry.timestamp), 'MMM dd, yyyy HH:mm:ss')}</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA' }}>{entry.username || 'System'}</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA' }}>{entry.action}</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {entry.table_name && (
+                            <Chip
+                              icon={getResourceIcon(entry.table_name)}
+                              label={entry.table_name}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                borderColor: '#2F3336',
+                                color: '#E7E9EA',
+                                backgroundColor: '#0F1115'
+                              }}
+                            />
                           )}
-
-                          {/* Request Body */}
-                          {details?.body && (
-                            <Box sx={{ mb: 2 }}>
-                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                                Request Payload:
+                          {entry.record_id && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="caption" sx={{ color: '#71767B' }}>
+                                ID:
                               </Typography>
-                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-                                <CardContent sx={{ p: 2 }}>
-                                  <Stack spacing={1}>
-                                    {Object.entries(details.body).map(([key, value]) => (
-                                      <Box key={key} sx={{ display: 'flex', gap: 2 }}>
-                                        <Typography 
-                                          variant="caption" 
-                                          sx={{ 
-                                            color: '#1D9BF0', 
-                                            fontWeight: 600,
-                                            minWidth: 100,
-                                            fontFamily: 'monospace'
-                                          }}
-                                        >
-                                          {key}:
-                                        </Typography>
-                                        <Typography 
-                                          variant="caption" 
-                                          sx={{ 
-                                            color: '#E7E9EA',
-                                            fontFamily: 'monospace',
-                                            wordBreak: 'break-all'
-                                          }}
-                                        >
-                                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                                        </Typography>
-                                      </Box>
-                                    ))}
-                                  </Stack>
-                                </CardContent>
-                              </Card>
-                            </Box>
-                          )}
-
-                          {/* Creation Data */}
-                          {details?.meta?.data && (
-                            <Box sx={{ mb: 2 }}>
-                              <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
-                                Created Data:
-                              </Typography>
-                              <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-                                <CardContent sx={{ p: 2 }}>
-                                  <pre style={{ 
-                                    color: '#E7E9EA', 
-                                    fontSize: '0.875rem', 
-                                    fontFamily: 'monospace',
-                                    whiteSpace: 'pre-wrap',
-                                    margin: 0
-                                  }}>
-                                    {JSON.stringify(details.meta.data, null, 2)}
-                                  </pre>
-                                </CardContent>
-                              </Card>
+                              {entry.table_name === 'posts' ? 
+                                renderPostLink(entry.record_id, details?.meta?.title) :
+                                <Typography variant="caption" sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+                                  {entry.record_id}
+                                </Typography>
+                              }
                             </Box>
                           )}
                         </Box>
                       </TableCell>
+                      <TableCell sx={{ color: '#E7E9EA' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip
+                            icon={getActionIcon(entry.action)}
+                            label={entry.action || 'UNKNOWN'}
+                            size="small"
+                            sx={{
+                              backgroundColor: `${actionColor}20`,
+                              color: actionColor,
+                              border: `1px solid ${actionColor}40`,
+                              fontWeight: 600,
+                              '& .MuiChip-icon': { color: actionColor }
+                            }}
+                          />
+                          {details?.meta && (
+                            <Typography variant="caption" sx={{ color: '#71767B' }}>
+                              {details.meta.method && details.meta.path && (
+                                <>API: {details.meta.method} {details.meta.path}</>
+                              )}
+                              {details.meta.status && (
+                                <> • Status: {details.meta.status}</>
+                              )}
+                              {details.meta.durationMs && (
+                                <> • {details.meta.durationMs}ms</>
+                              )}
+                              {details.meta.title && (
+                                <> • {details.meta.title}</>
+                              )}
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: '#E7E9EA' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {(details?.body || details?.meta?.changes || details?.meta?.data) && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                              onClick={() => toggleExpanded(entry.id)}
+                              sx={{
+                                borderColor: '#2F3336',
+                                color: '#E7E9EA',
+                                '&:hover': { borderColor: '#1D9BF0' }
+                              }}
+                            >
+                              {isExpanded ? 'Less' : 'Details'}
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => openDetailDialog(entry)}
+                            sx={{ color: '#1D9BF0' }}
+                          >
+                            Full Details
+                          </Button>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ color: '#E7E9EA', fontFamily: 'monospace' }} align="right">{entry.ip_address}</TableCell>
                     </TableRow>
+                    
+                    {/* Expandable Details Row */}
+                    {isExpanded && (
+                      <TableRow>
+                        <TableCell colSpan={7} sx={{ p: 0, border: 0 }}>
+                          <Box sx={{ p: 2, backgroundColor: '#0F1115', borderTop: '1px solid #2F3336' }}>
+                            {/* Edit Changes */}
+                            {details?.meta?.changes && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                  Changes Made:
+                                </Typography>
+                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                  <CardContent sx={{ p: 2 }}>
+                                    <pre style={{ 
+                                      color: '#E7E9EA', 
+                                      fontSize: '0.875rem', 
+                                      fontFamily: 'monospace',
+                                      whiteSpace: 'pre-wrap',
+                                      margin: 0
+                                    }}>
+                                      {JSON.stringify(details.meta.changes, null, 2)}
+                                    </pre>
+                                  </CardContent>
+                                </Card>
+                              </Box>
+                            )}
+
+                            {/* Request Body */}
+                            {details?.body && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                  Request Payload:
+                                </Typography>
+                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                  <CardContent sx={{ p: 2 }}>
+                                    <Stack spacing={1}>
+                                      {Object.entries(details.body).map(([key, value]) => (
+                                        <Box key={key} sx={{ display: 'flex', gap: 2 }}>
+                                          <Typography 
+                                            variant="caption" 
+                                            sx={{ 
+                                              color: '#1D9BF0', 
+                                              fontWeight: 600,
+                                              minWidth: 100,
+                                              fontFamily: 'monospace'
+                                            }}
+                                          >
+                                            {key}:
+                                          </Typography>
+                                          <Typography 
+                                            variant="caption" 
+                                            sx={{ 
+                                              color: '#E7E9EA',
+                                              fontFamily: 'monospace',
+                                              wordBreak: 'break-all'
+                                            }}
+                                          >
+                                            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Stack>
+                                  </CardContent>
+                                </Card>
+                              </Box>
+                            )}
+
+                            {/* Creation Data */}
+                            {details?.meta?.data && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
+                                  Created Data:
+                                </Typography>
+                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                  <CardContent sx={{ p: 2 }}>
+                                    <pre style={{ 
+                                      color: '#E7E9EA', 
+                                      fontSize: '0.875rem', 
+                                      fontFamily: 'monospace',
+                                      whiteSpace: 'pre-wrap',
+                                      margin: 0
+                                    }}>
+                                      {JSON.stringify(details.meta.data, null, 2)}
+                                    </pre>
+                                  </CardContent>
+                                </Card>
+                              </Box>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      {/* Mobile Card View */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        <Stack spacing={2}>
+          {paginatedEntries.map((entry: any) => {
+            let details: any = null;
+            try { 
+              details = entry.new_values ? JSON.parse(entry.new_values) : null; 
+            } catch {}
+
+            const isExpanded = expandedEntries.has(entry.id);
+            const actionColor = getActionColor(entry.action);
+            
+            return (
+              <Card key={entry.id} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                <CardContent sx={{ pb: '16px !important' }}>
+                  {/* Header Row */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.75rem' }}>
+                        {format(new Date(entry.timestamp), 'MMM dd, HH:mm:ss')}
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#E7E9EA', fontSize: '0.9rem', mt: 0.5 }}>
+                        {entry.username || 'System'}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      icon={getActionIcon(entry.action)}
+                      label={entry.action || 'UNKNOWN'}
+                      size="small"
+                      sx={{
+                        backgroundColor: `${actionColor}20`,
+                        color: actionColor,
+                        border: `1px solid ${actionColor}40`,
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        '& .MuiChip-icon': { color: actionColor }
+                      }}
+                    />
+                  </Box>
+
+                  {/* Resource Info */}
+                  {entry.table_name && (
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        {getResourceIcon(entry.table_name)}
+                        <Typography variant="body2" sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+                          {entry.table_name}
+                        </Typography>
+                        {entry.record_id && (
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>
+                            #{entry.record_id}
+                          </Typography>
+                        )}
+                      </Box>
+                      {details?.meta?.title && (
+                        <Typography variant="body2" sx={{ color: '#E7E9EA', fontSize: '0.85rem' }}>
+                          {details.meta.title}
+                        </Typography>
+                      )}
+                    </Box>
                   )}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+
+                  {/* Action Buttons */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: '#71767B', fontFamily: 'monospace' }}>
+                      {entry.ip_address}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {(details?.body || details?.meta?.changes || details?.meta?.data) && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          onClick={() => toggleExpanded(entry.id)}
+                          sx={{
+                            borderColor: '#2F3336',
+                            color: '#E7E9EA',
+                            fontSize: '0.75rem',
+                            minWidth: 'auto',
+                            px: 1,
+                            '&:hover': { borderColor: '#1D9BF0' }
+                          }}
+                        >
+                          {isExpanded ? 'Less' : 'Details'}
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => openDetailDialog(entry)}
+                        sx={{ color: '#1D9BF0', fontSize: '0.75rem', minWidth: 'auto', px: 1 }}
+                      >
+                        Full
+                      </Button>
+                    </Box>
+                  </Box>
+
+                  {/* Expanded Details */}
+                  <Collapse in={isExpanded}>
+                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #2F3336' }}>
+                      {/* Edit Changes */}
+                      {details?.meta?.changes && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600, fontSize: '0.8rem' }}>
+                            Changes Made:
+                          </Typography>
+                          <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+                            <CardContent sx={{ p: 1 }}>
+                              <pre style={{ 
+                                color: '#E7E9EA', 
+                                fontSize: '0.75rem', 
+                                fontFamily: 'monospace',
+                                whiteSpace: 'pre-wrap',
+                                margin: 0,
+                                overflow: 'auto'
+                              }}>
+                                {JSON.stringify(details.meta.changes, null, 2)}
+                              </pre>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      )}
+
+                      {/* Request Body */}
+                      {details?.body && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600, fontSize: '0.8rem' }}>
+                            Request Payload:
+                          </Typography>
+                          <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+                            <CardContent sx={{ p: 1 }}>
+                              <Stack spacing={1}>
+                                {Object.entries(details.body).slice(0, 3).map(([key, value]) => (
+                                  <Box key={key} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                    <Typography 
+                                      variant="caption" 
+                                      sx={{ 
+                                        color: '#1D9BF0', 
+                                        fontWeight: 600,
+                                        fontFamily: 'monospace',
+                                        fontSize: '0.75rem'
+                                      }}
+                                    >
+                                      {key}:
+                                    </Typography>
+                                    <Typography 
+                                      variant="caption" 
+                                      sx={{ 
+                                        color: '#E7E9EA',
+                                        fontFamily: 'monospace',
+                                        wordBreak: 'break-all',
+                                        fontSize: '0.7rem',
+                                        ml: 1
+                                      }}
+                                    >
+                                      {typeof value === 'object' ? JSON.stringify(value).substring(0, 100) + '...' : String(value).substring(0, 100)}
+                                    </Typography>
+                                  </Box>
+                                ))}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      )}
+                    </Box>
+                  </Collapse>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </Stack>
+      </Box>
 
       {/* Empty State */}
       {paginatedEntries.length === 0 && (
