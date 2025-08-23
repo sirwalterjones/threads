@@ -277,255 +277,255 @@ const PostExpiration: React.FC = () => {
       {purgeMessage && <Alert severity="success" sx={{ mb: 3, bgcolor: '#10B981', color: '#E7E9EA' }}>{purgeMessage}</Alert>}
 
       {/* Stats Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <WarningIcon sx={{ color: '#DC2626', fontSize: 32 }} />
-                <Box>
-                  <Typography variant="h6" sx={{ color: '#EF4444', fontWeight: 600 }}>
-                    {posts.filter(p => getDaysUntilExpiry(p.retention_date) <= 7).length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
-                    Critical (&le;7 days)
-                  </Typography>
-                </Box>
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { 
+          xs: '1fr', 
+          sm: '1fr 1fr', 
+          md: '1fr 1fr 1fr 1fr' 
+        }, 
+        gap: 2, 
+        mb: 3 
+      }}>
+        <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <WarningIcon sx={{ color: '#DC2626', fontSize: 32 }} />
+              <Box>
+                <Typography variant="h6" sx={{ color: '#EF4444', fontWeight: 600 }}>
+                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) <= 7).length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#8B98A5' }}>
+                  Critical (&le;7 days)
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <TimeIcon sx={{ color: '#D97706', fontSize: 32 }} />
-                <Box>
-                  <Typography variant="h6" sx={{ color: '#F59E0B', fontWeight: 600 }}>
-                    {posts.filter(p => {
-                      const days = getDaysUntilExpiry(p.retention_date);
-                      return days > 7 && days <= 30;
-                    }).length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
-                    Warning (8-30 days)
-                  </Typography>
-                </Box>
+            </Box>
+          </CardContent>
+        </Card>
+        <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <TimeIcon sx={{ color: '#D97706', fontSize: 32 }} />
+              <Box>
+                <Typography variant="h6" sx={{ color: '#F59E0B', fontWeight: 600 }}>
+                  {posts.filter(p => {
+                    const days = getDaysUntilExpiry(p.retention_date);
+                    return days > 7 && days <= 30;
+                  }).length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#8B98A5' }}>
+                  Warning (8-30 days)
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <CategoryIcon sx={{ color: '#16A34A', fontSize: 32 }} />
-                <Box>
-                  <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 600 }}>
-                    {posts.filter(p => getDaysUntilExpiry(p.retention_date) > 30).length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
-                    Normal (&gt;30 days)
-                  </Typography>
-                </Box>
+            </Box>
+          </CardContent>
+        </Card>
+        <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <CategoryIcon sx={{ color: '#16A34A', fontSize: 32 }} />
+              <Box>
+                <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 600 }}>
+                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) > 30).length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#8B98A5' }}>
+                  Normal (&gt;30 days)
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <PurgeIcon sx={{ color: '#64748B', fontSize: 32 }} />
-                <Box>
-                  <Typography variant="h6" sx={{ color: '#8B98A5', fontWeight: 600 }}>
-                    {posts.filter(p => getDaysUntilExpiry(p.retention_date) < 0).length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#8B98A5' }}>
-                    Expired
-                  </Typography>
-                </Box>
+            </Box>
+          </CardContent>
+        </Card>
+        <Card sx={{ backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <PurgeIcon sx={{ color: '#64748B', fontSize: 32 }} />
+              <Box>
+                <Typography variant="h6" sx={{ color: '#8B98A5', fontWeight: 600 }}>
+                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) < 0).length}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#8B98A5' }}>
+                  Expired
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Search and Filter Section */}
       <Card sx={{ mb: 3, backgroundColor: '#16202A', border: '1px solid #2F3336' }}>
         <CardContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Search"
-                placeholder="Search posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#8B98A5' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#E7E9EA',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#8B98A5' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: searchQuery && (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setSearchQuery('')} size="small" sx={{ color: '#8B98A5' }}>
-                        <ClearIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#8B98A5' }}>Days Until Expiry</InputLabel>
-                <Select
-                  value={daysFilter}
-                  onChange={(e) => setDaysFilter(e.target.value)}
-                  label="Days Until Expiry"
-                  sx={{
-                    color: '#E7E9EA',
-                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
-                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: '#16202A !important',
-                        border: '1px solid #2F3336 !important',
-                        '& .MuiMenuItem-root': {
-                          color: '#E7E9EA !important',
-                          backgroundColor: '#16202A !important',
-                          '&:hover': {
-                            backgroundColor: '#2F3336 !important',
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
-                            '&:hover': {
-                              backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
-                            },
-                          },
-                        },
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="7">7 days</MenuItem>
-                  <MenuItem value="30">30 days</MenuItem>
-                  <MenuItem value="90">90 days</MenuItem>
-                  <MenuItem value="365">1 year</MenuItem>
-                  <MenuItem value="1825">5 years</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#8B98A5' }}>Category</InputLabel>
-                <Select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  label="Category"
-                  sx={{
-                    color: '#E7E9EA',
-                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
-                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: '#16202A !important',
-                        border: '1px solid #2F3336 !important',
-                        '& .MuiMenuItem-root': {
-                          color: '#E7E9EA !important',
-                          backgroundColor: '#16202A !important',
-                          '&:hover': {
-                            backgroundColor: '#2F3336 !important',
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
-                            '&:hover': {
-                              backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
-                            },
-                          },
-                        },
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="">All Categories</MenuItem>
-                  {uniqueCategories.map(category => (
-                    <MenuItem key={category} value={category}>{category}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#8B98A5' }}>Author</InputLabel>
-                <Select
-                  value={authorFilter}
-                  onChange={(e) => setAuthorFilter(e.target.value)}
-                  label="Author"
-                  sx={{
-                    color: '#E7E9EA',
-                    '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
-                    '.MuiSvgIcon-root': { color: '#E7E9EA' }
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: '#16202A !important',
-                        border: '1px solid #2F3336 !important',
-                        '& .MuiMenuItem-root': {
-                          color: '#E7E9EA !important',
-                          backgroundColor: '#16202A !important',
-                          '&:hover': {
-                            backgroundColor: '#2F3336 !important',
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
-                            '&:hover': {
-                              backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
-                            },
-                          },
-                        },
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="">All Authors</MenuItem>
-                  {uniqueAuthors.map(author => (
-                    <MenuItem key={author} value={author}>{author}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={clearFilters}
-                sx={{ 
-                  height: '56px',
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: '1fr 1fr',
+              md: '2fr 1fr 1fr 1fr 2fr'
+            },
+            gap: 2,
+            alignItems: 'end'
+          }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Search"
+              placeholder="Search posts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{
+                '& .MuiInputLabel-root': { color: '#8B98A5' },
+                '& .MuiOutlinedInput-root': {
                   color: '#E7E9EA',
-                  borderColor: '#2F3336',
-                  '&:hover': { borderColor: '#E7E9EA', bgcolor: '#16202A' }
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }
+                }
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: '#8B98A5' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchQuery && (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setSearchQuery('')} size="small" sx={{ color: '#8B98A5' }}>
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#8B98A5' }}>Days Until Expiry</InputLabel>
+              <Select
+                value={daysFilter}
+                onChange={(e) => setDaysFilter(e.target.value)}
+                label="Days Until Expiry"
+                sx={{
+                  color: '#E7E9EA',
+                  '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                  '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16202A !important',
+                      border: '1px solid #2F3336 !important',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16202A !important',
+                        '&:hover': {
+                          backgroundColor: '#2F3336 !important',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                          },
+                        },
+                      },
+                    },
+                  },
                 }}
               >
-                Clear Filters
-              </Button>
-            </Grid>
-          </Grid>
+                <MenuItem value="7">7 days</MenuItem>
+                <MenuItem value="30">30 days</MenuItem>
+                <MenuItem value="90">90 days</MenuItem>
+                <MenuItem value="365">1 year</MenuItem>
+                <MenuItem value="1825">5 years</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#8B98A5' }}>Category</InputLabel>
+              <Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                label="Category"
+                sx={{
+                  color: '#E7E9EA',
+                  '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                  '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16202A !important',
+                      border: '1px solid #2F3336 !important',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16202A !important',
+                        '&:hover': {
+                          backgroundColor: '#2F3336 !important',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">All Categories</MenuItem>
+                {uniqueCategories.map(category => (
+                  <MenuItem key={category} value={category}>{category}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: '#8B98A5' }}>Author</InputLabel>
+              <Select
+                value={authorFilter}
+                onChange={(e) => setAuthorFilter(e.target.value)}
+                label="Author"
+                sx={{
+                  color: '#E7E9EA',
+                  '.MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                  '.MuiSvgIcon-root': { color: '#E7E9EA' }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16202A !important',
+                      border: '1px solid #2F3336 !important',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16202A !important',
+                        '&:hover': {
+                          backgroundColor: '#2F3336 !important',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          '&:hover': {
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">All Authors</MenuItem>
+                {uniqueAuthors.map(author => (
+                  <MenuItem key={author} value={author}>{author}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={clearFilters}
+              sx={{ 
+                height: '56px',
+                color: '#E7E9EA',
+                borderColor: '#2F3336',
+                '&:hover': { borderColor: '#E7E9EA', bgcolor: '#16202A' }
+              }}
+            >
+              Clear Filters
+            </Button>
+          </Box>
         </CardContent>
       </Card>
 
