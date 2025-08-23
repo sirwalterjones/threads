@@ -11,7 +11,6 @@ import CategoriesManage from './pages/CategoriesManage';
 import UsersManage from './pages/UsersManage';
 import AuditLog from './pages/AuditLog';
 import PostExpiration from './pages/PostExpiration';
-import DataManagement from './pages/DataManagement';
 import Profile from './pages/Profile';
 import { CircularProgress, Box } from '@mui/material';
 
@@ -83,7 +82,6 @@ const AppRoutes: React.FC = () => {
                 <Route path="/users" element={<UsersManage />} />
                 <Route path="/expiration" element={<PostExpiration />} />
                 <Route path="/audit" element={<AuditLog />} />
-                <Route path="/data-management" element={<DataManagement />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>

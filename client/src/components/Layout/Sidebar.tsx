@@ -69,7 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const systemAdminPages = [
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
-    { text: 'Data Management', icon: <SettingsIcon />, path: '/data-management', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }

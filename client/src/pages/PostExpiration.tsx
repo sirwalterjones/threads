@@ -57,7 +57,10 @@ const PostExpiration: React.FC = () => {
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(25);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
-  const [newRetentionDays, setNewRetentionDays] = useState(1825); // 5 years default
+  const [newRetentionDays, setNewRetentionDays] = useState(1825);
+  const [purgeDialogOpen, setPurgeDialogOpen] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+  const [purgeMessage, setPurgeMessage] = useState('');
 
   useEffect(() => {
     loadExpiringPosts();
@@ -154,6 +157,22 @@ const PostExpiration: React.FC = () => {
     }
   };
 
+  const handlePurgeExpiredData = async () => {
+    try {
+      setPurgeLoading(true);
+      setPurgeMessage('');
+      setError('');
+      const result = await apiService.purgeExpiredData();
+      setPurgeMessage(`Successfully purged ${result.purgedCount} expired items`);
+      setPurgeDialogOpen(false);
+      await loadExpiringPosts(); // Refresh the list
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to purge expired data');
+    } finally {
+      setPurgeLoading(false);
+    }
+  };
+
   const handleExtendSingle = async (postId: number, days: number) => {
     try {
       await apiService.updatePostRetention(postId, days);
@@ -226,10 +245,23 @@ const PostExpiration: React.FC = () => {
               Extend {selectedPosts.size} Posts
             </Button>
           )}
+          <Button
+            variant="outlined"
+            startIcon={<PurgeIcon />}
+            onClick={() => setPurgeDialogOpen(true)}
+            sx={{ 
+              color: '#EF4444', 
+              borderColor: '#EF4444',
+              '&:hover': { borderColor: '#DC2626', bgcolor: 'rgba(239, 68, 68, 0.1)' }
+            }}
+          >
+            Purge Expired
+          </Button>
         </Box>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3, bgcolor: '#D32F2F', color: '#E7E9EA' }}>{error}</Alert>}
+      {purgeMessage && <Alert severity="success" sx={{ mb: 3, bgcolor: '#10B981', color: '#E7E9EA' }}>{purgeMessage}</Alert>}
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -614,6 +646,55 @@ const PostExpiration: React.FC = () => {
             }}
           >
             Extend Retention
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Purge Expired Data Dialog */}
+      <Dialog 
+        open={purgeDialogOpen} 
+        onClose={() => setPurgeDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: '#16202A',
+            color: '#E7E9EA'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>
+          Purge Expired Data
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
+          <Typography variant="body2" sx={{ mb: 3, color: '#8B98A5', lineHeight: 1.6 }}>
+            This will permanently delete all posts that have passed their retention period. 
+            This action cannot be undone and will remove all expired content from the system.
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#EF4444', fontWeight: 600 }}>
+            ⚠️ Warning: This action is irreversible!
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button 
+            onClick={() => setPurgeDialogOpen(false)} 
+            disabled={purgeLoading}
+            sx={{ color: '#E7E9EA' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handlePurgeExpiredData}
+            disabled={purgeLoading}
+            sx={{ 
+              backgroundColor: '#EF4444',
+              '&:hover': { backgroundColor: '#DC2626' },
+              '&:disabled': { backgroundColor: '#374151' },
+              color: '#FFFFFF'
+            }}
+          >
+            {purgeLoading ? 'Purging...' : 'Purge Expired Data'}
           </Button>
         </DialogActions>
       </Dialog>
