@@ -104,17 +104,16 @@ const Dashboard: React.FC = () => {
                            absolute.startsWith(remoteBase);
     
     if (isWordPressUrl) {
-      // TEMPORARY: Skip proxy and use direct URLs since proxy is returning 502 errors
-      // TODO: Fix the backend media proxy and re-enable this
-      console.log('Media proxy is currently down (502 errors), using direct WordPress URL (Dashboard):', absolute);
-      return absolute;
+      // Test if media proxy is working now with proper credentials
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+      const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+      const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+      console.log('Testing media proxy with credentials (Dashboard):', { original: absolute, proxy: proxyUrl });
+      return proxyUrl;
       
-      // Original proxy code (commented out until fixed):
-      // const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
-      // const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
-      // const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
-      // console.log('Proxying WordPress media (Dashboard):', { original: absolute, proxy: proxyUrl });
-      // return proxyUrl;
+      // Fallback to direct URLs if proxy fails:
+      // console.log('Media proxy is currently down (502 errors), using direct WordPress URL (Dashboard):', absolute);
+      // return absolute;
     }
     
     // For other external URLs, return as-is
