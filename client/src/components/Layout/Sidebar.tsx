@@ -63,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   ];
 
   const contentPages = [
-    { text: 'My Vector', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
+            { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
     { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] }
   ];
 

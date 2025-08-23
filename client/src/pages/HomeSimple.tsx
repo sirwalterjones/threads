@@ -798,26 +798,42 @@ const HomeSimple: React.FC = () => {
                   '& .MuiAutocomplete-option': {
                     color: '#E7E9EA !important',
                     backgroundColor: '#16181C !important',
+                    fontSize: '0.875rem !important',
+                    padding: '8px 16px !important',
                     '&:hover': {
                       backgroundColor: '#2F3336 !important',
-                      color: '#E7E9EA !important',
+                      color: '#FFFFFF !important',
                     },
                     '&.Mui-focused': {
                       backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
-                      color: '#E7E9EA !important',
+                      color: '#FFFFFF !important',
                     },
                     '&[aria-selected="true"]': {
                       backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                      color: '#FFFFFF !important',
+                    },
+                    '& *': {
                       color: '#E7E9EA !important',
                     },
                   },
                   '& .MuiAutocomplete-listbox': {
                     backgroundColor: '#16181C !important',
                     color: '#E7E9EA !important',
+                    padding: '4px 0 !important',
+                    '& li': {
+                      color: '#E7E9EA !important',
+                    },
                   },
                   '& .MuiAutocomplete-paper': {
                     backgroundColor: '#16181C !important',
                     border: '1px solid #2F3336 !important',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
+                  },
+                  '& .MuiAutocomplete-popper': {
+                    '& .MuiPaper-root': {
+                      backgroundColor: '#16181C !important',
+                      color: '#E7E9EA !important',
+                    },
                   },
                 }}
               />
@@ -860,17 +876,23 @@ const HomeSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#16181C',
-                      border: '1px solid #2F3336',
+                      backgroundColor: '#16181C !important',
+                      border: '1px solid #2F3336 !important',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
                       '& .MuiMenuItem-root': {
-                        color: '#E7E9EA',
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16181C !important',
+                        fontSize: '0.875rem !important',
+                        padding: '8px 16px !important',
                         '&:hover': {
-                          backgroundColor: '#2F3336',
+                          backgroundColor: '#2F3336 !important',
+                          color: '#FFFFFF !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          color: '#FFFFFF !important',
                           '&:hover': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
                           },
                         },
                       },
@@ -917,23 +939,29 @@ const HomeSimple: React.FC = () => {
                     MenuProps={{
                       PaperProps: {
                         sx: {
-                          backgroundColor: '#16181C',
-                          border: '1px solid #2F3336',
+                          backgroundColor: '#16181C !important',
+                          border: '1px solid #2F3336 !important',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
                           '& .MuiMenuItem-root': {
-                            color: '#E7E9EA',
+                            color: '#E7E9EA !important',
+                            backgroundColor: '#16181C !important',
+                            fontSize: '0.875rem !important',
+                            padding: '8px 16px !important',
                             '&:hover': {
-                              backgroundColor: '#2F3336',
+                              backgroundColor: '#2F3336 !important',
+                              color: '#FFFFFF !important',
                             },
                             '&.Mui-selected': {
-                              backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                              backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                              color: '#FFFFFF !important',
                               '&:hover': {
-                                backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                                backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
                               },
                             },
                           },
                         },
                       },
-                    }}
+                    }
                   >
                     <MenuItem value="">All Authors</MenuItem>
                     {authors.map((author) => (
@@ -1079,17 +1107,23 @@ const HomeSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#16181C',
-                      border: '1px solid #2F3336',
+                      backgroundColor: '#16181C !important',
+                      border: '1px solid #2F3336 !important',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
                       '& .MuiMenuItem-root': {
-                        color: '#E7E9EA',
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16181C !important',
+                        fontSize: '0.875rem !important',
+                        padding: '8px 16px !important',
                         '&:hover': {
-                          backgroundColor: '#2F3336',
+                          backgroundColor: '#2F3336 !important',
+                          color: '#FFFFFF !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          color: '#FFFFFF !important',
                           '&:hover': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
                           },
                         },
                       },
@@ -1137,17 +1171,23 @@ const HomeSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#16181C',
-                      border: '1px solid #2F3336',
+                      backgroundColor: '#16181C !important',
+                      border: '1px solid #2F3336 !important',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
                       '& .MuiMenuItem-root': {
-                        color: '#E7E9EA',
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16181C !important',
+                        fontSize: '0.875rem !important',
+                        padding: '8px 16px !important',
                         '&:hover': {
-                          backgroundColor: '#2F3336',
+                          backgroundColor: '#2F3336 !important',
+                          color: '#FFFFFF !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          color: '#FFFFFF !important',
                           '&:hover': {
-                            backgroundColor: 'rgba(29, 155, 240, 0.2)',
+                            backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
                           },
                         },
                       },
