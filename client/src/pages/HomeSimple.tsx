@@ -409,11 +409,17 @@ const HomeSimple: React.FC = () => {
                            absolute.startsWith(remoteBase);
     
     if (isWordPressUrl) {
-      const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
-      const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
-      const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
-      console.log('Proxying WordPress media:', { original: absolute, proxy: proxyUrl });
-      return proxyUrl;
+      // TEMPORARY: Skip proxy and use direct URLs since proxy is returning 502 errors
+      // TODO: Fix the backend media proxy and re-enable this
+      console.log('Media proxy is currently down (502 errors), using direct WordPress URL:', absolute);
+      return absolute;
+      
+      // Original proxy code (commented out until fixed):
+      // const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+      // const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+      // const proxyUrl = `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+      // console.log('Proxying WordPress media:', { original: absolute, proxy: proxyUrl });
+      // return proxyUrl;
     }
     
     // For other external URLs, return as-is
@@ -1467,17 +1473,6 @@ const HomeSimple: React.FC = () => {
                               border: '1px solid red' // Debug border to see if image is there
                             }}
                             onLoad={() => console.log('Featured media loaded successfully:', post.featured_media_url)}
-                            onError={(e) => {
-                              console.error('Featured media failed to load:', post.featured_media_url, e);
-                              // Fallback to direct WordPress URL if proxy fails
-                              if (post.featured_media_url) {
-                                const fallbackUrl = post.featured_media_url.startsWith('http') 
-                                  ? post.featured_media_url 
-                                  : `https://cmansrms.us${post.featured_media_url}`;
-                                console.log('Falling back to direct URL:', fallbackUrl);
-                                e.currentTarget.src = fallbackUrl;
-                              }
-                            }}
                           />
                         </Box>
                       )}
