@@ -38,8 +38,23 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [attachmentOpen, setAttachmentOpen] = useState(false);
-  const [selectedAttachment, setSelectedAttachment] = useState<any>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<{ url: string; mime_type?: string | null; title?: string | null } | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+
+  // Resolve content image URLs through media proxy to avoid IP restriction issues
+  const resolveContentImageUrl = (rawUrl: string): string => {
+    if (!rawUrl) return rawUrl;
+    const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
+    let absolute = rawUrl;
+    if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
+    else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
+    const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
+    
+    // Always use media proxy for WordPress media to avoid IP restriction issues
+    // This ensures all media is accessible regardless of user's IP address
+    return `${process.env.REACT_APP_API_URL || ''}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+  };
 
   const highlightTerms = useMemo(() => {
     if (termsProp && termsProp.length) return termsProp;
@@ -385,9 +400,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                       Featured Image:
                     </Typography>
                     <img
-                      src={post.featured_media_url.startsWith('http') 
-                        ? post.featured_media_url 
-                        : `https://cso.vectoronline.us${post.featured_media_url}`}
+                      src={resolveContentImageUrl(post.featured_media_url)}
                       alt="Featured media"
                       style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #2F3336' }}
                     />

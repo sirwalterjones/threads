@@ -391,8 +391,10 @@ const HomeSimple: React.FC = () => {
     else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
     const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : '';
     const tokenQuery = token ? `&t=${encodeURIComponent(token)}` : '';
-    const shouldUseDirect = absolute.includes('cmansrms.us');
-    return shouldUseDirect ? absolute : `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
+    
+    // Always use media proxy for WordPress media to avoid IP restriction issues
+    // This ensures all media is accessible regardless of user's IP address
+    return `${API_BASE_URL}/media?url=${encodeURIComponent(absolute)}${tokenQuery}`;
   };
 
   const countMatches = (text: string, terms: string[]) => {
@@ -1428,15 +1430,13 @@ const HomeSimple: React.FC = () => {
                         )}
                       </Box>
 
-                      {/* Media attachments preview */}
+                      {/* Featured Media */}
                       {post.featured_media_url && (
                         <Box sx={{ mb: 2 }}>
-                          <img 
-                            src={post.featured_media_url.startsWith('http') 
-                              ? post.featured_media_url 
-                              : `https://cso.vectoronline.us${post.featured_media_url}`}
+                          <img
+                            src={resolveContentImageUrl(post.featured_media_url)}
                             alt="Featured media"
-                            style={{ maxWidth: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '4px' }}
+                            style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
                           />
                         </Box>
                       )}
