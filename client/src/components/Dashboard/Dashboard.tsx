@@ -527,7 +527,24 @@ const Dashboard: React.FC = () => {
                   <img
                     src={resolveContentImageUrl(post.featured_media_url)}
                     alt="Featured media"
-                    style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }}
+                    style={{ 
+                      maxWidth: '100%', 
+                      height: 'auto', 
+                      borderRadius: '8px',
+                      border: '1px solid red' // Debug border to see if image is there
+                    }}
+                    onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
+                    onError={(e) => {
+                      console.error('Featured media failed to load (Dashboard):', post.featured_media_url, e);
+                      // Fallback to direct WordPress URL if proxy fails
+                      if (post.featured_media_url) {
+                        const fallbackUrl = post.featured_media_url.startsWith('http') 
+                          ? post.featured_media_url 
+                          : `https://cmansrms.us${post.featured_media_url}`;
+                        console.log('Falling back to direct URL (Dashboard):', fallbackUrl);
+                        e.currentTarget.src = fallbackUrl;
+                      }
+                    }}
                   />
                 </Box>
               )}
