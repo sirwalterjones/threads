@@ -351,7 +351,10 @@ const HotList: React.FC = () => {
       });
       
       const postResults = await Promise.all(postPromises);
-      const postsMap = postResults.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+      const postsMap: {[key: number]: any} = {};
+      postResults.forEach(result => {
+        Object.assign(postsMap, result);
+      });
       setAlertPosts(postsMap);
     } catch (error) {
       console.error('Error loading hot list alerts:', error);
