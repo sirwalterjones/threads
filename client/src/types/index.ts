@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   role: 'admin' | 'edit' | 'view';
+  super_admin?: boolean;
   createdAt?: string;
   lastLogin?: string;
   isActive?: boolean;

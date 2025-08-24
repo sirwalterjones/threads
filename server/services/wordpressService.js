@@ -178,6 +178,14 @@ class WordPressService {
           })
         ]);
 
+        // Trigger immediate hot list check for the newly inserted post
+        this.triggerHotListCheck(result.rows[0]?.id || post.id, {
+          title: post.title.rendered,
+          content: post.content.rendered,
+          excerpt: post.excerpt.rendered,
+          author_name: authorName
+        });
+
         ingestedCount++;
       }
 
@@ -196,12 +204,52 @@ class WordPressService {
     }
   }
 
+  async cleanupDeletedPosts() {
+    try {
+      console.log('Starting cleanup of deleted WordPress posts...');
+      
+      // Get all WordPress post IDs from our database
+      const localPosts = await pool.query(`
+        SELECT wp_post_id FROM posts 
+        WHERE wp_post_id IS NOT NULL
+      `);
+      
+      if (localPosts.rows.length === 0) {
+        console.log('No WordPress posts found locally, nothing to cleanup');
+        return 0;
+      }
+      
+      const localPostIds = localPosts.rows.map(row => row.wp_post_id);
+      console.log(`Found ${localPostIds.length} local WordPress posts to check`);
+      
+      // Since we're using a push-based approach with a WordPress plugin,
+      // we can't directly query WordPress. Instead, we'll use a different approach:
+      // 1. Check if posts have been updated recently (within last sync window)
+      // 2. Mark old posts as potentially deleted
+      // 3. Allow manual cleanup via admin endpoint
+      
+      console.log('Push-based sync detected - manual cleanup required for deleted posts');
+      console.log('Use /api/admin/force-delete-wp-post endpoint to remove specific posts');
+      
+      return 0; // No automatic cleanup in push-based approach
+      
+    } catch (error) {
+      console.error('Error during cleanup of deleted posts:', error);
+      // Don't throw error - cleanup failure shouldn't break the main sync
+      return 0;
+    }
+  }
+
   async performFullIngestion() {
     try {
       console.log('Starting full WordPress data ingestion...');
       
       const categoriesCount = await this.ingestCategories();
       const postsCount = await this.ingestPosts();
+      
+      // Cleanup deleted posts
+      const deletedPosts = await this.cleanupDeletedPosts();
+      
       // Recalculate post counts per category after ingestion
       await pool.query(`
         UPDATE categories 
@@ -210,11 +258,12 @@ class WordPressService {
         )
       `);
       
-      console.log(`Ingestion complete: ${categoriesCount} categories, ${postsCount} posts`);
+      console.log(`Ingestion complete: ${categoriesCount} categories, ${postsCount} posts, ${deletedPosts} deleted`);
       
       return {
         categories: categoriesCount,
         posts: postsCount,
+        deleted: deletedPosts,
         timestamp: new Date()
       };
     } catch (error) {
@@ -410,11 +459,22 @@ class WordPressService {
         }
       }
       
-      console.log(`Incremental sync complete: ${categoriesCount} categories checked, ${newPostsCount} new/updated posts`);
+      // Always cleanup deleted posts, even in incremental sync
+      let deletedPosts = 0;
+      try {
+        deletedPosts = await this.cleanupDeletedPosts();
+        console.log(`Cleanup completed: ${deletedPosts} deleted posts removed`);
+      } catch (cleanupError) {
+        console.error('Cleanup failed, continuing:', cleanupError.message);
+        // Not critical, continue
+      }
+      
+      console.log(`Incremental sync complete: ${categoriesCount} categories checked, ${newPostsCount} new/updated posts, ${deletedPosts} deleted`);
       
       return {
         categories: categoriesCount,
         newPosts: newPostsCount,
+        deleted: deletedPosts,
         timestamp: new Date(),
         type: 'incremental',
         lastSyncTime: lastSyncTime
@@ -426,13 +486,13 @@ class WordPressService {
     }
   }
 
-  async ingestDirectData(posts, categories) {
+  async ingestDirectData(posts, categories, deletedPosts = []) {
     let categoriesIngested = 0;
     let postsIngested = 0;
     const errors = [];
     
     try {
-      console.log(`🔍 Starting direct data processing: ${posts.length} posts, ${categories.length} categories`);
+      console.log(`🔍 Starting direct data processing: ${posts.length} posts, ${categories.length} categories, ${deletedPosts.length} deleted posts`);
       
       // Validate input data first
       if (!Array.isArray(posts)) {
@@ -709,6 +769,33 @@ class WordPressService {
         console.log(`✅ Updated post counts for ${updateResult.rowCount} categories`);
       }
       
+      // Handle deleted posts sent by WordPress plugin
+      let deletedPostsCount = 0;
+      if (deletedPosts && Array.isArray(deletedPosts) && deletedPosts.length > 0) {
+        console.log(`🧹 Processing ${deletedPosts.length} deleted posts from WordPress plugin...`);
+        try {
+          const deleteResult = await pool.query(`
+            DELETE FROM posts 
+            WHERE wp_post_id = ANY($1)
+            RETURNING id, title, wp_post_id
+          `, [deletedPosts]);
+          
+          deletedPostsCount = deleteResult.rowCount;
+          console.log(`✅ Successfully deleted ${deletedPostsCount} posts:`, deleteResult.rows.map(r => `${r.title} (WP ID: ${r.wp_post_id})`));
+        } catch (deleteError) {
+          console.error('⚠️ Failed to delete posts:', deleteError.message);
+        }
+      } else {
+        // Fallback to old cleanup method
+        console.log('🧹 No deleted posts list provided, using fallback cleanup...');
+        try {
+          deletedPostsCount = await this.cleanupDeletedPosts();
+          console.log(`✅ Fallback cleanup completed: ${deletedPostsCount} deleted posts removed`);
+        } catch (cleanupError) {
+          console.error('⚠️ Fallback cleanup failed, continuing:', cleanupError.message);
+        }
+      }
+      
       // Verify the data was actually inserted
       console.log('🔍 Verifying insertions...');
       const verifyResult = await pool.query('SELECT COUNT(*) as total FROM posts');
@@ -719,12 +806,13 @@ class WordPressService {
         categoriesIngested,
         postsIngested,
         totalPostsInDB: totalPosts,
+        deletedPosts,
         errors: errors.length > 0 ? errors : undefined,
         timestamp: new Date(),
         type: 'direct'
       };
       
-      console.log(`🎉 Direct ingest complete: ${categoriesIngested} categories, ${postsIngested} posts processed`);
+      console.log(`🎉 Direct ingest complete: ${categoriesIngested} categories, ${postsIngested} posts processed, ${deletedPosts} deleted`);
       
       if (errors.length > 0) {
         console.warn(`⚠️ ${errors.length} errors occurred during processing`);
@@ -986,6 +1074,32 @@ class WordPressService {
         } catch (error) {
             console.error('Failed to get posts count:', error);
             return 0;
+        }
+    }
+
+    /**
+     * Trigger immediate hot list check for a specific post
+     */
+    async triggerHotListCheck(postId, postData) {
+        try {
+            // Get the global cron service
+            const cronService = global.cronService;
+            if (cronService && typeof cronService.performHotListCheck === 'function') {
+                console.log(`🔥 Triggering immediate hot list check for post ${postId}: "${postData.title?.substring(0, 50)}..."`);
+                
+                // Run hot list check in the background (don't await to avoid blocking ingestion)
+                setImmediate(async () => {
+                    try {
+                        await cronService.performHotListCheck();
+                    } catch (error) {
+                        console.error('❌ Hot list check failed:', error);
+                    }
+                });
+            } else {
+                console.warn('⚠️ Hot list check service not available');
+            }
+        } catch (error) {
+            console.error('❌ Error triggering hot list check:', error);
         }
     }
 }

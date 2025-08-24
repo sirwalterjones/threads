@@ -14,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Get user from database to ensure they still exist and are active
     const userResult = await pool.query(
-      'SELECT id, username, email, role, is_active FROM users WHERE id = $1',
+      'SELECT id, username, email, role, is_active, super_admin FROM users WHERE id = $1',
       [decoded.userId]
     );
 
@@ -37,6 +37,13 @@ const authorizeRole = (requiredRoles) => {
     }
 
     const userRole = req.user.role;
+    const isSuperAdmin = req.user.super_admin === true;
+    
+    // Super admin bypasses all role restrictions
+    if (isSuperAdmin) {
+      console.log(`Super admin ${req.user.username} bypassing role check for:`, requiredRoles);
+      return next();
+    }
     
     // Define role hierarchy
     const roleHierarchy = {
@@ -56,6 +63,26 @@ const authorizeRole = (requiredRoles) => {
       });
     }
 
+    next();
+  };
+};
+
+// Super admin authorization middleware
+const authorizeSuperAdmin = () => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (req.user.super_admin !== true) {
+      return res.status(403).json({ 
+        error: 'Super admin privileges required',
+        current: req.user.role,
+        hasSuperAdmin: req.user.super_admin
+      });
+    }
+
+    console.log(`Super admin ${req.user.username} performing action:`, req.method, req.path);
     next();
   };
 };
@@ -130,5 +157,6 @@ const auditLog = (action, tableName = null) => {
 module.exports = {
   authenticateToken,
   authorizeRole,
+  authorizeSuperAdmin,
   auditLog
 };

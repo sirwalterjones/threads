@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   List,
@@ -9,7 +9,8 @@ import {
   Typography,
   Divider,
   Menu,
-  MenuItem
+  MenuItem,
+  Badge
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -20,10 +21,12 @@ import {
   Settings as SettingsIcon,
   History as AuditIcon,
   AccessTime as ExpirationIcon,
-  ExitToApp as LogoutIcon
+  ExitToApp as LogoutIcon,
+  Whatshot as HotListIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import apiService from '../../services/api';
 
 const DRAWER_WIDTH = 280;
 
@@ -37,6 +40,26 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [hotListAlertCount, setHotListAlertCount] = useState<number>(0);
+
+  // Load hot list alert count
+  useEffect(() => {
+    const loadHotListAlertCount = async () => {
+      if (!user) return;
+      try {
+        const response = await apiService.getHotListUnreadCount();
+        setHotListAlertCount(response.count);
+      } catch (error) {
+        console.error('Failed to load hot list alert count:', error);
+      }
+    };
+
+    loadHotListAlertCount();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(loadHotListAlertCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -59,7 +82,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const mainPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
-    { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] }
+    { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
+    { text: 'Hot List', icon: <HotListIcon />, path: '/hotlist', roles: ['view', 'edit', 'admin'] }
   ];
 
   const contentPages = [
@@ -143,13 +167,45 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                 >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '12px',
-                    fontWeight: isActive(item.path) ? 600 : 400
-                  }}
-                />
+                {item.path === '/hotlist' ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Typography
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: isActive(item.path) ? 600 : 400,
+                        color: 'inherit',
+                        flex: 1
+                      }}
+                    >
+                      {item.text}
+                    </Typography>
+                    {hotListAlertCount > 0 && (
+                      <Badge
+                        badgeContent={hotListAlertCount}
+                        color="warning"
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            backgroundColor: '#FFC107',
+                            color: '#000',
+                            fontSize: '10px',
+                            height: '16px',
+                            minWidth: '16px'
+                          }
+                        }}
+                      >
+                        <Box sx={{ width: 8 }} />
+                      </Badge>
+                    )}
+                  </Box>
+                ) : (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: '12px',
+                      fontWeight: isActive(item.path) ? 600 : 400
+                    }}
+                  />
+                )}
               </ListItemButton>
             </ListItem>
           ))}

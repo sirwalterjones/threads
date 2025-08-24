@@ -48,6 +48,9 @@ import { format } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import PostDetailModal from '../components/PostDetailModal';
 import MediaGallery from '../components/MediaGallery';
+import FollowButton from '../components/FollowButton';
+import DeletePostButton from '../components/DeletePostButton';
+
 
 const HomeSimple: React.FC = () => {
   const location = useLocation();
@@ -113,6 +116,8 @@ const HomeSimple: React.FC = () => {
       setLoading(false);
     }
   };
+
+
 
   const parseAdvancedQuery = () => {
     // Supports: author:, category:, before:YYYY-MM-DD, after:YYYY-MM-DD, origin:(manual|wordpress), mine:true, quoted phrases
@@ -265,6 +270,8 @@ const HomeSimple: React.FC = () => {
     }
   }, [location.pathname, mineOnly]); // Listen for path changes
 
+
+
   const handleSearch = async () => {
     const parsed = parseAdvancedQuery();
     const q = parsed.remainingQuery;
@@ -383,7 +390,7 @@ const HomeSimple: React.FC = () => {
     }
   };
 
-    const resolveContentImageUrl = (rawUrl: string): string => {
+  const resolveContentImageUrl = (rawUrl: string): string => {
     if (!rawUrl) return rawUrl;
 
     // If it's already a local file URL (served by Threads Intel), return as-is
@@ -794,6 +801,44 @@ const HomeSimple: React.FC = () => {
                     {children}
                   </div>
                 )}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      backgroundColor: '#16181C !important',
+                      border: '1px solid #2F3336 !important',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4) !important',
+                      '& .MuiAutocomplete-option': {
+                        color: '#E7E9EA !important',
+                        backgroundColor: '#16181C !important',
+                        fontSize: '0.875rem !important',
+                        padding: '8px 16px !important',
+                        '&:hover': {
+                          backgroundColor: '#2F3336 !important',
+                          color: '#FFFFFF !important',
+                        },
+                        '&.Mui-focused': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.1) !important',
+                          color: '#FFFFFF !important',
+                        },
+                        '&[aria-selected="true"]': {
+                          backgroundColor: 'rgba(29, 155, 240, 0.2) !important',
+                          color: '#FFFFFF !important',
+                        },
+                        '& *': {
+                          color: '#E7E9EA !important',
+                        },
+                      },
+                      '& .MuiAutocomplete-listbox': {
+                        backgroundColor: '#16181C !important',
+                        color: '#E7E9EA !important',
+                        padding: '4px 0 !important',
+                        '& li': {
+                          color: '#E7E9EA !important',
+                        },
+                      },
+                    },
+                  },
+                }}
                 sx={{
                   '& .MuiAutocomplete-option': {
                     color: '#E7E9EA !important',
@@ -961,7 +1006,7 @@ const HomeSimple: React.FC = () => {
                           },
                         },
                       },
-                    }
+                    }}
                   >
                     <MenuItem value="">All Authors</MenuItem>
                     {authors.map((author) => (
@@ -1313,6 +1358,8 @@ const HomeSimple: React.FC = () => {
           </CardContent>
         </Card>
 
+        
+
         {/* Results */}
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -1320,13 +1367,13 @@ const HomeSimple: React.FC = () => {
           </Alert>
         )}
 
-        {loading ? (
+                 {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>
         ) : (
           <>
-            {posts.length === 0 ? (
+                         {posts.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <Typography variant="h6" color="textSecondary">
                   No posts found
@@ -1348,7 +1395,7 @@ const HomeSimple: React.FC = () => {
                 mx: 'auto',
                 px: { xs: 2, sm: 2, md: 0 }
               }}>
-                {posts.map((post) => {
+                                    {posts.map((post) => {
                   const titleText = stripHtmlTags(post.title);
                   const excerptText = stripHtmlTags(post.excerpt || '');
                   const contentText = stripHtmlTags(post.content || '');
@@ -1533,6 +1580,29 @@ const HomeSimple: React.FC = () => {
                         pt: 1,
                         flexDirection: { xs: 'column', sm: 'row' }
                       }}>
+                        {/* Follow Button */}
+                        <FollowButton
+                          postId={post.id}
+                          variant="icon"
+                          size="small"
+                          onFollowChange={(isFollowing) => {
+                            console.log(`Post ${post.id} ${isFollowing ? 'followed' : 'unfollowed'}`);
+                          }}
+                        />
+                        
+                        {/* Super Admin Delete Button - Shows for all posts */}
+                        <DeletePostButton
+                          postId={post.id}
+                          postTitle={post.title}
+                          variant="icon"
+                          size="small"
+                          onDelete={(deletedPostId) => {
+                            console.log(`Post ${deletedPostId} deleted from search results`);
+                            // Remove the deleted post from the current list
+                            setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
+                          }}
+                        />
+                        
                         {showCount ? (
                           <Badge badgeContent={contentCount} color="secondary">
                             <Button
@@ -1582,6 +1652,7 @@ const HomeSimple: React.FC = () => {
                             View Details
                           </Button>
                         )}
+
                         {/* Edit/Delete for manual posts authored by current user (server still enforces) */}
                         {!post.wp_post_id && (
                           <Button
@@ -1688,8 +1759,43 @@ const HomeSimple: React.FC = () => {
                           {format(new Date(post.wp_published_date), 'MMM dd, yyyy')}
                         </TableCell>
                         <TableCell>
-                          {showCount ? (
-                            <Badge badgeContent={contentCount} color="secondary">
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            {/* Follow Button */}
+                            <FollowButton
+                              postId={post.id}
+                              variant="icon"
+                              size="small"
+                              onFollowChange={(isFollowing) => {
+                                console.log(`Post ${post.id} ${isFollowing ? 'followed' : 'unfollowed'}`);
+                              }}
+                            />
+                            
+                            {/* Super Admin Delete Button */}
+                            <DeletePostButton
+                              postId={post.id}
+                              postTitle={post.title}
+                              variant="icon"
+                              size="small"
+                              onDelete={(deletedPostId) => {
+                                console.log(`Post ${deletedPostId} deleted from table view`);
+                                // Remove the deleted post from the current list
+                                setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
+                              }}
+                            />
+                            
+                            {showCount ? (
+                              <Badge badgeContent={contentCount} color="secondary">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePostClick(post.id);
+                                  }}
+                                >
+                                  <Visibility />
+                                </IconButton>
+                              </Badge>
+                            ) : (
                               <IconButton
                                 size="small"
                                 onClick={(e) => {
@@ -1699,18 +1805,8 @@ const HomeSimple: React.FC = () => {
                               >
                                 <Visibility />
                               </IconButton>
-                            </Badge>
-                          ) : (
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePostClick(post.id);
-                              }}
-                            >
-                              <Visibility />
-                            </IconButton>
-                          )}
+                            )}
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );})}

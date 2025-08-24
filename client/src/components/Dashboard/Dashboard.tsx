@@ -17,7 +17,9 @@ import {
   InputAdornment,
   CircularProgress,
   Badge,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Assessment,
@@ -28,7 +30,8 @@ import {
   TrendingUp,
   CalendarToday,
   Visibility,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Bookmark
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService, { API_BASE_URL } from '../../services/api';
@@ -36,6 +39,8 @@ import { DashboardStats as ApiDashboardStats, Post, SearchFilters } from '../../
 import { format } from 'date-fns';
 import PostDetailModal from '../PostDetailModal';
 import MediaGallery from '../MediaGallery';
+import FollowButton from '../FollowButton';
+import DeletePostButton from '../DeletePostButton';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<ApiDashboardStats | null>(null);
@@ -48,6 +53,11 @@ const Dashboard: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [manualPosts, setManualPosts] = useState<Post[]>([]);
   const [manualPostsLoading, setManualPostsLoading] = useState(false);
+
+  // Following functionality state
+  const [activeTab, setActiveTab] = useState<'all' | 'following'>('following');
+  const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
+  const [followingLoading, setFollowingLoading] = useState(false);
 
   // Utility functions for text processing
   const stripHtmlTags = (html: string) => {
@@ -170,13 +180,27 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const loadFollowingPosts = async () => {
+    try {
+      console.log('Loading following posts...'); // Debug
+      setFollowingLoading(true);
+      const response = await apiService.getFollowedPosts(1, 12);
+      console.log('Following posts response:', response); // Debug
+      setFollowingPosts(response.posts);
+    } catch (error) {
+      console.error('Failed to load following posts:', error);
+    } finally {
+      setFollowingLoading(false);
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const dashboardStats = await apiService.getDashboardStats();
       setStats(dashboardStats);
-      // Also load manual posts
-      await loadManualPosts();
+      // Load following posts instead of manual posts
+      await loadFollowingPosts();
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -219,8 +243,8 @@ const Dashboard: React.FC = () => {
   const handleClearSearch = () => {
     setSearchQuery('');
     setSearchResults([]);
-    // Reload manual posts when search is cleared
-    loadManualPosts();
+    // Reload following posts when search is cleared
+    loadFollowingPosts();
   };
 
   // Terms to highlight inside PostDetailModal and snippets (ignore filter tokens like author:)
@@ -379,18 +403,84 @@ const Dashboard: React.FC = () => {
 
 
 
-{/* Manual Posts Grid - Show when no search results */}
-{searchResults.length === 0 && manualPosts.length > 0 && (
+{/* Tabs for All Posts vs Following - Show when no search results */}
+{searchResults.length === 0 && (
+  <Box sx={{ mb: 3, px: { xs: 2, sm: 3, md: 3 } }}>
+    <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+      <Tabs 
+        value={activeTab} 
+        onChange={(_, newValue) => {
+          console.log('Tab changed to:', newValue);
+          setActiveTab(newValue);
+          if (newValue === 'following') {
+            console.log('Loading following posts...');
+            loadFollowingPosts();
+          }
+        }}
+        sx={{
+          borderBottom: '1px solid #2F3336',
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#1D9BF0',
+          },
+          '& .MuiTab-root': {
+            color: '#71767B',
+            textTransform: 'none',
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            minHeight: 48,
+            '&.Mui-selected': {
+              color: '#1D9BF0',
+            },
+            '&:hover': {
+              color: '#E7E9EA',
+            },
+          },
+        }}
+      >
+
+        <Tab 
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Bookmark sx={{ fontSize: 18 }} />
+              Following
+              <IconButton 
+                size="small" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  loadFollowingPosts();
+                }}
+                sx={{ 
+                  color: '#1DA1F2', 
+                  '&:hover': { backgroundColor: 'rgba(29, 161, 242, 0.1)' },
+                  ml: 0.5,
+                  p: 0.5
+                }}
+                title="Refresh following posts"
+              >
+                <TrendingUp fontSize="small" />
+              </IconButton>
+            </Box>
+          } 
+          value="following" 
+          sx={{ minWidth: 120 }}
+        />
+      </Tabs>
+    </Card>
+  </Box>
+)}
+
+{/* Following Posts Grid - Show when no search results */}
+{searchResults.length === 0 && followingPosts.length > 0 && (
   <Box sx={{ mb: 4, px: { xs: 2, sm: 3, md: 3 } }}>
     <Box sx={{ 
       display: 'grid', 
-      gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
-      gap: { xs: 2, sm: 2, md: 3 },
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: 3,
       maxWidth: '100%', 
       mx: 'auto',
       overflow: 'hidden'
     }}>
-      {manualPosts.map((post) => (
+      {followingPosts.map((post) => (
         <Box key={post.id}>
           <Card 
             sx={{ 
@@ -480,16 +570,18 @@ const Dashboard: React.FC = () => {
                     fontSize: '0.75rem'
                   }}
                 />
-                <Chip 
-                  size="small" 
-                  label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
-                  variant="outlined"
-                  sx={{ 
-                    borderColor: '#E5E7EB',
-                    color: '#6B7280',
-                    fontSize: '0.75rem'
-                  }}
-                />
+                {post.wp_published_date && (
+                  <Chip 
+                    size="small" 
+                    label={format(new Date(post.wp_published_date), 'MMM dd, yyyy')} 
+                    variant="outlined"
+                    sx={{ 
+                      borderColor: '#E5E7EB',
+                      color: '#6B7280',
+                      fontSize: '0.75rem'
+                    }}
+                  />
+                )}
                 {/* Comment Count Indicator */}
                 {post.comment_count && post.comment_count > 0 && (
                   <Chip 
@@ -530,6 +622,37 @@ const Dashboard: React.FC = () => {
 
               {/* Action Buttons - Centered at bottom */}
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 'auto', pt: 1 }}>
+                {/* Follow Button */}
+                <FollowButton
+                  postId={post.id}
+                  variant="icon"
+                  size="small"
+                  onFollowChange={(isFollowing) => {
+                    // Refresh the appropriate list when follow status changes
+                    if (activeTab === 'following' && !isFollowing) {
+                      // Remove from following list if unfollowed
+                      setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+                    }
+                  }}
+                />
+                
+                {/* Super Admin Delete Button */}
+                <DeletePostButton
+                  postId={post.id}
+                  postTitle={post.title}
+                  variant="icon"
+                  size="small"
+                  onDelete={(deletedPostId) => {
+                    console.log(`Post ${deletedPostId} deleted from dashboard`);
+                    // Remove the deleted post from the appropriate list
+                    if (activeTab === 'following') {
+                      setFollowingPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                    } else {
+                      setManualPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                    }
+                  }}
+                />
+                
                 <Button
                   startIcon={<Visibility />}
                   size="small"
@@ -554,6 +677,44 @@ const Dashboard: React.FC = () => {
         </Box>
       ))}
     </Box>
+  </Box>
+)}
+
+{/* Loading State for Following Posts */}
+{searchResults.length === 0 && activeTab === 'following' && followingLoading && (
+  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+    <CircularProgress />
+  </Box>
+)}
+
+{/* Empty State for Following Posts */}
+{searchResults.length === 0 && activeTab === 'following' && !followingLoading && followingPosts.length === 0 && (
+  <Box sx={{ textAlign: 'center', py: 8, px: { xs: 2, sm: 3, md: 3 } }}>
+    <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2 }}>
+      No followed posts found
+    </Typography>
+    <Typography variant="body2" sx={{ color: '#71767B' }}>
+      Start following posts to see them here
+    </Typography>
+  </Box>
+)}
+
+{/* Loading State for Manual Posts */}
+{searchResults.length === 0 && activeTab === 'all' && manualPostsLoading && (
+  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+    <CircularProgress />
+  </Box>
+)}
+
+{/* Empty State for Manual Posts */}
+{searchResults.length === 0 && activeTab === 'all' && !manualPostsLoading && manualPosts.length === 0 && (
+  <Box sx={{ textAlign: 'center', py: 8, px: { xs: 2, sm: 3, md: 3 } }}>
+    <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2 }}>
+      No posts found
+    </Typography>
+    <Typography variant="body2" sx={{ color: '#71767B' }}>
+      Create your first post to get started
+    </Typography>
   </Box>
 )}
 

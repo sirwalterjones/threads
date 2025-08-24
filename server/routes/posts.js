@@ -1,6 +1,6 @@
 const express = require('express');
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, authorizeSuperAdmin, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
 console.log('Posts router loaded successfully');
@@ -297,6 +297,289 @@ router.get('/authors',
   }
 );
 
+// Get user's followed posts - SIMPLIFIED VERSION
+router.get('/following', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    console.log('=== FOLLOWING ENDPOINT START ===');
+    console.log('User ID:', userId, 'Page:', page, 'Limit:', limit);
+
+    // First, let's see what columns actually exist in the posts table
+    const schemaQuery = `
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'posts' 
+      ORDER BY ordinal_position
+    `;
+    
+    const schemaResult = await pool.query(schemaQuery);
+    console.log('Available columns in posts table:', schemaResult.rows.map(r => r.column_name));
+
+    // Return the EXACT same data structure as the search page for consistent card rendering
+    const query = `
+      SELECT 
+        p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
+        p.wp_published_date, p.ingested_at, p.retention_date, p.status,
+        p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
+        COALESCE(
+          (SELECT json_agg(
+            json_build_object(
+              'id', f.id,
+              'filename', f.filename,
+              'original_name', f.original_name,
+              'mime_type', f.mime_type,
+              'file_size', f.file_size,
+              'uploaded_at', f.uploaded_at
+            )
+          ) FROM post_attachments pa 
+           JOIN files f ON pa.file_id = f.id 
+           WHERE pa.post_id = p.id), 
+          '[]'::json
+        ) as attachments,
+        COALESCE(
+          (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
+          0
+        ) as comment_count,
+        uf.created_at as followed_at
+      FROM user_follows uf
+      JOIN posts p ON uf.post_id = p.id
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE uf.user_id = $1
+      ORDER BY uf.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+
+    console.log('Executing query with params:', [userId, limit, offset]);
+    const result = await pool.query(query, [userId, limit, offset]);
+    console.log('Query result rows:', result.rows.length);
+    
+    const posts = result.rows;
+    const totalCount = posts.length; // Simple count for now
+
+    console.log('Sending response with', posts.length, 'posts');
+    res.json({
+      posts,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit)
+      }
+    });
+    console.log('=== FOLLOWING ENDPOINT SUCCESS ===');
+    
+  } catch (error) {
+    console.error('=== FOLLOWING ENDPOINT ERROR ===');
+    console.error('Error fetching followed posts:', error);
+    res.status(500).json({ error: 'Failed to fetch followed posts: ' + error.message });
+  }
+});
+
+// Check if user is following specific posts (bulk check)
+router.post('/follow-status', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { postIds } = req.body;
+
+    if (!Array.isArray(postIds) || postIds.length === 0) {
+      return res.json({ follows: {} });
+    }
+
+    const placeholders = postIds.map((_, index) => `$${index + 2}`).join(',');
+    const query = `
+      SELECT post_id 
+      FROM user_follows 
+      WHERE user_id = $1 AND post_id IN (${placeholders})
+    `;
+
+    const result = await pool.query(query, [userId, ...postIds]);
+    
+    // Create a map of postId -> boolean
+    const follows = {};
+    postIds.forEach(id => follows[id] = false);
+    result.rows.forEach(row => follows[row.post_id] = true);
+
+    res.json({ follows });
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    res.status(500).json({ error: 'Failed to check follow status' });
+  }
+});
+
+// Follow a post - REAL VERSION
+router.post('/:id/follow', authenticateToken, async (req, res) => {
+  console.log('=== REAL FOLLOW ENDPOINT START ===');
+  console.log('Request params:', req.params);
+  console.log('User:', req.user ? { id: req.user.id, username: req.user.username } : 'NO USER');
+  
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    console.log('Checking if post exists...');
+    const postCheck = await pool.query('SELECT id FROM posts WHERE id = $1', [id]);
+    console.log('Post check completed, rows found:', postCheck.rows.length);
+    
+    if (postCheck.rows.length === 0) {
+      console.log('Post not found, returning 404');
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Insert follow relationship
+    console.log('Inserting follow relationship...');
+    const followResult = await pool.query(`
+      INSERT INTO user_follows (user_id, post_id) 
+      VALUES ($1, $2) 
+      ON CONFLICT (user_id, post_id) DO NOTHING
+      RETURNING *
+    `, [userId, id]);
+    console.log('Follow insert completed, rows:', followResult.rowCount);
+
+    // Send success response
+    console.log('Sending success response');
+    res.json({ 
+      message: 'Post followed successfully',
+      following: true,
+      debug: { postId: id, userId, inserted: followResult.rowCount > 0 }
+    });
+    console.log('=== REAL FOLLOW ENDPOINT SUCCESS ===');
+    
+  } catch (error) {
+    console.error('=== REAL FOLLOW ENDPOINT ERROR ===');
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to follow post: ' + error.message });
+  } finally {
+    console.log('=== REAL FOLLOW ENDPOINT END ===');
+  }
+});
+
+// Unfollow a post
+router.delete('/:id/follow', authenticateToken, auditLog('unfollow_post', 'posts'), async (req, res) => {
+  console.log('=== UNFOLLOW ENDPOINT START ===');
+  console.log('Request params:', req.params);
+  console.log('User:', req.user ? { id: req.user.id, username: req.user.username } : 'NO USER');
+  
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    console.log('Attempting to unfollow post:', id, 'for user:', userId);
+
+    const result = await pool.query(
+      'DELETE FROM user_follows WHERE user_id = $1 AND post_id = $2 RETURNING *',
+      [userId, id]
+    );
+
+    console.log('Unfollow result:', result.rows.length, 'rows affected');
+
+    res.json({ 
+      message: result.rows.length > 0 ? 'Post unfollowed successfully' : 'Post was not being followed',
+      following: false 
+    });
+    console.log('=== UNFOLLOW ENDPOINT SUCCESS ===');
+    
+  } catch (error) {
+    console.error('=== UNFOLLOW ENDPOINT ERROR ===');
+    console.error('Error unfollowing post:', error);
+    res.status(500).json({ error: 'Failed to unfollow post: ' + error.message });
+  }
+});
+
+// Delete a post (Super Admin only)
+router.delete('/:id', 
+  authenticateToken, 
+  authorizeSuperAdmin(), 
+  auditLog('delete_post', 'posts'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const username = req.user.username;
+
+      console.log(`Super admin ${username} (ID: ${userId}) attempting to delete post: ${id}`);
+
+      // Get post details before deletion for audit purposes
+      const postResult = await pool.query(
+        'SELECT id, title, wp_post_id, author_name FROM posts WHERE id = $1',
+        [id]
+      );
+
+      if (postResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+
+      const post = postResult.rows[0];
+      console.log(`Deleting post: "${post.title}" (ID: ${post.id}, WP ID: ${post.wp_post_id})`);
+
+      // Start a transaction to ensure data consistency
+      const client = await pool.connect();
+      
+      try {
+        await client.query('BEGIN');
+
+        // Delete related records first (foreign key constraints)
+        console.log('Deleting related records...');
+        
+        // Delete post attachments
+        await client.query(
+          'DELETE FROM post_attachments WHERE post_id = $1',
+          [id]
+        );
+        
+        // Delete user follows
+        await client.query(
+          'DELETE FROM user_follows WHERE post_id = $1',
+          [id]
+        );
+        
+        // Delete comments
+        await client.query(
+          'DELETE FROM comments WHERE post_id = $1',
+          [id]
+        );
+        
+        // Finally delete the post
+        const deleteResult = await client.query(
+          'DELETE FROM posts WHERE id = $1 RETURNING id, title',
+          [id]
+        );
+
+        await client.query('COMMIT');
+        
+        console.log(`Post "${post.title}" deleted successfully by super admin ${username}`);
+        
+        res.json({
+          message: 'Post deleted successfully',
+          deletedPost: {
+            id: post.id,
+            title: post.title,
+            wpPostId: post.wp_post_id
+          },
+          deletedBy: username,
+          timestamp: new Date()
+        });
+
+      } catch (transactionError) {
+        await client.query('ROLLBACK');
+        throw transactionError;
+      } finally {
+        client.release();
+      }
+
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete post', 
+        details: error.message 
+      });
+    }
+  }
+);
+
 // Get single post
 router.get('/:id', 
   authenticateToken, 
@@ -423,6 +706,19 @@ router.post('/',
         }
 
         await client.query('COMMIT');
+        
+        // Trigger hot list check for the newly created manual post
+        if (global.cronService && typeof global.cronService.performHotListCheck === 'function') {
+          setImmediate(async () => {
+            try {
+              console.log(`🔥 Triggering hot list check for manual post: "${post.title}" (ID: ${post.id})`);
+              await global.cronService.performHotListCheck();
+            } catch (error) {
+              console.error('Error in hot list check trigger for manual post:', error);
+            }
+          });
+        }
+        
         res.status(201).json(post);
       } catch (error) {
         await client.query('ROLLBACK');
@@ -587,6 +883,10 @@ router.delete('/:id',
     }
   }
 );
+
+
+
+
 
 
 

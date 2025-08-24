@@ -364,6 +364,114 @@ class ApiService {
     const response = await axios.delete(`${API_BASE_URL}/comments/${commentId}`);
     return response.data;
   }
+
+  // Follow/Unfollow functionality
+  async followPost(postId: number): Promise<{ message: string; following: boolean }> {
+    const response = await axios.post(`${API_BASE_URL}/posts/${postId}/follow`);
+    return response.data;
+  }
+
+  async unfollowPost(postId: number): Promise<{ message: string; following: boolean }> {
+    const response = await axios.delete(`${API_BASE_URL}/posts/${postId}/follow`);
+    return response.data;
+  }
+
+  async getFollowedPosts(page = 1, limit = 20): Promise<PostsResponse> {
+    const response = await axios.get(`${API_BASE_URL}/posts/following`, {
+      params: { page, limit }
+    });
+    return response.data;
+  }
+
+  async getFollowStatus(postIds: number[]): Promise<{ follows: Record<number, boolean> }> {
+    const response = await axios.post(`${API_BASE_URL}/posts/follow-status`, {
+      postIds
+    });
+    return response.data;
+  }
+
+  // Hot List functionality
+  async getHotLists(): Promise<{ hotLists: Array<{ id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string }> }> {
+    const response = await axios.get(`${API_BASE_URL}/hotlist`);
+    return response.data;
+  }
+
+  async createHotList(searchTerm: string): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string } }> {
+    const response = await axios.post(`${API_BASE_URL}/hotlist`, { searchTerm });
+    return response.data;
+  }
+
+  async updateHotList(id: number, data: { searchTerm?: string; isActive?: boolean }): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string } }> {
+    const response = await axios.put(`${API_BASE_URL}/hotlist/${id}`, data);
+    return response.data;
+  }
+
+  async deleteHotList(id: number): Promise<{ message: string }> {
+    const response = await axios.delete(`${API_BASE_URL}/hotlist/${id}`);
+    return response.data;
+  }
+
+  async getHotListAlerts(filters?: { page?: number; limit?: number; unreadOnly?: boolean }): Promise<{
+    alerts: Array<{
+      id: number;
+      hot_list_id: number;
+      post_id: number;
+      is_read: boolean;
+      highlighted_content: string;
+      created_at: string;
+      search_term: string;
+      post_title: string;
+      author_name: string;
+      wp_published_date: string;
+    }>;
+    pagination: { page: number; limit: number; total: number };
+  }> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.unreadOnly) params.append('unreadOnly', filters.unreadOnly.toString());
+    
+    const response = await axios.get(`${API_BASE_URL}/hotlist/alerts?${params.toString()}`);
+    return response.data;
+  }
+
+  async markHotListAlertRead(id: number): Promise<{ message: string }> {
+    const response = await axios.put(`${API_BASE_URL}/hotlist/alerts/${id}/read`);
+    return response.data;
+  }
+
+  async markAllHotListAlertsRead(): Promise<{ message: string }> {
+    const response = await axios.put(`${API_BASE_URL}/hotlist/alerts/read-all`);
+    return response.data;
+  }
+
+  async getHotListUnreadCount(): Promise<{ count: number }> {
+    const response = await axios.get(`${API_BASE_URL}/hotlist/alerts/unread-count`);
+    return response.data;
+  }
+
+  async checkExistingPosts(searchTerm: string, hotListId?: number): Promise<{
+    message: string;
+    matchingPosts: number;
+    alertsCreated: number;
+    posts: Array<{
+      id: number;
+      title: string;
+      author_name: string;
+      wp_published_date: string;
+    }>;
+  }> {
+    const response = await axios.post(`${API_BASE_URL}/hotlist/check-existing`, {
+      searchTerm,
+      hotListId
+    });
+    return response.data;
+  }
+
+  async clearAllHotListAlerts(): Promise<{ message: string; deletedCount: number }> {
+    const response = await axios.delete(`${API_BASE_URL}/hotlist/alerts`);
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();

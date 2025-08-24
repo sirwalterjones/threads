@@ -35,6 +35,9 @@ class CronService {
     // Force sync every hour as backup
     this.scheduleBackupSync();
     
+    // Hot List checking every 10 minutes
+    this.scheduleHotListCheck();
+    
     console.log('✅ Cron Service initialized successfully');
   }
 
@@ -264,6 +267,128 @@ class CronService {
     } catch (error) {
       console.error('❌ Backup sync error:', error.message);
     }
+  }
+
+  // Schedule Hot List checking every 1 minute
+  scheduleHotListCheck() {
+    const job = cron.schedule('* * * * *', async () => {
+      console.log('🔥 Hot List check cron triggered at:', new Date().toISOString());
+      await this.performHotListCheck();
+    }, {
+      scheduled: true,
+      timezone: "UTC"
+    });
+    
+    this.syncJobs.set('hotListCheck', job);
+    console.log('📅 Hot List check scheduled for every 1 minute');
+  }
+
+  // Perform Hot List check
+  async performHotListCheck() {
+    try {
+      console.log('🔍 Starting Hot List check...');
+      
+      // Get all active hot lists
+      const hotListsResult = await pool.query(`
+        SELECT id, user_id, search_term
+        FROM hot_lists
+        WHERE is_active = true
+      `);
+      
+      if (hotListsResult.rows.length === 0) {
+        console.log('📝 No active hot lists found');
+        return;
+      }
+      
+      console.log(`🔍 Found ${hotListsResult.rows.length} active hot lists to check`);
+      
+      // Get posts from the last 2 minutes to check against hot lists
+      const recentPostsResult = await pool.query(`
+        SELECT id, title, content, excerpt, author_name
+        FROM posts
+        WHERE ingested_at > NOW() - INTERVAL '2 minutes'
+        ORDER BY ingested_at DESC
+      `);
+      
+      if (recentPostsResult.rows.length === 0) {
+        console.log('📝 No recent posts to check');
+        return;
+      }
+      
+      console.log(`📋 Checking ${recentPostsResult.rows.length} recent posts against hot lists`);
+      
+      let alertsCreated = 0;
+      
+      // Check each hot list against each recent post
+      for (const hotList of hotListsResult.rows) {
+        const searchTerm = hotList.search_term.toLowerCase();
+        
+        for (const post of recentPostsResult.rows) {
+          const searchableContent = `${post.title} ${post.content || ''} ${post.excerpt || ''}`.toLowerCase();
+          
+          if (searchableContent.includes(searchTerm)) {
+            // Check if we already have an alert for this combination
+            const existingAlert = await pool.query(`
+              SELECT id FROM hot_list_alerts
+              WHERE hot_list_id = $1 AND post_id = $2
+            `, [hotList.id, post.id]);
+            
+            if (existingAlert.rows.length === 0) {
+              // Create new alert
+              const highlightedContent = this.createHighlightedContent(searchableContent, searchTerm, post.title);
+              
+              await pool.query(`
+                INSERT INTO hot_list_alerts (hot_list_id, post_id, highlighted_content, created_at, is_read)
+                VALUES ($1, $2, $3, NOW(), false)
+              `, [hotList.id, post.id, highlightedContent]);
+              
+              // Also create a notification for the user
+              await pool.query(`
+                INSERT INTO notifications (user_id, type, title, message, data, related_post_id, created_at)
+                VALUES ($1, 'hot_list_alert', $2, $3, $4, $5, NOW())
+              `, [
+                hotList.user_id,
+                `Hot List Alert: "${hotList.search_term}"`,
+                `New post matches your hot list search: "${post.title}"`,
+                JSON.stringify({
+                  hotListId: hotList.id,
+                  searchTerm: hotList.search_term,
+                  postId: post.id,
+                  postTitle: post.title,
+                  authorName: post.author_name
+                }),
+                post.id
+              ]);
+              
+              alertsCreated++;
+              console.log(`🔥 Created hot list alert for user ${hotList.user_id}, search: "${hotList.search_term}", post: "${post.title}"`);
+            }
+          }
+        }
+      }
+      
+      console.log(`✅ Hot List check completed. Created ${alertsCreated} new alerts`);
+      
+    } catch (error) {
+      console.error('❌ Hot List check error:', error.message);
+    }
+  }
+
+  // Create highlighted content for hot list alerts
+  createHighlightedContent(content, searchTerm, title) {
+    // Find the first occurrence of the search term and create a snippet around it
+    const termIndex = content.indexOf(searchTerm.toLowerCase());
+    if (termIndex === -1) return title;
+    
+    // Get context around the term (50 characters before and after)
+    const start = Math.max(0, termIndex - 50);
+    const end = Math.min(content.length, termIndex + searchTerm.length + 50);
+    
+    let snippet = content.substring(start, end);
+    if (start > 0) snippet = '...' + snippet;
+    if (end < content.length) snippet = snippet + '...';
+    
+    return snippet;
   }
 
   // Log sync errors to database

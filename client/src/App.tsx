@@ -12,6 +12,7 @@ import UsersManage from './pages/UsersManage';
 import AuditLog from './pages/AuditLog';
 import PostExpiration from './pages/PostExpiration';
 import Profile from './pages/Profile';
+import HotList from './pages/HotList';
 import { CircularProgress, Box } from '@mui/material';
 
 // Theme is now controlled by ThemeModeProvider
@@ -83,6 +84,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/expiration" element={<PostExpiration />} />
                 <Route path="/audit" element={<AuditLog />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/hotlist" element={<HotList />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>
             </Layout>

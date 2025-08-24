@@ -23,6 +23,8 @@ import { Post } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
 import AttachmentViewerModal from './AttachmentViewerModal';
 import Comments from './Comments/Comments';
+import FollowButton from './FollowButton';
+import DeletePostButton from './DeletePostButton';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
 
@@ -226,12 +228,40 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             Loading...
           </Typography>
         ) : post ? (
-          <Typography 
-            variant="h5" 
-            component="h2" 
-            sx={{ color: '#E7E9EA' }}
-            dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.title)) }} 
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, pr: 6 }}>
+            <Typography 
+              variant="h5" 
+              component="h2" 
+              sx={{ color: '#E7E9EA', flex: 1 }}
+              dangerouslySetInnerHTML={{ __html: highlightPlain(stripHtmlTags(post.title)) }} 
+            />
+            {/* Action Buttons - Follow and Delete */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {/* Follow Button */}
+              <FollowButton
+                postId={post.id}
+                variant="icon"
+                size="large"
+                onFollowChange={(isFollowing) => {
+                  console.log(`Post ${post.id} ${isFollowing ? 'followed' : 'unfollowed'} from modal`);
+                  // Optionally refresh the post data or update UI state
+                }}
+              />
+              
+              {/* Delete Button - Only visible to super admin */}
+              <DeletePostButton
+                postId={post.id}
+                postTitle={post.title}
+                variant="icon"
+                size="large"
+                onDelete={(deletedPostId) => {
+                  console.log(`Post ${deletedPostId} deleted, closing modal`);
+                  // Close the modal after successful deletion
+                  onClose();
+                }}
+              />
+            </Box>
+          </Box>
         ) : (
           <Typography variant="h5" component="h2" sx={{ color: '#E7E9EA' }}>
             Post Details

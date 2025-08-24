@@ -17,6 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchTerms, setSearchTerms] = useState<string[]>([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -44,8 +45,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   React.useEffect(() => {
     const handler = (e: any) => {
       const postId = e?.detail?.postId;
+      const searchTerm = e?.detail?.searchTerm;
       if (postId) {
         setSelectedPostId(postId);
+        setSearchTerms(searchTerm ? [searchTerm] : []);
         setModalOpen(true);
       }
     };
@@ -110,10 +113,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               width: { xs: 0, lg: '320px' },
               minWidth: '320px',
               display: { xs: 'none', lg: 'block' },
-              p: 2,
-              backgroundColor: '#000000',
+              backgroundColor: 'transparent',
               height: 'calc(100vh - 64px)', // Match sidebar height
-              overflowY: 'auto'
+              position: 'relative'
             }}
           >
             <RightSidebar />
@@ -134,6 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         postId={selectedPostId}
+        highlightTerms={searchTerms}
       />
     </Box>
   );

@@ -136,7 +136,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
+      'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
       [username]
     );
 
@@ -155,7 +155,7 @@ router.post('/login', async (req, res) => {
 
           // Try login again
           const newResult = await pool.query(
-            'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
+            'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
             [username]
           );
 
@@ -178,7 +178,8 @@ router.post('/login', async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                super_admin: user.super_admin
               }
             });
           }
@@ -222,7 +223,8 @@ router.post('/login', async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        super_admin: user.super_admin
       }
     });
   } catch (error) {
@@ -244,7 +246,7 @@ router.post('/login', async (req, res) => {
 router.get('/users/mentions', authenticateToken, async (req, res) => {
   try {
     const { search } = req.query;
-    let query = 'SELECT id, username, role FROM users WHERE is_active = true';
+    let query = 'SELECT id, username, role, super_admin FROM users WHERE is_active = true';
     let params = [];
     
     if (search) {
@@ -266,7 +268,7 @@ router.get('/users/mentions', authenticateToken, async (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email, role, created_at, last_login FROM users WHERE id = $1',
+      'SELECT id, username, email, role, created_at, last_login, super_admin FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -352,7 +354,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
       UPDATE users 
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex}
-      RETURNING id, username, email, role, updated_at
+      RETURNING id, username, email, role, updated_at, super_admin
     `, queryParams);
 
     res.json({
@@ -372,7 +374,7 @@ router.get('/users',
   async (req, res) => {
     try {
       const result = await pool.query(`
-        SELECT id, username, email, role, created_at, last_login, is_active
+        SELECT id, username, email, role, created_at, last_login, is_active, super_admin
         FROM users
         ORDER BY created_at DESC
       `);

@@ -385,7 +385,7 @@ router.post('/ingest-direct',
   async (req, res) => {
     try {
       console.log('Starting direct WordPress data ingest...');
-      const { posts, categories, timestamp, source } = req.body;
+      const { posts, categories, deleted_posts, timestamp, source } = req.body;
       
       if (!posts || !Array.isArray(posts)) {
         return res.status(400).json({ 
@@ -394,10 +394,13 @@ router.post('/ingest-direct',
         });
       }
       
-      console.log(`Received ${posts.length} posts and ${categories?.length || 0} categories from ${source}`);
+      console.log(`Received ${posts.length} posts, ${categories?.length || 0} categories, and ${deleted_posts?.length || 0} deleted posts from ${source}`);
       console.log('Sample post data:', JSON.stringify(posts[0], null, 2));
+      if (deleted_posts && deleted_posts.length > 0) {
+        console.log('Deleted posts:', deleted_posts);
+      }
       
-      const result = await wpService.ingestDirectData(posts, categories || []);
+      const result = await wpService.ingestDirectData(posts, categories || [], deleted_posts || []);
       
       console.log('Ingest result:', result);
       
@@ -434,6 +437,78 @@ router.post('/purge-expired',
       console.error('Data purge error:', error);
       res.status(500).json({ 
         error: 'Data purge failed',
+        details: error.message
+      });
+    }
+  }
+);
+
+// Cleanup deleted WordPress posts
+router.post('/cleanup-deleted-posts', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('cleanup_deleted_wordpress_posts'),
+  async (req, res) => {
+    try {
+      console.log('Manual cleanup of deleted WordPress posts requested');
+      const deletedCount = await wpService.cleanupDeletedPosts();
+      
+      res.json({
+        message: 'Deleted WordPress posts cleanup completed',
+        deletedCount,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      res.status(500).json({ 
+        error: 'Cleanup failed',
+        details: error.message
+      });
+    }
+  }
+);
+
+// Force delete specific WordPress post by ID
+router.post('/force-delete-wp-post', 
+  authenticateToken, 
+  authorizeRole(['admin']), 
+  auditLog('force_delete_wordpress_post'),
+  async (req, res) => {
+    try {
+      const { wpPostId } = req.body;
+      
+      if (!wpPostId) {
+        return res.status(400).json({ error: 'wpPostId is required' });
+      }
+      
+      console.log(`Force deleting WordPress post ID: ${wpPostId}`);
+      
+      // Delete the post from our database
+      const deleteResult = await pool.query(`
+        DELETE FROM posts 
+        WHERE wp_post_id = $1
+        RETURNING id, title, wp_post_id
+      `, [wpPostId]);
+      
+      if (deleteResult.rowCount === 0) {
+        return res.status(404).json({ 
+          error: 'Post not found',
+          message: `No post found with WordPress ID: ${wpPostId}`
+        });
+      }
+      
+      const deletedPost = deleteResult.rows[0];
+      console.log(`Successfully deleted post: ${deletedPost.title} (WP ID: ${deletedPost.wp_post_id})`);
+      
+      res.json({
+        message: 'WordPress post force deleted successfully',
+        deletedPost,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error('Force delete error:', error);
+      res.status(500).json({ 
+        error: 'Force delete failed',
         details: error.message
       });
     }

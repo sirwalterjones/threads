@@ -197,6 +197,56 @@ if (USE_SQLITE) {
         CREATE INDEX IF NOT EXISTS notifications_unread_idx ON notifications(is_read)
       `);
 
+      // User follows table (for bookmarking/following posts)
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_follows (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(user_id, post_id)
+        )
+      `);
+
+      // Hot Lists table - User's saved search terms for monitoring
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS hot_lists (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          search_term VARCHAR(500) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Hot List Alerts table - Matched posts for hot list terms
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS hot_list_alerts (
+          id SERIAL PRIMARY KEY,
+          hot_list_id INTEGER NOT NULL REFERENCES hot_lists(id) ON DELETE CASCADE,
+          post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+          is_read BOOLEAN DEFAULT false,
+          highlighted_content TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(hot_list_id, post_id)
+        )
+      `);
+
+      // Create indexes for hot list functionality
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS hot_lists_user_id_idx ON hot_lists(user_id)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS hot_lists_active_idx ON hot_lists(is_active)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS hot_list_alerts_hot_list_id_idx ON hot_list_alerts(hot_list_id)
+      `);
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS hot_list_alerts_unread_idx ON hot_list_alerts(is_read)
+      `);
+
       // Audit log table
       await pool.query(`
         CREATE TABLE IF NOT EXISTS audit_log (

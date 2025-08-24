@@ -21,6 +21,7 @@ const uploadsRoutes = require('./routes/uploads');
 const filesRoutes = require('./routes/files');
 const commentsRoutes = require('./routes/comments');
 const notificationsRoutes = require('./routes/notifications');
+const hotlistRoutes = require('./routes/hotlist');
 const healthRoutes = require('./routes/health');
 
 // Force Vercel restart - WordPress sync fix
@@ -216,6 +217,7 @@ app.use('/api/uploads', uploadsRoutes);
 app.use('/api/files', filesRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/hotlist', hotlistRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {

@@ -182,9 +182,13 @@ class ThreadsIntelPushSync {
             throw new Exception('Authentication failed');
         }
         
+        // Get deleted posts (posts that were in our last sync but are no longer in WordPress)
+        $deleted_posts = $this->get_deleted_posts();
+        
         $data = array(
             'posts' => $posts,
             'categories' => $categories,
+            'deleted_posts' => $deleted_posts, // Add deleted posts list
             'timestamp' => current_time('mysql'),
             'source' => 'wordpress_plugin'
         );
@@ -541,6 +545,47 @@ class ThreadsIntelPushSync {
         $this->log_message('REST API sync triggered');
         $this->perform_sync();
         return new WP_REST_Response(array('message' => 'Sync triggered via REST API'), 200);
+    }
+    
+    /**
+     * Get list of posts that were deleted from WordPress since last sync
+     */
+    private function get_deleted_posts() {
+        // Get the last sync timestamp
+        $last_sync = get_option('threads_intel_last_sync_timestamp', 0);
+        
+        if (!$last_sync) {
+            return array(); // First sync, no deleted posts
+        }
+        
+        // Get posts that were deleted after the last sync
+        $deleted_posts = get_posts(array(
+            'post_status' => 'trash',
+            'date_query' => array(
+                array(
+                    'column' => 'post_modified',
+                    'after' => date('Y-m-d H:i:s', $last_sync)
+                )
+            ),
+            'fields' => 'ids',
+            'numberposts' => -1
+        ));
+        
+        // Also check for posts that were permanently deleted
+        global $wpdb;
+        $permanently_deleted = $wpdb->get_col($wpdb->prepare("
+            SELECT post_id FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_wp_trash_meta_time' 
+            AND meta_value > %d
+        ", $last_sync));
+        
+        // Combine both lists
+        $all_deleted = array_merge($deleted_posts, $permanently_deleted);
+        $all_deleted = array_unique($all_deleted);
+        
+        $this->log_message('Found ' . count($all_deleted) . ' deleted posts since last sync');
+        
+        return $all_deleted;
     }
 }
 

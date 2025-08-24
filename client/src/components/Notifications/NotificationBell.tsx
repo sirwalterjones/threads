@@ -21,7 +21,9 @@ import { Notification } from '../../types';
 
 const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [hotListAlerts, setHotListAlerts] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hotListUnreadCount, setHotListUnreadCount] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
 
@@ -36,12 +38,25 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const loadHotListAlerts = async () => {
+    try {
+      const data = await apiService.getHotListAlerts({ limit: 10, unreadOnly: false });
+      setHotListAlerts(data.alerts);
+    } catch (error) {
+      console.error('Failed to load hot list alerts:', error);
+    }
+  };
+
   const loadUnreadCount = async () => {
     try {
-      const data = await apiService.getUnreadNotificationCount();
-      setUnreadCount(data.count);
+      const [notificationData, hotListData] = await Promise.all([
+        apiService.getUnreadNotificationCount(),
+        apiService.getHotListUnreadCount()
+      ]);
+      setUnreadCount(notificationData.count);
+      setHotListUnreadCount(hotListData.count);
     } catch (error) {
-      console.error('Failed to load unread count:', error);
+      console.error('Failed to load unread counts:', error);
     }
   };
 
@@ -54,9 +69,9 @@ const NotificationBell: React.FC = () => {
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-    if (notifications.length === 0) {
+    if (notifications.length === 0 || hotListAlerts.length === 0) {
       setLoading(true);
-      await loadNotifications();
+      await Promise.all([loadNotifications(), loadHotListAlerts()]);
       setLoading(false);
     }
   };
@@ -86,6 +101,30 @@ const NotificationBell: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to handle notification click:', error);
+    }
+  };
+
+  const handleHotListAlertClick = async (alert: any) => {
+    try {
+      // Mark hot list alert as read
+      await apiService.markHotListAlertRead(alert.id);
+      setHotListAlerts(prev => 
+        prev.map(a => a.id === alert.id ? { ...a, is_read: true } : a)
+      );
+      setHotListUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Close the notification menu
+      setAnchorEl(null);
+
+      // Open the post detail modal
+      if (alert.post_id) {
+        const evt = new CustomEvent('open-post-detail', { 
+          detail: { postId: alert.post_id, searchTerm: alert.search_term } 
+        });
+        window.dispatchEvent(evt);
+      }
+    } catch (error) {
+      console.error('Failed to handle hot list alert click:', error);
     }
   };
 
@@ -130,8 +169,8 @@ const NotificationBell: React.FC = () => {
           }
         }}
       >
-        <Badge badgeContent={unreadCount} color="error">
-          {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
+        <Badge badgeContent={unreadCount + hotListUnreadCount} color="error">
+          {(unreadCount + hotListUnreadCount) > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
         </Badge>
       </IconButton>
 
@@ -153,7 +192,7 @@ const NotificationBell: React.FC = () => {
             <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
               Notifications
             </Typography>
-            {notifications.length > 0 && (
+            {(notifications.length > 0 || hotListAlerts.length > 0) && (
               <Button
                 size="small"
                 onClick={handleClearAllNotifications}
@@ -173,7 +212,7 @@ const NotificationBell: React.FC = () => {
                 sx={{ '& .MuiListItemText-primary': { color: '#6B7280' } }}
               />
             </ListItem>
-          ) : notifications.length === 0 ? (
+          ) : (notifications.length === 0 && hotListAlerts.length === 0) ? (
             <ListItem>
               <ListItemText 
                 primary="No notifications"
@@ -181,59 +220,109 @@ const NotificationBell: React.FC = () => {
               />
             </ListItem>
           ) : (
-            notifications.slice(0, 10).map((notification) => (
-              <MenuItem
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                sx={{
-                  backgroundColor: notification.is_read ? 'transparent' : 'rgba(29, 155, 240, 0.1)',
-                  borderLeft: notification.is_read ? 'none' : '3px solid #1D9BF0',
-                  '&:hover': {
-                    backgroundColor: 'rgba(29, 155, 240, 0.05)'
-                  }
-                }}
-              >
-                <Box sx={{ width: '100%' }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: notification.is_read ? '#6B7280' : '#E7E9EA',
-                      fontWeight: notification.is_read ? 'normal' : 'bold',
-                      fontSize: '13px',
-                      lineHeight: 1.3
-                    }}
-                  >
-                    {notification.from_username && (
-                      <Box component="span" sx={{ color: '#1D9BF0', fontWeight: 600 }}>
-                        @{notification.from_username}
-                      </Box>
-                    )}
-                    {notification.from_username && ' mentioned you'}
-                    {!notification.from_username && notification.title}
-                  </Typography>
-                  {notification.post_title && (
+            <>
+              {/* Hot List Alerts */}
+              {hotListAlerts.slice(0, 5).map((alert) => (
+                <MenuItem
+                  key={`hotlist-${alert.id}`}
+                  onClick={() => handleHotListAlertClick(alert)}
+                  sx={{
+                    backgroundColor: alert.is_read ? 'transparent' : 'rgba(255, 193, 7, 0.1)',
+                    borderLeft: alert.is_read ? 'none' : '3px solid #FFC107',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 193, 7, 0.05)'
+                    }
+                  }}
+                >
+                  <Box sx={{ width: '100%' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: alert.is_read ? '#6B7280' : '#E7E9EA',
+                        fontWeight: alert.is_read ? 'normal' : 'bold',
+                        fontSize: '13px',
+                        lineHeight: 1.3
+                      }}
+                    >
+                      🔥 Hot List Alert: "{alert.search_term}"
+                    </Typography>
                     <Typography
                       variant="caption"
                       sx={{ 
-                        color: notification.is_read ? '#6B7280' : '#E7E9EA', 
+                        color: alert.is_read ? '#6B7280' : '#E7E9EA', 
                         display: 'block', 
                         mt: 0.5,
                         fontWeight: 700,
                         fontSize: '12px'
                       }}
                     >
-                      in "{notification.post_title}"
+                      "{alert.post_title}" by {alert.author_name}
                     </Typography>
-                  )}
-                  <Typography
-                    variant="caption"
-                    sx={{ color: '#71767B', display: 'block', mt: 0.5, fontSize: '11px' }}
-                  >
-                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#71767B', display: 'block', mt: 0.5, fontSize: '11px' }}
+                    >
+                      {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+              
+              {/* Regular Notifications */}
+              {notifications.slice(0, 5).map((notification) => (
+                <MenuItem
+                  key={`notification-${notification.id}`}
+                  onClick={() => handleNotificationClick(notification)}
+                  sx={{
+                    backgroundColor: notification.is_read ? 'transparent' : 'rgba(29, 155, 240, 0.1)',
+                    borderLeft: notification.is_read ? 'none' : '3px solid #1D9BF0',
+                    '&:hover': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.05)'
+                    }
+                  }}
+                >
+                  <Box sx={{ width: '100%' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: notification.is_read ? '#6B7280' : '#E7E9EA',
+                        fontWeight: notification.is_read ? 'normal' : 'bold',
+                        fontSize: '13px',
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {notification.from_username && (
+                        <Box component="span" sx={{ color: '#1D9BF0', fontWeight: 600 }}>
+                          @{notification.from_username}
+                        </Box>
+                      )}
+                      {notification.from_username && ' mentioned you'}
+                      {!notification.from_username && notification.title}
+                    </Typography>
+                    {notification.post_title && (
+                      <Typography
+                        variant="caption"
+                        sx={{ 
+                          color: notification.is_read ? '#6B7280' : '#E7E9EA', 
+                          display: 'block', 
+                          mt: 0.5,
+                          fontWeight: 700,
+                          fontSize: '12px'
+                        }}
+                      >
+                        in "{notification.post_title}"
+                      </Typography>
+                    )}
+                    <Typography
+                      variant="caption"
+                      sx={{ color: '#71767B', display: 'block', mt: 0.5, fontSize: '11px' }}
+                    >
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </>
           )}
         </List>
       </Menu>

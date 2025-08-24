@@ -115,8 +115,12 @@ const RightSidebar: React.FC = () => {
 
   return (
     <Box sx={{ 
-      position: 'sticky', 
-      top: 0, 
+      position: 'fixed', 
+      top: '64px', // Position below header
+      right: 0,
+      width: '320px', // Fixed width for right sidebar
+      height: 'calc(100vh - 64px)', // Subtract header height
+      zIndex: 1200,
       pt: 1.5,
       maxHeight: '100vh',
       overflow: 'visible'
