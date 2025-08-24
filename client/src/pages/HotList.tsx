@@ -40,6 +40,127 @@ import {
 import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
+// Hot List Alert Card Component
+const HotListAlertCard: React.FC<{
+  alert: HotListAlert;
+  onMarkRead: (alert: HotListAlert) => void;
+  onOpenPost: (postId: number) => void;
+}> = ({ alert, onMarkRead, onOpenPost }) => {
+  
+  const highlightSearchTerm = (text: string, searchTerm: string) => {
+    if (!text || !searchTerm) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} style={{ backgroundColor: '#1D9BF0', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  return (
+    <Card
+      sx={{
+        mb: 2,
+        backgroundColor: alert.is_read ? '#16181C' : 'rgba(29, 155, 240, 0.05)',
+        border: `1px solid ${alert.is_read ? '#2F3336' : '#1D9BF0'}`,
+        cursor: 'pointer',
+        '&:hover': { 
+          backgroundColor: alert.is_read ? 'rgba(29, 155, 240, 0.05)' : 'rgba(29, 155, 240, 0.1)',
+          transform: 'translateY(-1px)',
+          boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
+        },
+        transition: 'all 0.2s ease-in-out'
+      }}
+      onClick={() => onOpenPost(alert.post_id)}
+    >
+      <CardContent>
+        {/* Alert Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <AlertIcon sx={{ color: alert.is_read ? '#71767B' : '#1D9BF0', fontSize: '16px' }} />
+          <Chip
+            label={`Hot List: "${alert.search_term}"`}
+            size="small"
+            sx={{ 
+              backgroundColor: alert.is_read ? '#2F3336' : '#1D9BF0', 
+              color: 'white',
+              fontSize: '11px',
+              height: '20px'
+            }}
+          />
+          <Typography variant="caption" sx={{ color: '#71767B', ml: 'auto' }}>
+            {formatDate(alert.created_at)}
+          </Typography>
+          {!alert.is_read && (
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1D9BF0' }} />
+          )}
+        </Box>
+
+        {/* Post Content */}
+        <Box sx={{ ml: 0 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: '#E7E9EA', 
+              mb: 1,
+              fontSize: '16px',
+              fontWeight: 600,
+              lineHeight: 1.3
+            }}
+          >
+            {highlightSearchTerm(alert.post_title, alert.search_term)}
+          </Typography>
+          
+          <Typography variant="body2" sx={{ color: '#71767B', mb: 1 }}>
+            by {alert.author_name} • {formatDate(alert.wp_published_date)}
+          </Typography>
+          
+          {alert.highlighted_content && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#E7E9EA', 
+                fontStyle: 'normal',
+                backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                padding: 1.5,
+                borderRadius: 1,
+                border: '1px solid rgba(29, 155, 240, 0.2)',
+                lineHeight: 1.4
+              }}
+            >
+              {highlightSearchTerm(alert.highlighted_content, alert.search_term)}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Action hint */}
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: '#71767B', 
+            mt: 1, 
+            display: 'block',
+            textAlign: 'right',
+            fontSize: '10px'
+          }}
+        >
+          Click to view full post
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+};
+
 interface HotList {
   id: number;
   search_term: string;
@@ -323,54 +444,17 @@ const HotList: React.FC = () => {
             ) : (
               <Box>
                 {alerts.map((alert) => (
-                  <Card
+                  <HotListAlertCard
                     key={alert.id}
-                    sx={{
-                      mb: 2,
-                      backgroundColor: alert.is_read ? '#16181C' : 'rgba(29, 155, 240, 0.1)',
-                      border: `1px solid ${alert.is_read ? '#2F3336' : '#1D9BF0'}`,
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: 'rgba(29, 155, 240, 0.15)' }
+                    alert={alert}
+                    onMarkRead={handleMarkAlertRead}
+                    onOpenPost={(postId) => {
+                      // Open post details modal
+                      const event = new CustomEvent('open-post-modal', { detail: { postId } });
+                      window.dispatchEvent(event);
+                      handleMarkAlertRead(alert);
                     }}
-                    onClick={() => handleMarkAlertRead(alert)}
-                  >
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                        <AlertIcon sx={{ color: alert.is_read ? '#71767B' : '#1D9BF0', mt: 0.5 }} />
-                        
-                        <Box sx={{ flex: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <Chip
-                              label={alert.search_term}
-                              size="small"
-                              sx={{ backgroundColor: '#1D9BF0', color: 'white' }}
-                            />
-                            <Typography variant="caption" sx={{ color: '#71767B' }}>
-                              {formatDate(alert.created_at)}
-                            </Typography>
-                          </Box>
-                          
-                          <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 1 }}>
-                            {alert.post_title}
-                          </Typography>
-                          
-                          <Typography variant="body2" sx={{ color: '#71767B', mb: 1 }}>
-                            by {alert.author_name}
-                          </Typography>
-                          
-                          {alert.highlighted_content && (
-                            <Typography variant="body2" sx={{ color: '#E7E9EA', fontStyle: 'italic' }}>
-                              "{alert.highlighted_content}"
-                            </Typography>
-                          )}
-                        </Box>
-                        
-                        {!alert.is_read && (
-                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1D9BF0' }} />
-                        )}
-                      </Box>
-                    </CardContent>
-                  </Card>
+                  />
                 ))}
               </Box>
             )}
