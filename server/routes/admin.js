@@ -644,6 +644,59 @@ router.post('/audit/log', authenticateToken, async (req, res) => {
   }
 });
 
+// Database migration endpoint - add exact_match column to hot_lists
+router.post('/migrate-hotlists', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    console.log('🔄 Starting migration: Adding exact_match column to hot_lists table...');
+    
+    // Check if column already exists
+    const checkColumn = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'hot_lists' AND column_name = 'exact_match'
+    `);
+    
+    if (checkColumn.rows.length > 0) {
+      console.log('✅ Column exact_match already exists in hot_lists table');
+      return res.json({ 
+        message: 'Migration already completed',
+        status: 'skipped',
+        details: 'Column exact_match already exists'
+      });
+    }
+    
+    // Add the exact_match column with default value false
+    await pool.query(`
+      ALTER TABLE hot_lists 
+      ADD COLUMN exact_match BOOLEAN NOT NULL DEFAULT false
+    `);
+    
+    console.log('✅ Successfully added exact_match column to hot_lists table');
+    
+    // Update existing hot lists to have exact_match = false (word-based matching)
+    const updateResult = await pool.query(`
+      UPDATE hot_lists 
+      SET exact_match = false 
+      WHERE exact_match IS NULL
+    `);
+    
+    console.log(`✅ Updated ${updateResult.rowCount} existing hot lists to use word-based matching`);
+    
+    res.json({ 
+      message: 'Migration completed successfully',
+      status: 'completed',
+      details: `Added exact_match column and updated ${updateResult.rowCount} existing hot lists`
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration failed:', error);
+    res.status(500).json({ 
+      error: 'Migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 
