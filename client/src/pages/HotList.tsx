@@ -24,8 +24,8 @@ import {
   FormControlLabel,
   Alert,
   Divider,
-  Grid,
-  Snackbar
+  Snackbar,
+  Tooltip
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,7 +35,8 @@ import {
   Notifications as NotificationsIcon,
   NotificationImportant as AlertIcon,
   Clear as ClearIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  TextFields as TextFieldsIcon
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -102,7 +103,7 @@ const HotListAlertCard: React.FC<{
       if (term) {
         const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
         result = result.replace(regex, (match) => 
-          `<mark style="background-color: #1D9BF0; color: white; padding: 2px 4px; border-radius: 4px;">${match}</mark>`
+          `<mark style="background-color: #EF4444; color: white; padding: 2px 4px; border-radius: 4px;">${match}</mark>`
         );
       }
     });
@@ -121,7 +122,6 @@ const HotListAlertCard: React.FC<{
   return (
     <Card
       sx={{
-        mb: 2,
         height: '100%',
         backgroundColor: alert.is_read ? '#16181C' : 'rgba(29, 155, 240, 0.05)',
         border: `1px solid ${alert.is_read ? '#2F3336' : '#1D9BF0'}`,
@@ -154,6 +154,20 @@ const HotListAlertCard: React.FC<{
               height: '20px'
             }}
           />
+          {/* Exact Match Indicator */}
+          {alert.exact_match !== undefined && (
+            <Chip
+              label={alert.exact_match ? 'Exact' : 'Words'}
+              size="small"
+              icon={alert.exact_match ? <SearchIcon /> : <TextFieldsIcon />}
+              sx={{
+                backgroundColor: alert.exact_match ? '#9C27B0' : '#FF9800',
+                color: 'white',
+                fontSize: '10px',
+                height: '18px'
+              }}
+            />
+          )}
           <Typography variant="caption" sx={{ color: '#71767B', ml: 'auto' }}>
             {formatDate(alert.created_at)}
           </Typography>
@@ -271,6 +285,7 @@ interface HotList {
   id: number;
   search_term: string;
   is_active: boolean;
+  exact_match: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -286,6 +301,7 @@ interface HotListAlert {
   post_title: string;
   author_name: string;
   wp_published_date: string;
+  exact_match?: boolean; // Optional for backward compatibility
 }
 
 const HotList: React.FC = () => {
@@ -298,6 +314,7 @@ const HotList: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingHotList, setEditingHotList] = useState<HotList | null>(null);
   const [newSearchTerm, setNewSearchTerm] = useState('');
+  const [exactMatch, setExactMatch] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -309,6 +326,8 @@ const HotList: React.FC = () => {
   const [existingPostsResults, setExistingPostsResults] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'search_term' | 'is_read'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     if (user) {
@@ -388,11 +407,11 @@ const HotList: React.FC = () => {
       let hotListId: number | undefined;
       
       if (editingHotList) {
-        await apiService.updateHotList(editingHotList.id, { searchTerm: newSearchTerm.trim() });
+        await apiService.updateHotList(editingHotList.id, { searchTerm: newSearchTerm.trim(), exactMatch });
         showSnackbar('Hot list updated successfully', 'success');
         hotListId = editingHotList.id;
       } else {
-        const result = await apiService.createHotList(newSearchTerm.trim());
+        const result = await apiService.createHotList(newSearchTerm.trim(), exactMatch);
         showSnackbar('Hot list created successfully', 'success');
         hotListId = result.hotList.id;
       }
@@ -404,7 +423,7 @@ const HotList: React.FC = () => {
       
       // Check for existing posts that match this search term
       if (hotListId) {
-        handleCheckExistingPosts(newSearchTerm.trim(), hotListId);
+        handleCheckExistingPosts(newSearchTerm.trim(), hotListId, exactMatch);
       }
     } catch (error: any) {
       console.error('Error saving hot list:', error);
@@ -480,9 +499,39 @@ const HotList: React.FC = () => {
     }
   };
 
-  const handleCheckExistingPosts = async (searchTerm: string, hotListId?: number) => {
+  // Sort alerts based on current sort settings
+  const getSortedAlerts = () => {
+    return [...alerts].sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+        case 'date':
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+        case 'search_term':
+          aValue = a.search_term.toLowerCase();
+          bValue = b.search_term.toLowerCase();
+          break;
+        case 'is_read':
+          aValue = a.is_read ? 1 : 0;
+          bValue = b.is_read ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const handleCheckExistingPosts = async (searchTerm: string, hotListId?: number, exactMatch: boolean = false) => {
     try {
-      const result = await apiService.checkExistingPosts(searchTerm, hotListId);
+      const result = await apiService.checkExistingPosts(searchTerm, hotListId, exactMatch);
       setExistingPostsResults(result);
       setExistingPostsDialogOpen(true);
       
@@ -500,9 +549,11 @@ const HotList: React.FC = () => {
     if (hotList) {
       setEditingHotList(hotList);
       setNewSearchTerm(hotList.search_term);
+      setExactMatch(hotList.exact_match);
     } else {
       setEditingHotList(null);
       setNewSearchTerm('');
+      setExactMatch(false);
     }
     setDialogOpen(true);
   };
@@ -587,6 +638,41 @@ const HotList: React.FC = () => {
               <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
                 Hot List Alerts
               </Typography>
+              
+              {/* Info about exact match vs word match */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label="Exact Match"
+                  size="small"
+                  icon={<SearchIcon />}
+                  sx={{
+                    backgroundColor: '#9C27B0',
+                    color: 'white',
+                    fontSize: '10px'
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#71767B' }}>
+                  Exact phrase
+                </Typography>
+                <Chip
+                  label="Word Match"
+                  size="small"
+                  icon={<TextFieldsIcon />}
+                  sx={{
+                    backgroundColor: '#FF9800',
+                    color: 'white',
+                    fontSize: '10px'
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#71767B' }}>
+                  Any words
+                </Typography>
+              </Box>
+              
+              {/* Info about the difference */}
+              <Typography variant="caption" sx={{ color: '#71767B', ml: 1 }}>
+                Exact Match finds posts with the exact phrase, Word Match finds posts with any of the words
+              </Typography>
               {unreadAlertsCount > 0 && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
@@ -606,6 +692,63 @@ const HotList: React.FC = () => {
                   </Button>
                 </Box>
               )}
+            </Box>
+
+            {/* Sorting Controls */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Sort by:</Typography>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {[
+                    { value: 'date', label: 'Date' },
+                    { value: 'search_term', label: 'Search Term' },
+                    { value: 'is_read', label: 'Read Status' }
+                  ].map((option) => (
+                    <Button
+                      key={option.value}
+                      size="small"
+                      variant={sortBy === option.value ? 'contained' : 'outlined'}
+                      onClick={() => setSortBy(option.value as any)}
+                      sx={{
+                        minWidth: 'auto',
+                        px: 1.5,
+                        py: 0.5,
+                        fontSize: '0.75rem',
+                        backgroundColor: sortBy === option.value ? '#1D9BF0' : 'transparent',
+                        borderColor: '#2F3336',
+                        color: sortBy === option.value ? 'white' : '#71767B',
+                        '&:hover': {
+                          backgroundColor: sortBy === option.value ? '#1A91DA' : 'rgba(29, 155, 240, 0.1)',
+                        }
+                      }}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </Box>
+              </Box>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Order:</Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  sx={{
+                    minWidth: 'auto',
+                    px: 1.5,
+                    py: 0.5,
+                    fontSize: '0.75rem',
+                    borderColor: '#2F3336',
+                    color: '#71767B',
+                    '&:hover': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                    }
+                  }}
+                >
+                  {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+                </Button>
+              </Box>
             </Box>
 
             {alertsLoading ? (
@@ -628,29 +771,39 @@ const HotList: React.FC = () => {
               </Alert>
             ) : (
               <Box>
-                {alerts.map((alert) => {
-                  const post = alertPosts[alert.post_id];
-                  if (!post) {
+                <Box sx={{ 
+                  display: 'grid', 
+                  gap: 2, 
+                  gridTemplateColumns: { 
+                    xs: '1fr', 
+                    sm: 'repeat(2, 1fr)', 
+                    md: 'repeat(4, 1fr)' 
+                  } 
+                }}>
+                  {getSortedAlerts().map((alert) => {
+                    const post = alertPosts[alert.post_id];
+                    if (!post) {
+                      return (
+                        <Card key={alert.id} sx={{ height: '100%', backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                          <CardContent>
+                            <Typography sx={{ color: '#71767B' }}>Loading post data...</Typography>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+                    
                     return (
-                      <Card key={alert.id} sx={{ mb: 2, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
-                        <CardContent>
-                          <Typography sx={{ color: '#71767B' }}>Loading post data...</Typography>
-                        </CardContent>
-                      </Card>
+                      <HotListAlertCard
+                        key={alert.id}
+                        alert={alert}
+                        post={post}
+                        onMarkRead={handleMarkAlertRead}
+                        onOpenPost={handlePostClick}
+                        highlightTerms={[alert.search_term]}
+                      />
                     );
-                  }
-                  
-                  return (
-                    <HotListAlertCard
-                      key={alert.id}
-                      alert={alert}
-                      post={post}
-                      onMarkRead={handleMarkAlertRead}
-                      onOpenPost={handlePostClick}
-                      highlightTerms={[alert.search_term]}
-                    />
-                  );
-                })}
+                  })}
+                </Box>
               </Box>
             )}
           </CardContent>
@@ -686,9 +839,45 @@ const HotList: React.FC = () => {
                 }
               }}
             >
-              Hot Lists automatically monitor new posts for your specified search terms. When a match is found, 
-              you'll receive a notification and the alert will appear in your alerts tab.
+              Hot Lists automatically monitor new posts for your specified search terms. Choose between word-based matching 
+              (finds posts containing any of the words) or exact phrase matching (finds posts containing the exact phrase). 
+              When a match is found, you'll receive a notification and the alert will appear in your alerts tab.
             </Alert>
+            
+            {/* Match Type Legend */}
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="body2" sx={{ color: '#71767B' }}>Match Types:</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label="Exact Phrase"
+                  size="small"
+                  icon={<SearchIcon />}
+                  sx={{
+                    backgroundColor: '#9C27B0',
+                    color: 'white',
+                    fontSize: '11px'
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#71767B' }}>
+                  Exact phrase matching
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label="Word Match"
+                  size="small"
+                  icon={<TextFieldsIcon />}
+                  sx={{
+                    backgroundColor: '#FF9800',
+                    color: 'white',
+                    fontSize: '11px'
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#71767B' }}>
+                  Word-based matching
+                </Typography>
+              </Box>
+            </Box>
 
             {loading ? (
               <Typography sx={{ color: '#71767B', textAlign: 'center', py: 4 }}>
@@ -714,6 +903,7 @@ const HotList: React.FC = () => {
                   <TableHead>
                     <TableRow sx={{ backgroundColor: '#1A1C20' }}>
                       <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Search Term</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Match Type</TableCell>
                       <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Status</TableCell>
                       <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Created</TableCell>
                       <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Actions</TableCell>
@@ -723,6 +913,26 @@ const HotList: React.FC = () => {
                     {hotLists.map((hotList) => (
                       <TableRow key={hotList.id} sx={{ '&:hover': { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}>
                         <TableCell sx={{ color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>{hotList.search_term}</TableCell>
+                        <TableCell sx={{ color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+                          <Tooltip 
+                            title={hotList.exact_match 
+                              ? "Only posts containing the exact phrase will trigger alerts" 
+                              : "Posts containing any of the words will trigger alerts"
+                            }
+                            arrow
+                          >
+                            <Chip
+                              label={hotList.exact_match ? 'Exact Phrase' : 'Word Match'}
+                              size="small"
+                              icon={hotList.exact_match ? <SearchIcon /> : <TextFieldsIcon />}
+                              sx={{
+                                backgroundColor: hotList.exact_match ? '#9C27B0' : '#FF9800',
+                                color: 'white',
+                                fontSize: '12px'
+                              }}
+                            />
+                          </Tooltip>
+                        </TableCell>
                         <TableCell sx={{ borderBottom: '1px solid #2F3336' }}>
                           <FormControlLabel
                             control={
@@ -762,7 +972,7 @@ const HotList: React.FC = () => {
                         <TableCell sx={{ borderBottom: '1px solid #2F3336' }}>
                           <IconButton
                             size="small"
-                            onClick={() => handleCheckExistingPosts(hotList.search_term, hotList.id)}
+                            onClick={() => handleCheckExistingPosts(hotList.search_term, hotList.id, hotList.exact_match)}
                             sx={{ color: '#9C27B0', mr: 1 }}
                             title="Check existing posts"
                           >
@@ -819,7 +1029,10 @@ const HotList: React.FC = () => {
             value={newSearchTerm}
             onChange={(e) => setNewSearchTerm(e.target.value)}
             placeholder="Enter the term you want to monitor..."
-            helperText="This term will be searched in post titles, content, and excerpts"
+            helperText={exactMatch 
+              ? "Only posts containing the exact phrase will trigger alerts" 
+              : "Posts containing any of the words will trigger alerts (word-based matching)"
+            }
             sx={{
               '& .MuiOutlinedInput-root': {
                 color: '#E7E9EA',
@@ -845,6 +1058,147 @@ const HotList: React.FC = () => {
               },
             }}
           />
+          
+          {/* Exact Match Toggle */}
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={exactMatch}
+                  onChange={(e) => setExactMatch(e.target.checked)}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#1D9BF0',
+                      '&:hover': {
+                        backgroundColor: 'rgba(29, 155, 240, 0.08)',
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#1D9BF0',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ color: '#E7E9EA', fontSize: '14px' }}>
+                  Exact Match Only
+                </Typography>
+              }
+            />
+            <Typography variant="caption" sx={{ color: '#71767B', ml: 1 }}>
+              When enabled, only posts containing the exact phrase will trigger alerts
+            </Typography>
+          </Box>
+          
+          {/* Current Mode Indicator */}
+          <Box sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip
+              label={exactMatch ? 'Exact Phrase Mode' : 'Word Match Mode'}
+              size="small"
+              icon={exactMatch ? <SearchIcon /> : <TextFieldsIcon />}
+              sx={{
+                backgroundColor: exactMatch ? '#9C27B0' : '#FF9800',
+                color: 'white',
+                fontSize: '12px'
+              }}
+            />
+          </Box>
+          
+          {/* Info about when to use each mode */}
+          <Alert 
+            severity="info" 
+            sx={{ 
+              mt: 1,
+              backgroundColor: exactMatch ? 'rgba(156, 39, 176, 0.1)' : 'rgba(255, 152, 0, 0.1)',
+              border: `1px solid ${exactMatch ? 'rgba(156, 39, 176, 0.3)' : 'rgba(255, 152, 0, 0.3)'}`,
+              color: '#E7E9EA',
+              '& .MuiAlert-icon': {
+                color: exactMatch ? '#9C27B0' : '#FF9800'
+              }
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#E7E9EA' }}>
+              <strong>{exactMatch ? 'Exact Phrase Mode:' : 'Word Match Mode:'}</strong> {
+                exactMatch 
+                  ? 'Use this for specific phrases, names, or exact text you want to find. Great for finding specific incidents or people.'
+                  : 'Use this for broader searches where you want to find posts containing any of the words. Great for finding related topics.'
+              }
+            </Typography>
+          </Alert>
+          
+          {/* Example text */}
+          <Box sx={{ mt: 1, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
+              <strong>Examples:</strong>
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
+              <strong>Word Match (off):</strong> "Meth Trafficking" will match posts containing both "Meth" and "Trafficking" anywhere in the content
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
+              <strong>Exact Match (on):</strong> "Meth Trafficking" will only match posts containing the exact phrase "Meth Trafficking"
+            </Typography>
+          </Box>
+          
+          {/* When to use each mode */}
+          <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
+              <strong>When to use each mode:</strong>
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
+              <strong>Word Match:</strong> Use for broader searches, finding related topics, or when you want to catch variations
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
+              <strong>Exact Match:</strong> Use for specific names, exact phrases, or when you want to avoid false positives
+            </Typography>
+          </Box>
+          
+          {/* Pro tip */}
+          <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 193, 7, 0.1)', borderRadius: 1, border: '1px solid rgba(255, 193, 7, 0.3)' }}>
+            <Typography variant="caption" sx={{ color: '#FFC107', display: 'block' }}>
+              <strong>💡 Pro Tip:</strong> For your "Porter" search, try Exact Match to find posts specifically mentioning "Porter" 
+              instead of posts that might contain similar words or variations.
+            </Typography>
+          </Box>
+          
+
+          
+          {/* Real-time preview */}
+          {newSearchTerm.trim() && (
+            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
+              <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
+                <strong>📊 Expected Results:</strong>
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
+                {exactMatch 
+                  ? `This will create a hot list that triggers alerts only when posts contain the exact phrase "${newSearchTerm.trim()}". This is perfect for finding specific incidents, names, or exact text matches.`
+                  : `This will create a hot list that triggers alerts when posts contain any of the words: ${newSearchTerm.trim().split(/\s+/).filter(word => word.length > 0).map(word => `"${word}"`).join(', ')}. This is great for broader topic monitoring and catching variations.`
+                }
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Performance note */}
+          <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(76, 175, 80, 0.1)', borderRadius: 1, border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+            <Typography variant="caption" sx={{ color: '#4CAF50', display: 'block' }}>
+              <strong>⚡ Performance Note:</strong> Exact Match searches are typically faster and more precise, while Word Match searches 
+              may return more results but could include some false positives. Choose based on your specific needs.
+            </Typography>
+          </Box>
+          
+          {/* Current search term example */}
+          {newSearchTerm.trim() && (
+            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(156, 39, 176, 0.1)', borderRadius: 1, border: '1px solid rgba(156, 39, 176, 0.3)' }}>
+              <Typography variant="caption" sx={{ color: '#9C27B0', display: 'block' }}>
+                <strong>🔍 Your Search: "{newSearchTerm.trim()}"</strong>
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#9C27B0', display: 'block', mt: 1 }}>
+                {exactMatch 
+                  ? `Will find posts containing the exact phrase "${newSearchTerm.trim()}"`
+                  : `Will find posts containing any of these words: ${newSearchTerm.trim().split(/\s+/).filter(word => word.length > 0).map(word => `"${word}"`).join(', ')}`
+                }
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} sx={{ color: '#71767B' }}>Cancel</Button>
@@ -923,6 +1277,26 @@ const HotList: React.FC = () => {
                   ` Created ${existingPostsResults.alertsCreated} new alerts.`
                 }
               </Alert>
+              
+              {/* Search Mode Indicator */}
+              <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label={exactMatch ? 'Exact Phrase Search' : 'Word-Based Search'}
+                  size="small"
+                  icon={exactMatch ? <SearchIcon /> : <TextFieldsIcon />}
+                  sx={{
+                    backgroundColor: exactMatch ? '#9C27B0' : '#FF9800',
+                    color: 'white',
+                    fontSize: '12px'
+                  }}
+                />
+                <Typography variant="caption" sx={{ color: '#71767B' }}>
+                  {exactMatch 
+                    ? 'Only posts containing the exact phrase were searched' 
+                    : 'Posts containing any of the words were searched'
+                  }
+                </Typography>
+              </Box>
               
               {existingPostsResults.posts && existingPostsResults.posts.length > 0 && (
                 <Box>

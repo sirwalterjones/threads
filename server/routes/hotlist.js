@@ -7,7 +7,7 @@ const { authenticateToken, authorizeRole } = require('../middleware/auth');
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, search_term, is_active, created_at, updated_at 
+      `SELECT id, search_term, is_active, exact_match, created_at, updated_at 
        FROM hot_lists 
        WHERE user_id = $1 
        ORDER BY created_at DESC`,
@@ -30,11 +30,13 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Search term is required' });
     }
 
+    const { exactMatch = false } = req.body;
+    
     const result = await pool.query(
-      `INSERT INTO hot_lists (user_id, search_term, is_active, created_at, updated_at)
-       VALUES ($1, $2, true, NOW(), NOW())
-       RETURNING id, search_term, is_active, created_at, updated_at`,
-      [req.user.id, searchTerm.trim()]
+      `INSERT INTO hot_lists (user_id, search_term, is_active, exact_match, created_at, updated_at)
+       VALUES ($1, $2, true, $3, NOW(), NOW())
+       RETURNING id, search_term, is_active, exact_match, created_at, updated_at`,
+      [req.user.id, searchTerm.trim(), exactMatch]
     );
 
     res.status(201).json({ hotList: result.rows[0] });
@@ -52,7 +54,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { searchTerm, isActive } = req.body;
+    const { searchTerm, isActive, exactMatch } = req.body;
 
     // Verify ownership
     const ownershipCheck = await pool.query(
@@ -85,6 +87,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
       updateValues.push(isActive);
     }
 
+    if (exactMatch !== undefined) {
+      updateFields.push(`exact_match = $${paramCount++}`);
+      updateValues.push(exactMatch);
+    }
+
     updateFields.push(`updated_at = NOW()`);
     updateValues.push(id);
 
@@ -92,7 +99,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       `UPDATE hot_lists 
        SET ${updateFields.join(', ')}
        WHERE id = $${paramCount}
-       RETURNING id, search_term, is_active, created_at, updated_at`,
+       RETURNING id, search_term, is_active, exact_match, created_at, updated_at`,
       updateValues
     );
 
@@ -286,14 +293,45 @@ router.post('/check-existing', authenticateToken, async (req, res) => {
 
     const searchTermLower = searchTerm.toLowerCase();
     
-    // Find all posts that match the search term
+    // Check if this is an exact match search (for existing posts check)
+    const { exactMatch = false } = req.body;
+    
+    let searchConditions = [];
+    let searchParams = [];
+    let paramCount = 1;
+    
+    if (exactMatch) {
+      // Exact phrase search - look for the exact search term
+      searchConditions.push(`LOWER(title || ' ' || COALESCE(content, '') || ' ' || COALESCE(excerpt, '')) LIKE $${paramCount}`);
+      searchParams.push(`%${searchTermLower}%`);
+      paramCount++;
+    } else {
+      // Word-based search - split search term into individual words
+      const searchWords = searchTermLower.split(/\s+/).filter(word => word.length > 0);
+      
+      if (searchWords.length === 1) {
+        // Single word search - use simple LIKE
+        searchConditions.push(`LOWER(title || ' ' || COALESCE(content, '') || ' ' || COALESCE(excerpt, '')) LIKE $${paramCount}`);
+        searchParams.push(`%${searchWords[0]}%`);
+        paramCount++;
+      } else {
+        // Multiple word search - each word must be found somewhere in the content
+        searchWords.forEach(word => {
+          searchConditions.push(`LOWER(title || ' ' || COALESCE(content, '') || ' ' || COALESCE(excerpt, '')) LIKE $${paramCount}`);
+          searchParams.push(`%${word}%`);
+          paramCount++;
+        });
+      }
+    }
+    
+    // Find all posts that match the search term(s)
     const matchingPostsResult = await pool.query(`
       SELECT id, title, content, excerpt, author_name, wp_published_date, ingested_at
       FROM posts
-      WHERE LOWER(title || ' ' || COALESCE(content, '') || ' ' || COALESCE(excerpt, '')) LIKE $1
+      WHERE ${searchConditions.join(' AND ')}
       ORDER BY wp_published_date DESC
       LIMIT 100
-    `, [`%${searchTermLower}%`]);
+    `, searchParams);
 
     let alertsCreated = 0;
 
@@ -314,25 +352,6 @@ router.post('/check-existing', authenticateToken, async (req, res) => {
             INSERT INTO hot_list_alerts (hot_list_id, post_id, highlighted_content, created_at, is_read)
             VALUES ($1, $2, $3, NOW(), false)
           `, [hotListId, post.id, highlightedContent]);
-          
-          // Also create a notification for the user
-          await pool.query(`
-            INSERT INTO notifications (user_id, type, title, message, data, related_post_id, created_at)
-            VALUES ($1, 'hot_list_alert', $2, $3, $4, $5, NOW())
-          `, [
-            req.user.id,
-            `Hot List Alert: "${searchTerm}"`,
-            `Existing post matches your hot list search: "${post.title}"`,
-            JSON.stringify({
-              hotListId: hotListId,
-              searchTerm: searchTerm,
-              postId: post.id,
-              postTitle: post.title,
-              authorName: post.author_name,
-              isExistingPost: true
-            }),
-            post.id
-          ]);
           
           alertsCreated++;
         }
@@ -362,11 +381,7 @@ router.delete('/alerts', authenticateToken, async (req, res) => {
       )
     `, [req.user.id]);
 
-    // Also clear related notifications
-    await pool.query(`
-      DELETE FROM notifications 
-      WHERE user_id = $1 AND type = 'hot_list_alert'
-    `, [req.user.id]);
+
 
     res.json({ 
       message: 'All hot list alerts cleared successfully',
@@ -398,18 +413,51 @@ router.post('/check-now', authenticateToken, authorizeRole(['admin']), async (re
 
 // Helper function to create highlighted content
 function createHighlightedContent(content, searchTerm, title) {
-  const termIndex = content.indexOf(searchTerm.toLowerCase());
-  if (termIndex === -1) return title;
+  const searchTermLower = searchTerm.toLowerCase();
+  const contentLower = content.toLowerCase();
   
-  // Get context around the term (50 characters before and after)
-  const start = Math.max(0, termIndex - 50);
-  const end = Math.min(content.length, termIndex + searchTerm.length + 50);
+  // Split search term into individual words
+  const searchWords = searchTermLower.split(/\s+/).filter(word => word.length > 0);
   
-  let snippet = content.substring(start, end);
-  if (start > 0) snippet = '...' + snippet;
-  if (end < content.length) snippet = snippet + '...';
-  
-  return snippet;
+  if (searchWords.length === 1) {
+    // Single word search
+    const termIndex = contentLower.indexOf(searchWords[0]);
+    if (termIndex === -1) return title;
+    
+    // Get context around the term (50 characters before and after)
+    const start = Math.max(0, termIndex - 50);
+    const end = Math.min(content.length, termIndex + searchWords[0].length + 50);
+    
+    let snippet = content.substring(start, end);
+    if (start > 0) snippet = '...' + snippet;
+    if (end < content.length) snippet = snippet + '...';
+    
+    return snippet;
+  } else {
+    // Multiple word search - find the first occurrence of any word
+    let firstTermIndex = -1;
+    let firstTerm = '';
+    
+    for (const word of searchWords) {
+      const index = contentLower.indexOf(word);
+      if (index !== -1 && (firstTermIndex === -1 || index < firstTermIndex)) {
+        firstTermIndex = index;
+        firstTerm = word;
+      }
+    }
+    
+    if (firstTermIndex === -1) return title;
+    
+    // Get context around the first found term (50 characters before and after)
+    const start = Math.max(0, firstTermIndex - 50);
+    const end = Math.min(content.length, firstTermIndex + firstTerm.length + 50);
+    
+    let snippet = content.substring(start, end);
+    if (start > 0) snippet = '...' + snippet;
+    if (end < content.length) snippet = snippet + '...';
+    
+    return snippet;
+  }
 }
 
 module.exports = router;

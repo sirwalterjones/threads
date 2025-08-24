@@ -64,7 +64,18 @@ const NotificationBell: React.FC = () => {
     loadUnreadCount();
     // Poll for new notifications every 30 seconds
     const interval = setInterval(loadUnreadCount, 30000);
-    return () => clearInterval(interval);
+    
+    // Listen for real-time updates when hot list alerts are marked as read
+    const handleHotListUpdate = () => {
+      loadUnreadCount();
+    };
+    
+    window.addEventListener('hotlist-alert-updated', handleHotListUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('hotlist-alert-updated', handleHotListUpdate);
+    };
   }, []);
 
   const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
@@ -144,6 +155,20 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const handleClearAllHotListAlerts = async () => {
+    try {
+      console.log('Clearing all hot list alerts...');
+      const response = await apiService.clearAllHotListAlerts();
+      console.log('Clear hot list alerts response:', response);
+      setHotListAlerts([]);
+      setHotListUnreadCount(0);
+      handleClose(); // Close the dropdown after clearing
+    } catch (error) {
+      console.error('Failed to clear all hot list alerts:', error);
+      alert('Failed to clear hot list alerts. Please try again.');
+    }
+  };
+
   const open = Boolean(anchorEl);
 
   return (
@@ -193,13 +218,26 @@ const NotificationBell: React.FC = () => {
               Notifications
             </Typography>
             {(notifications.length > 0 || hotListAlerts.length > 0) && (
-              <Button
-                size="small"
-                onClick={handleClearAllNotifications}
-                sx={{ color: '#71767B', textTransform: 'none', fontSize: '12px' }}
-              >
-                Clear all
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {notifications.length > 0 && (
+                  <Button
+                    size="small"
+                    onClick={handleClearAllNotifications}
+                    sx={{ color: '#71767B', textTransform: 'none', fontSize: '12px' }}
+                  >
+                    Clear notifications
+                  </Button>
+                )}
+                {hotListAlerts.length > 0 && (
+                  <Button
+                    size="small"
+                    onClick={handleClearAllHotListAlerts}
+                    sx={{ color: '#FFC107', textTransform: 'none', fontSize: '12px' }}
+                  >
+                    Clear alerts
+                  </Button>
+                  )}
+              </Box>
             )}
           </Box>
         </Box>
@@ -222,7 +260,10 @@ const NotificationBell: React.FC = () => {
           ) : (
             <>
               {/* Hot List Alerts */}
-              {hotListAlerts.slice(0, 5).map((alert) => (
+              {hotListAlerts
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 5)
+                .map((alert) => (
                 <MenuItem
                   key={`hotlist-${alert.id}`}
                   onClick={() => handleHotListAlertClick(alert)}
@@ -269,7 +310,10 @@ const NotificationBell: React.FC = () => {
               ))}
               
               {/* Regular Notifications */}
-              {notifications.slice(0, 5).map((notification) => (
+              {notifications
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 5)
+                .map((notification) => (
                 <MenuItem
                   key={`notification-${notification.id}`}
                   onClick={() => handleNotificationClick(notification)}

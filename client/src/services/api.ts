@@ -391,17 +391,17 @@ class ApiService {
   }
 
   // Hot List functionality
-  async getHotLists(): Promise<{ hotLists: Array<{ id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string }> }> {
+  async getHotLists(): Promise<{ hotLists: Array<{ id: number; search_term: string; is_active: boolean; exact_match: boolean; created_at: string; updated_at: string }> }> {
     const response = await axios.get(`${API_BASE_URL}/hotlist`);
     return response.data;
   }
 
-  async createHotList(searchTerm: string): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string } }> {
-    const response = await axios.post(`${API_BASE_URL}/hotlist`, { searchTerm });
+  async createHotList(searchTerm: string, exactMatch: boolean = false): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; exact_match: boolean; created_at: string; updated_at: string } }> {
+    const response = await axios.post(`${API_BASE_URL}/hotlist`, { searchTerm, exactMatch });
     return response.data;
   }
 
-  async updateHotList(id: number, data: { searchTerm?: string; isActive?: boolean }): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; created_at: string; updated_at: string } }> {
+  async updateHotList(id: number, data: { searchTerm?: string; isActive?: boolean; exactMatch?: boolean }): Promise<{ hotList: { id: number; search_term: string; is_active: boolean; exact_match: boolean; created_at: string; updated_at: string } }> {
     const response = await axios.put(`${API_BASE_URL}/hotlist/${id}`, data);
     return response.data;
   }
@@ -450,7 +450,7 @@ class ApiService {
     return response.data;
   }
 
-  async checkExistingPosts(searchTerm: string, hotListId?: number): Promise<{
+  async checkExistingPosts(searchTerm: string, hotListId?: number, exactMatch: boolean = false): Promise<{
     message: string;
     matchingPosts: number;
     alertsCreated: number;
@@ -463,7 +463,8 @@ class ApiService {
   }> {
     const response = await axios.post(`${API_BASE_URL}/hotlist/check-existing`, {
       searchTerm,
-      hotListId
+      hotListId,
+      exactMatch
     });
     return response.data;
   }

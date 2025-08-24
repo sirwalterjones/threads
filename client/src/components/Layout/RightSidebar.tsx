@@ -20,7 +20,9 @@ import {
   Schedule,
   Visibility,
   Group,
-  LocalFireDepartment
+  LocalFireDepartment,
+  Comment as CommentIcon,
+  LocalFireDepartment as HotListIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
@@ -31,6 +33,7 @@ const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
   const [topCategories, setTopCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hotListMatches, setHotListMatches] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +76,9 @@ const RightSidebar: React.FC = () => {
         console.log('Final posts to display:', finalPosts.length);
         console.log('First post:', finalPosts[0]);
         setRecentThreads(finalPosts);
+
+        // Check which posts match hot lists
+        await checkHotListMatches(finalPosts);
       } else {
         console.log('No posts found in response');
         setRecentThreads([]);
@@ -100,6 +106,41 @@ const RightSidebar: React.FC = () => {
       setRecentThreads([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkHotListMatches = async (posts: Post[]) => {
+    try {
+      // Get user's hot lists
+      const hotListsResponse = await apiService.getHotLists();
+      const hotLists = hotListsResponse.hotLists;
+      
+      if (hotLists.length === 0) {
+        setHotListMatches(new Set());
+        return;
+      }
+
+      // Check each post against hot list terms
+      const matches = new Set<number>();
+      
+      for (const post of posts) {
+        const searchableContent = `${post.title} ${post.content || ''} ${post.excerpt || ''}`.toLowerCase();
+        
+        for (const hotList of hotLists) {
+          const searchWords = hotList.search_term.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+          const allWordsFound = searchWords.every(word => searchableContent.includes(word));
+          
+          if (allWordsFound) {
+            matches.add(post.id);
+            break; // Post matches at least one hot list
+          }
+        }
+      }
+      
+      setHotListMatches(matches);
+    } catch (error) {
+      console.error('Failed to check hot list matches:', error);
+      setHotListMatches(new Set());
     }
   };
 

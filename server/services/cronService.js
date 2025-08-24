@@ -290,7 +290,7 @@ class CronService {
       
       // Get all active hot lists
       const hotListsResult = await pool.query(`
-        SELECT id, user_id, search_term
+        SELECT id, user_id, search_term, exact_match
         FROM hot_lists
         WHERE is_active = true
       `);
@@ -320,13 +320,25 @@ class CronService {
       let alertsCreated = 0;
       
       // Check each hot list against each recent post
-      for (const hotList of hotListsResult.rows) {
-        const searchTerm = hotList.search_term.toLowerCase();
-        
-        for (const post of recentPostsResult.rows) {
-          const searchableContent = `${post.title} ${post.content || ''} ${post.excerpt || ''}`.toLowerCase();
+              for (const hotList of hotListsResult.rows) {
+          const searchTerm = hotList.search_term.toLowerCase();
+          const exactMatch = hotList.exact_match;
           
-          if (searchableContent.includes(searchTerm)) {
+          for (const post of recentPostsResult.rows) {
+            const searchableContent = `${post.title} ${post.content || ''} ${post.excerpt || ''}`.toLowerCase();
+            
+            let matches = false;
+            
+            if (exactMatch) {
+              // Exact phrase search
+              matches = searchableContent.includes(searchTerm);
+            } else {
+              // Word-based search - split search term into individual words and check if all words are found
+              const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
+              matches = searchWords.every(word => searchableContent.includes(word));
+            }
+            
+            if (matches) {
             // Check if we already have an alert for this combination
             const existingAlert = await pool.query(`
               SELECT id FROM hot_list_alerts
@@ -341,24 +353,6 @@ class CronService {
                 INSERT INTO hot_list_alerts (hot_list_id, post_id, highlighted_content, created_at, is_read)
                 VALUES ($1, $2, $3, NOW(), false)
               `, [hotList.id, post.id, highlightedContent]);
-              
-              // Also create a notification for the user
-              await pool.query(`
-                INSERT INTO notifications (user_id, type, title, message, data, related_post_id, created_at)
-                VALUES ($1, 'hot_list_alert', $2, $3, $4, $5, NOW())
-              `, [
-                hotList.user_id,
-                `Hot List Alert: "${hotList.search_term}"`,
-                `New post matches your hot list search: "${post.title}"`,
-                JSON.stringify({
-                  hotListId: hotList.id,
-                  searchTerm: hotList.search_term,
-                  postId: post.id,
-                  postTitle: post.title,
-                  authorName: post.author_name
-                }),
-                post.id
-              ]);
               
               alertsCreated++;
               console.log(`🔥 Created hot list alert for user ${hotList.user_id}, search: "${hotList.search_term}", post: "${post.title}"`);
@@ -376,19 +370,51 @@ class CronService {
 
   // Create highlighted content for hot list alerts
   createHighlightedContent(content, searchTerm, title) {
-    // Find the first occurrence of the search term and create a snippet around it
-    const termIndex = content.indexOf(searchTerm.toLowerCase());
-    if (termIndex === -1) return title;
+    const searchTermLower = searchTerm.toLowerCase();
+    const contentLower = content.toLowerCase();
     
-    // Get context around the term (50 characters before and after)
-    const start = Math.max(0, termIndex - 50);
-    const end = Math.min(content.length, termIndex + searchTerm.length + 50);
+    // Split search term into individual words
+    const searchWords = searchTermLower.split(/\s+/).filter(word => word.length > 0);
     
-    let snippet = content.substring(start, end);
-    if (start > 0) snippet = '...' + snippet;
-    if (end < content.length) snippet = snippet + '...';
-    
-    return snippet;
+    if (searchWords.length === 1) {
+      // Single word search
+      const termIndex = contentLower.indexOf(searchWords[0]);
+      if (termIndex === -1) return title;
+      
+      // Get context around the term (50 characters before and after)
+      const start = Math.max(0, termIndex - 50);
+      const end = Math.min(content.length, termIndex + searchWords[0].length + 50);
+      
+      let snippet = content.substring(start, end);
+      if (start > 0) snippet = '...' + snippet;
+      if (end < content.length) snippet = snippet + '...';
+      
+      return snippet;
+    } else {
+      // Multiple word search - find the first occurrence of any word
+      let firstTermIndex = -1;
+      let firstTerm = '';
+      
+      for (const word of searchWords) {
+        const index = contentLower.indexOf(word);
+        if (index !== -1 && (firstTermIndex === -1 || index < firstTermIndex)) {
+          firstTermIndex = index;
+          firstTerm = word;
+        }
+      }
+      
+      if (firstTermIndex === -1) return title;
+      
+      // Get context around the first found term (50 characters before and after)
+      const start = Math.max(0, firstTermIndex - 50);
+      const end = Math.min(content.length, firstTermIndex + firstTerm.length + 50);
+      
+      let snippet = content.substring(start, end);
+      if (start > 0) snippet = '...' + snippet;
+      if (end < content.length) snippet = snippet + '...';
+      
+      return snippet;
+    }
   }
 
   // Log sync errors to database
