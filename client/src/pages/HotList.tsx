@@ -374,7 +374,19 @@ const HotList: React.FC = () => {
   if (!user) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="warning">Please log in to view hot lists.</Alert>
+        <Alert 
+          severity="warning"
+          sx={{
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            border: '1px solid rgba(255, 193, 7, 0.3)',
+            color: '#E7E9EA',
+            '& .MuiAlert-icon': {
+              color: '#FFC107'
+            }
+          }}
+        >
+          Please log in to view hot lists.
+        </Alert>
       </Box>
     );
   }
@@ -391,7 +403,20 @@ const HotList: React.FC = () => {
             variant={activeTab === 'alerts' ? 'contained' : 'outlined'}
             onClick={() => setActiveTab('alerts')}
             startIcon={<NotificationsIcon />}
-            color={unreadAlertsCount > 0 ? 'warning' : 'primary'}
+            sx={{
+              backgroundColor: activeTab === 'alerts' 
+                ? (unreadAlertsCount > 0 ? '#FFC107' : '#1D9BF0') 
+                : 'transparent',
+              borderColor: unreadAlertsCount > 0 ? '#FFC107' : '#1D9BF0',
+              color: activeTab === 'alerts' 
+                ? (unreadAlertsCount > 0 ? '#000' : 'white')
+                : (unreadAlertsCount > 0 ? '#FFC107' : '#1D9BF0'),
+              '&:hover': {
+                backgroundColor: activeTab === 'alerts' 
+                  ? (unreadAlertsCount > 0 ? '#FFB300' : '#1A91DA')
+                  : (unreadAlertsCount > 0 ? 'rgba(255, 193, 7, 0.1)' : 'rgba(29, 155, 240, 0.1)'),
+              }
+            }}
           >
             Alerts ({unreadAlertsCount})
           </Button>
@@ -399,6 +424,14 @@ const HotList: React.FC = () => {
             variant={activeTab === 'manage' ? 'contained' : 'outlined'}
             onClick={() => setActiveTab('manage')}
             startIcon={<SearchIcon />}
+            sx={{
+              backgroundColor: activeTab === 'manage' ? '#1D9BF0' : 'transparent',
+              borderColor: '#1D9BF0',
+              color: activeTab === 'manage' ? 'white' : '#1D9BF0',
+              '&:hover': {
+                backgroundColor: activeTab === 'manage' ? '#1A91DA' : 'rgba(29, 155, 240, 0.1)',
+              }
+            }}
           >
             Manage ({hotLists.length})
           </Button>
@@ -438,7 +471,17 @@ const HotList: React.FC = () => {
                 Loading alerts...
               </Typography>
             ) : alerts.length === 0 ? (
-              <Alert severity="info">
+              <Alert 
+                severity="info"
+                sx={{
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                  border: '1px solid rgba(29, 155, 240, 0.3)',
+                  color: '#E7E9EA',
+                  '& .MuiAlert-icon': {
+                    color: '#1D9BF0'
+                  }
+                }}
+              >
                 No alerts yet. When new posts match your hot list search terms, they will appear here.
               </Alert>
             ) : (
@@ -479,7 +522,18 @@ const HotList: React.FC = () => {
               </Button>
             </Box>
 
-            <Alert severity="info" sx={{ mb: 2 }}>
+            <Alert 
+              severity="info" 
+              sx={{ 
+                mb: 2,
+                backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                border: '1px solid rgba(29, 155, 240, 0.3)',
+                color: '#E7E9EA',
+                '& .MuiAlert-icon': {
+                  color: '#1D9BF0'
+                }
+              }}
+            >
               Hot Lists automatically monitor new posts for your specified search terms. When a match is found, 
               you'll receive a notification and the alert will appear in your alerts tab.
             </Alert>
@@ -489,31 +543,52 @@ const HotList: React.FC = () => {
                 Loading hot lists...
               </Typography>
             ) : hotLists.length === 0 ? (
-              <Alert severity="info">
+              <Alert 
+                severity="info"
+                sx={{
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                  border: '1px solid rgba(29, 155, 240, 0.3)',
+                  color: '#E7E9EA',
+                  '& .MuiAlert-icon': {
+                    color: '#1D9BF0'
+                  }
+                }}
+              >
                 No hot lists created yet. Click "Add Hot List" to create your first search term monitor.
               </Alert>
             ) : (
-              <TableContainer component={Paper} sx={{ backgroundColor: 'transparent' }}>
+              <TableContainer component={Paper} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
                 <Table>
                   <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold' }}>Search Term</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold' }}>Status</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold' }}>Created</TableCell>
-                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold' }}>Actions</TableCell>
+                    <TableRow sx={{ backgroundColor: '#1A1C20' }}>
+                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Search Term</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Status</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Created</TableCell>
+                      <TableCell sx={{ color: '#E7E9EA', fontWeight: 'bold', borderBottom: '1px solid #2F3336' }}>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {hotLists.map((hotList) => (
                       <TableRow key={hotList.id} sx={{ '&:hover': { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}>
-                        <TableCell sx={{ color: '#E7E9EA' }}>{hotList.search_term}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>{hotList.search_term}</TableCell>
+                        <TableCell sx={{ borderBottom: '1px solid #2F3336' }}>
                           <FormControlLabel
                             control={
                               <Switch
                                 checked={hotList.is_active}
                                 onChange={() => handleToggleActive(hotList)}
                                 size="small"
+                                sx={{
+                                  '& .MuiSwitch-switchBase.Mui-checked': {
+                                    color: '#1D9BF0',
+                                  },
+                                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                    backgroundColor: '#1D9BF0',
+                                  },
+                                  '& .MuiSwitch-track': {
+                                    backgroundColor: '#2F3336',
+                                  },
+                                }}
                               />
                             }
                             label={
@@ -521,14 +596,18 @@ const HotList: React.FC = () => {
                                 label={hotList.is_active ? 'Active' : 'Inactive'}
                                 color={hotList.is_active ? 'success' : 'default'}
                                 size="small"
+                                sx={{
+                                  backgroundColor: hotList.is_active ? '#00D084' : '#2F3336',
+                                  color: hotList.is_active ? 'white' : '#71767B'
+                                }}
                               />
                             }
                           />
                         </TableCell>
-                        <TableCell sx={{ color: '#71767B' }}>
+                        <TableCell sx={{ color: '#71767B', borderBottom: '1px solid #2F3336' }}>
                           {formatDate(hotList.created_at)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ borderBottom: '1px solid #2F3336' }}>
                           <IconButton
                             size="small"
                             onClick={() => handleCheckExistingPosts(hotList.search_term, hotList.id)}
@@ -562,7 +641,19 @@ const HotList: React.FC = () => {
         </Card>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181C',
+            border: '1px solid #2F3336',
+            color: '#E7E9EA'
+          }
+        }}
+      >
         <DialogTitle sx={{ color: '#E7E9EA' }}>
           {editingHotList ? 'Edit Hot List' : 'Create New Hot List'}
         </DialogTitle>
@@ -577,18 +668,52 @@ const HotList: React.FC = () => {
             onChange={(e) => setNewSearchTerm(e.target.value)}
             placeholder="Enter the term you want to monitor..."
             helperText="This term will be searched in post titles, content, and excerpts"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: '#E7E9EA',
+                backgroundColor: 'rgba(29, 155, 240, 0.05)',
+                '& fieldset': {
+                  borderColor: '#2F3336',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#1D9BF0',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1D9BF0',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: '#71767B',
+                '&.Mui-focused': {
+                  color: '#1D9BF0',
+                },
+              },
+              '& .MuiFormHelperText-root': {
+                color: '#71767B',
+              },
+            }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateOrUpdate} variant="contained">
+          <Button onClick={() => setDialogOpen(false)} sx={{ color: '#71767B' }}>Cancel</Button>
+          <Button onClick={handleCreateOrUpdate} variant="contained" sx={{ backgroundColor: '#1D9BF0', '&:hover': { backgroundColor: '#1A91DA' } }}>
             {editingHotList ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Clear All Alerts Confirmation Dialog */}
-      <Dialog open={clearConfirmOpen} onClose={() => setClearConfirmOpen(false)}>
+      <Dialog 
+        open={clearConfirmOpen} 
+        onClose={() => setClearConfirmOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181C',
+            border: '1px solid #2F3336',
+            color: '#E7E9EA'
+          }
+        }}
+      >
         <DialogTitle sx={{ color: '#E7E9EA' }}>Clear All Hot List Alerts?</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ color: '#71767B' }}>
@@ -596,8 +721,16 @@ const HotList: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setClearConfirmOpen(false)}>Cancel</Button>
-          <Button onClick={handleClearAllAlerts} color="error" variant="contained">
+          <Button onClick={() => setClearConfirmOpen(false)} sx={{ color: '#71767B' }}>Cancel</Button>
+          <Button 
+            onClick={handleClearAllAlerts} 
+            variant="contained"
+            sx={{ 
+              backgroundColor: '#F91880', 
+              color: 'white',
+              '&:hover': { backgroundColor: '#D60E5A' }
+            }}
+          >
             Clear All
           </Button>
         </DialogActions>
@@ -609,12 +742,30 @@ const HotList: React.FC = () => {
         onClose={() => setExistingPostsDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181C',
+            border: '1px solid #2F3336',
+            color: '#E7E9EA'
+          }
+        }}
       >
         <DialogTitle sx={{ color: '#E7E9EA' }}>Existing Posts Check Results</DialogTitle>
         <DialogContent>
           {existingPostsResults && (
             <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
+              <Alert 
+                severity="info" 
+                sx={{ 
+                  mb: 2,
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                  border: '1px solid rgba(29, 155, 240, 0.3)',
+                  color: '#E7E9EA',
+                  '& .MuiAlert-icon': {
+                    color: '#1D9BF0'
+                  }
+                }}
+              >
                 Found {existingPostsResults.matchingPosts} existing posts matching your search term.
                 {existingPostsResults.alertsCreated > 0 && 
                   ` Created ${existingPostsResults.alertsCreated} new alerts.`
@@ -647,7 +798,7 @@ const HotList: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setExistingPostsDialogOpen(false)}>Close</Button>
+          <Button onClick={() => setExistingPostsDialogOpen(false)} sx={{ color: '#1D9BF0' }}>Close</Button>
         </DialogActions>
       </Dialog>
 
@@ -659,7 +810,22 @@ const HotList: React.FC = () => {
         <Alert
           onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            backgroundColor: snackbar.severity === 'success' 
+              ? 'rgba(0, 208, 132, 0.15)' 
+              : 'rgba(249, 24, 128, 0.15)',
+            border: `1px solid ${snackbar.severity === 'success' 
+              ? 'rgba(0, 208, 132, 0.5)' 
+              : 'rgba(249, 24, 128, 0.5)'}`,
+            color: '#E7E9EA',
+            '& .MuiAlert-icon': {
+              color: snackbar.severity === 'success' ? '#00D084' : '#F91880'
+            },
+            '& .MuiAlert-action': {
+              color: '#E7E9EA'
+            }
+          }}
         >
           {snackbar.message}
         </Alert>
