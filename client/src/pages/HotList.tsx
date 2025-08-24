@@ -39,57 +39,113 @@ import {
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import PostDetailModal from '../components/PostDetailModal';
+import MediaGallery from '../components/MediaGallery';
 
-// Hot List Alert Card Component
+// Helper functions for post cards
+const stripHtmlTags = (html: string) => {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || div.innerText || '';
+};
+
+const extractImageUrls = (html?: string): string[] => {
+  if (!html) return [];
+  try {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const imgs = Array.from(div.querySelectorAll('img'));
+    return imgs
+      .map(img => {
+        let src = (img.getAttribute('src') || '').trim();
+        if (!src) src = (img.getAttribute('data-src') || '').trim();
+        if (!src) {
+          const srcset = (img.getAttribute('srcset') || '').trim();
+          if (srcset) {
+            src = srcset.split(',')[0].trim().split(' ')[0];
+          }
+        }
+        return src;
+      })
+      .filter(src => !!src);
+  } catch {
+    return [];
+  }
+};
+
+const resolveContentImageUrl = (rawUrl: string): string => {
+  if (!rawUrl) return rawUrl;
+  if (rawUrl.startsWith('/api/files/') || rawUrl.startsWith('/api/files/')) {
+    return rawUrl;
+  }
+  const remoteBase = (process.env.REACT_APP_WP_SITE_URL || 'https://cmansrms.us').replace(/\/$/, '');
+  let absolute = rawUrl;
+  if (rawUrl.startsWith('/')) absolute = `${remoteBase}${rawUrl}`;
+  else if (!rawUrl.startsWith('http')) absolute = `${remoteBase}/${rawUrl}`;
+  return absolute;
+};
+
+// Hot List Alert Card Component - matches HomeSimple post cards exactly
 const HotListAlertCard: React.FC<{
   alert: HotListAlert;
+  post: any; // Full post data from API
   onMarkRead: (alert: HotListAlert) => void;
   onOpenPost: (postId: number) => void;
-}> = ({ alert, onMarkRead, onOpenPost }) => {
+  highlightTerms: string[];
+}> = ({ alert, post, onMarkRead, onOpenPost, highlightTerms }) => {
   
-  const highlightSearchTerm = (text: string, searchTerm: string) => {
-    if (!text || !searchTerm) return text;
+  const highlightText = (text: string) => {
+    if (!text || !highlightTerms.length) return text;
     
-    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = text.split(regex);
+    let result = text;
+    highlightTerms.forEach(term => {
+      if (term) {
+        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        result = result.replace(regex, (match) => 
+          `<mark style="background-color: #1D9BF0; color: white; padding: 2px 4px; border-radius: 4px;">${match}</mark>`
+        );
+      }
+    });
     
-    return parts.map((part, index) => 
-      regex.test(part) ? (
-        <span key={index} style={{ backgroundColor: '#1D9BF0', color: 'white', padding: '2px 4px', borderRadius: '4px' }}>
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
 
+  const titleText = stripHtmlTags(post.title);
+  const excerptText = stripHtmlTags(post.excerpt || '');
+  const contentText = stripHtmlTags(post.content || '');
+
   return (
     <Card
       sx={{
         mb: 2,
+        height: '100%',
         backgroundColor: alert.is_read ? '#16181C' : 'rgba(29, 155, 240, 0.05)',
         border: `1px solid ${alert.is_read ? '#2F3336' : '#1D9BF0'}`,
+        borderRadius: 2,
         cursor: 'pointer',
-        '&:hover': { 
-          backgroundColor: alert.is_read ? 'rgba(29, 155, 240, 0.05)' : 'rgba(29, 155, 240, 0.1)',
-          transform: 'translateY(-1px)',
-          boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         },
-        transition: 'all 0.2s ease-in-out'
       }}
-      onClick={() => onOpenPost(alert.post_id)}
+      onClick={() => {
+        onOpenPost(alert.post_id);
+        if (!alert.is_read) {
+          onMarkRead(alert);
+        }
+      }}
     >
       <CardContent>
-        {/* Alert Header */}
+        {/* Hot List Alert Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <AlertIcon sx={{ color: alert.is_read ? '#71767B' : '#1D9BF0', fontSize: '16px' }} />
           <Chip
-            label={`Hot List: "${alert.search_term}"`}
+            label={`Hot List Alert: "${alert.search_term}"`}
             size="small"
             sx={{ 
               backgroundColor: alert.is_read ? '#2F3336' : '#1D9BF0', 
@@ -106,55 +162,105 @@ const HotListAlertCard: React.FC<{
           )}
         </Box>
 
-        {/* Post Content */}
-        <Box sx={{ ml: 0 }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: '#E7E9EA', 
-              mb: 1,
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: 1.3
-            }}
-          >
-            {highlightSearchTerm(alert.post_title, alert.search_term)}
-          </Typography>
-          
-          <Typography variant="body2" sx={{ color: '#71767B', mb: 1 }}>
-            by {alert.author_name} • {formatDate(alert.wp_published_date)}
-          </Typography>
-          
-          {alert.highlighted_content && (
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: '#E7E9EA', 
-                fontStyle: 'normal',
-                backgroundColor: 'rgba(29, 155, 240, 0.1)',
-                padding: 1.5,
-                borderRadius: 1,
-                border: '1px solid rgba(29, 155, 240, 0.2)',
-                lineHeight: 1.4
-              }}
-            >
-              {highlightSearchTerm(alert.highlighted_content, alert.search_term)}
+        {/* Media Gallery - same as HomeSimple */}
+        {post.attachments && post.attachments.length > 0 && (
+          <MediaGallery attachments={post.attachments} maxHeight={180} />
+        )}
+        {(!post.attachments || post.attachments.length === 0) && (
+          <>
+            {(() => {
+              const imageUrls = extractImageUrls(post.content).slice(0, 5);
+              if (imageUrls.length === 0) return null;
+              return (
+                <Box sx={{ 
+                  mb: 2, 
+                  display: 'flex', 
+                  gap: { xs: 0.5, sm: 1 }, 
+                  overflowX: 'auto', 
+                  pb: 1,
+                  px: { xs: 0.5, sm: 0 }
+                }}>
+                  {imageUrls.map((url, idx) => (
+                    <img
+                      key={idx}
+                      src={resolveContentImageUrl(url)}
+                      alt={`Post image ${idx + 1}`}
+                      style={{ 
+                        width: window.innerWidth < 600 ? 120 : 160, 
+                        height: window.innerWidth < 600 ? 90 : 120, 
+                        objectFit: 'cover', 
+                        borderRadius: '8px', 
+                        flex: '0 0 auto' 
+                      }}
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        if (url.includes('cmansrms.us') || url.includes('wordpress')) {
+                          img.src = url.startsWith('http') ? url : `https://cmansrms.us${url.startsWith('/') ? url : `/${url}`}`;
+                        } else {
+                          img.style.display = 'none';
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+              );
+            })()}
+          </>
+        )}
+        
+        {/* Title with highlighting */}
+        <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
+          {highlightText(titleText)}
+        </Typography>
+        
+        {/* Content/excerpt with highlighting */}
+        {(() => {
+          const raw = post.excerpt && post.excerpt.trim().length > 0 
+            ? post.excerpt 
+            : (post.content || '');
+          const text = stripHtmlTags(raw);
+          if (!text) return null;
+          return (
+            <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
+              {highlightText(text.substring(0, 450))}...
             </Typography>
+          );
+        })()}
+
+        {/* Category and metadata */}
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: { xs: 0.25, sm: 0.5 }, 
+          mb: 1 
+        }}>
+          {post.category_name && (
+            <Chip 
+              size="small"
+              label={post.category_name} 
+              sx={{ 
+                backgroundColor: '#1D9BF0', 
+                color: 'white', 
+                fontSize: '0.75rem',
+                height: '20px'
+              }}
+            />
           )}
+          <Chip 
+            size="small"
+            label={`by ${post.author_name}`}
+            sx={{ 
+              backgroundColor: '#2F3336', 
+              color: '#71767B', 
+              fontSize: '0.75rem',
+              height: '20px'
+            }}
+          />
         </Box>
 
-        {/* Action hint */}
-        <Typography 
-          variant="caption" 
-          sx={{ 
-            color: '#71767B', 
-            mt: 1, 
-            display: 'block',
-            textAlign: 'right',
-            fontSize: '10px'
-          }}
-        >
-          Click to view full post
+        {/* Date */}
+        <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.75rem' }}>
+          {formatDate(post.wp_published_date)}
         </Typography>
       </CardContent>
     </Card>
@@ -186,6 +292,7 @@ const HotList: React.FC = () => {
   const { user } = useAuth();
   const [hotLists, setHotLists] = useState<HotList[]>([]);
   const [alerts, setAlerts] = useState<HotListAlert[]>([]);
+  const [alertPosts, setAlertPosts] = useState<{[key: number]: any}>({});
   const [loading, setLoading] = useState(false);
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -200,6 +307,8 @@ const HotList: React.FC = () => {
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [existingPostsDialogOpen, setExistingPostsDialogOpen] = useState(false);
   const [existingPostsResults, setExistingPostsResults] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -226,6 +335,24 @@ const HotList: React.FC = () => {
       setAlertsLoading(true);
       const response = await apiService.getHotListAlerts({ limit: 50 });
       setAlerts(response.alerts);
+      
+      // Fetch full post data for each alert
+      const postIds = response.alerts.map((alert: HotListAlert) => alert.post_id);
+      const uniquePostIds = [...new Set(postIds)];
+      
+      const postPromises = uniquePostIds.map(async (postId) => {
+        try {
+          const postResponse = await apiService.getPost(postId);
+          return { [postId]: postResponse };
+        } catch (error) {
+          console.error(`Error loading post ${postId}:`, error);
+          return { [postId]: null };
+        }
+      });
+      
+      const postResults = await Promise.all(postPromises);
+      const postsMap = postResults.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+      setAlertPosts(postsMap);
     } catch (error) {
       console.error('Error loading hot list alerts:', error);
       showSnackbar('Failed to load alerts', 'error');
@@ -236,6 +363,16 @@ const HotList: React.FC = () => {
 
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbar({ open: true, message, severity });
+  };
+
+  const handlePostClick = (postId: number) => {
+    setSelectedPostId(postId);
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setSelectedPostId(null);
   };
 
   const handleCreateOrUpdate = async () => {
@@ -330,11 +467,13 @@ const HotList: React.FC = () => {
     try {
       const result = await apiService.clearAllHotListAlerts();
       setAlerts([]);
+      setAlertPosts({});
       setClearConfirmOpen(false);
       showSnackbar(`Cleared ${result.deletedCount} alerts successfully`, 'success');
     } catch (error) {
       console.error('Error clearing all alerts:', error);
       showSnackbar('Failed to clear all alerts', 'error');
+      setClearConfirmOpen(false);
     }
   };
 
@@ -486,19 +625,29 @@ const HotList: React.FC = () => {
               </Alert>
             ) : (
               <Box>
-                {alerts.map((alert) => (
-                  <HotListAlertCard
-                    key={alert.id}
-                    alert={alert}
-                    onMarkRead={handleMarkAlertRead}
-                    onOpenPost={(postId) => {
-                      // Open post details modal
-                      const event = new CustomEvent('open-post-modal', { detail: { postId } });
-                      window.dispatchEvent(event);
-                      handleMarkAlertRead(alert);
-                    }}
-                  />
-                ))}
+                {alerts.map((alert) => {
+                  const post = alertPosts[alert.post_id];
+                  if (!post) {
+                    return (
+                      <Card key={alert.id} sx={{ mb: 2, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                        <CardContent>
+                          <Typography sx={{ color: '#71767B' }}>Loading post data...</Typography>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                  
+                  return (
+                    <HotListAlertCard
+                      key={alert.id}
+                      alert={alert}
+                      post={post}
+                      onMarkRead={handleMarkAlertRead}
+                      onOpenPost={handlePostClick}
+                      highlightTerms={[alert.search_term]}
+                    />
+                  );
+                })}
               </Box>
             )}
           </CardContent>
@@ -830,6 +979,13 @@ const HotList: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        postId={selectedPostId}
+      />
     </Box>
   );
 };
