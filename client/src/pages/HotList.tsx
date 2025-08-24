@@ -338,7 +338,7 @@ const HotList: React.FC = () => {
       
       // Fetch full post data for each alert
       const postIds = response.alerts.map((alert: HotListAlert) => alert.post_id);
-      const uniquePostIds = [...new Set(postIds)];
+      const uniquePostIds = postIds.filter((id, index) => postIds.indexOf(id) === index);
       
       const postPromises = uniquePostIds.map(async (postId) => {
         try {
