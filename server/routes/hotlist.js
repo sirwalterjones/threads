@@ -381,8 +381,6 @@ router.delete('/alerts', authenticateToken, async (req, res) => {
       )
     `, [req.user.id]);
 
-
-
     res.json({ 
       message: 'All hot list alerts cleared successfully',
       deletedCount: result.rowCount 

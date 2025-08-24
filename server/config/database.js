@@ -215,6 +215,7 @@ if (USE_SQLITE) {
           user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
           search_term VARCHAR(500) NOT NULL,
           is_active BOOLEAN DEFAULT true,
+          exact_match BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )

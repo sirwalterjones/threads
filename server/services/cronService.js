@@ -320,7 +320,7 @@ class CronService {
       let alertsCreated = 0;
       
       // Check each hot list against each recent post
-              for (const hotList of hotListsResult.rows) {
+      for (const hotList of hotListsResult.rows) {
           const searchTerm = hotList.search_term.toLowerCase();
           const exactMatch = hotList.exact_match;
           

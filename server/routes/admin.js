@@ -611,6 +611,39 @@ router.get('/audit-log',
   }
 );
 
+// Create audit log entry (for client-side logging)
+router.post('/audit/log', authenticateToken, async (req, res) => {
+  try {
+    const { action, table_name, record_id, meta } = req.body;
+
+    if (!action || !table_name) {
+      return res.status(400).json({ error: 'Action and table_name are required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO audit_log (user_id, action, table_name, record_id, new_values, ip_address)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id`,
+      [
+        req.user.id,
+        action,
+        table_name,
+        record_id || null,
+        meta ? JSON.stringify(meta) : null,
+        req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
+      ]
+    );
+
+    res.status(201).json({ 
+      message: 'Audit log entry created',
+      id: result.rows[0].id 
+    });
+  } catch (error) {
+    console.error('Error creating audit log entry:', error);
+    res.status(500).json({ error: 'Failed to create audit log entry' });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 
