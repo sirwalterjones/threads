@@ -22,6 +22,11 @@ const Login: React.FC = () => {
   const [showSetup2FA, setShowSetup2FA] = useState(false);
   const [showVerify2FA, setShowVerify2FA] = useState(false);
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('showSetup2FA state changed to:', showSetup2FA);
+  }, [showSetup2FA]);
   const { login, complete2FA } = useAuth();
   const navigate = useNavigate();
 
@@ -36,9 +41,9 @@ const Login: React.FC = () => {
       if (result.requires2FA) {
         // User needs 2FA setup - complete login first, then show setup
         console.log('2FA required, completing login and showing setup component');
-        // The login function should have already set the token in the API service
-        // Now we can show the 2FA setup
+        console.log('Setting showSetup2FA to true');
         setShowSetup2FA(true);
+        console.log('showSetup2FA state after set:', true);
       } else {
         navigate('/');
       }
