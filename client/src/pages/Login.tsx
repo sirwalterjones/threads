@@ -34,7 +34,10 @@ const Login: React.FC = () => {
       const result = await login(username, password);
       
       if (result.requires2FA) {
-        // User needs 2FA setup - go directly to setup without calling authenticated endpoints
+        // User needs 2FA setup - complete login first, then show setup
+        console.log('2FA required, completing login and showing setup component');
+        // The login function should have already set the token in the API service
+        // Now we can show the 2FA setup
         setShowSetup2FA(true);
       } else {
         navigate('/');
@@ -76,6 +79,7 @@ const Login: React.FC = () => {
 
   // Show 2FA setup if required
   if (showSetup2FA) {
+    console.log('Rendering TwoFactorSetup component');
     return <TwoFactorSetup onComplete={handle2FASetupComplete} onCancel={handleCancel2FA} />;
   }
 

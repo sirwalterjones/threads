@@ -41,11 +41,14 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
     setError('');
     
     try {
+      console.log('Calling setup2FA API...');
       const response = await apiService.setup2FA();
+      console.log('setup2FA response:', response);
       setQrCode(response.qrCode);
       setSecret(response.manualEntryKey);
       setStep(1);
     } catch (error: any) {
+      console.error('setup2FA error:', error);
       setError(error.response?.data?.error || 'Failed to setup 2FA');
     } finally {
       setLoading(false);
