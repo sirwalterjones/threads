@@ -535,23 +535,19 @@ class ApiService {
     totalPages: number;
   }> {
     const response = await axios.get(`${API_BASE_URL}/intel-reports`, {
-      headers: this.getAuthHeaders(),
       params
     });
     return response.data;
   }
 
   async getIntelReport(id: string): Promise<any> {
-    const response = await axios.get(`${API_BASE_URL}/intel-reports/${id}`, {
-      headers: this.getAuthHeaders()
-    });
+    const response = await axios.get(`${API_BASE_URL}/intel-reports/${id}`);
     return response.data;
   }
 
   async createIntelReport(reportData: FormData): Promise<{ message: string; report: any }> {
     const response = await axios.post(`${API_BASE_URL}/intel-reports`, reportData, {
       headers: {
-        ...this.getAuthHeaders(),
         'Content-Type': 'multipart/form-data'
       }
     });
@@ -565,8 +561,7 @@ class ApiService {
   ): Promise<{ message: string; report: any }> {
     const response = await axios.patch(
       `${API_BASE_URL}/intel-reports/${id}/status`,
-      { status, review_comments: reviewComments },
-      { headers: this.getAuthHeaders() }
+      { status, review_comments: reviewComments }
     );
     return response.data;
   }
@@ -574,16 +569,13 @@ class ApiService {
   async extendIntelReportExpiration(id: string, days: number = 30): Promise<{ message: string; report: any }> {
     const response = await axios.patch(
       `${API_BASE_URL}/intel-reports/${id}/extend`,
-      { days },
-      { headers: this.getAuthHeaders() }
+      { days }
     );
     return response.data;
   }
 
   async deleteIntelReport(id: string): Promise<{ message: string }> {
-    const response = await axios.delete(`${API_BASE_URL}/intel-reports/${id}`, {
-      headers: this.getAuthHeaders()
-    });
+    const response = await axios.delete(`${API_BASE_URL}/intel-reports/${id}`);
     return response.data;
   }
 
@@ -595,9 +587,7 @@ class ApiService {
     expired_reports: number;
     expiring_soon_reports: number;
   }> {
-    const response = await axios.get(`${API_BASE_URL}/intel-reports/stats/overview`, {
-      headers: this.getAuthHeaders()
-    });
+    const response = await axios.get(`${API_BASE_URL}/intel-reports/stats/overview`);
     return response.data;
   }
 }

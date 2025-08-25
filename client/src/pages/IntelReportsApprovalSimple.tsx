@@ -183,7 +183,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
       // TODO: Implement API call to update report status
       const updatedReport = {
         ...selectedReport,
-        status: reviewAction,
+        status: reviewAction === 'approve' ? 'approved' as const : 'rejected' as const,
         reviewedAt: new Date().toISOString(),
         reviewedBy: 'Current User', // Replace with actual user
         reviewComments

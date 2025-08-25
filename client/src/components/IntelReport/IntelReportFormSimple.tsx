@@ -29,7 +29,32 @@ const IntelReportFormSimple: React.FC = () => {
     caseNumber: '',
     subject: '',
     criminalActivity: '',
-    summary: ''
+    summary: '',
+    // Subject Information
+    subjectFirstName: '',
+    subjectMiddleName: '',
+    subjectLastName: '',
+    subjectAddress: '',
+    subjectDateOfBirth: '',
+    subjectRace: '',
+    subjectSex: '',
+    subjectPhone: '',
+    subjectSSN: '',
+    subjectLicense: '',
+    // Organization/Business
+    businessName: '',
+    businessPhone: '',
+    businessAddress: '',
+    // Source Information
+    sourceId: '',
+    sourceRating: '',
+    sourceType: '', // Unknown Caller, CI/CS, etc.
+    sourceReliability: '',
+    sourceFirstName: '',
+    sourceMiddleName: '',
+    sourceLastName: '',
+    sourcePhone: '',
+    sourceAddress: ''
   });
 
   const classificationOptions = [
@@ -37,6 +62,28 @@ const IntelReportFormSimple: React.FC = () => {
     { value: 'Narcotics Only', label: 'Narcotics Only', color: '#e91e63' },
     { value: 'Classified', label: 'Classified', color: '#f44336' },
     { value: 'Law Enforcement Only', label: 'Law Enforcement Only', color: '#3f51b5' }
+  ];
+
+  const raceOptions = [
+    'White', 'Black', 'Hispanic', 'Asian', 'Native American', 'Pacific Islander', 'Other', 'Unknown'
+  ];
+
+  const sexOptions = [
+    'Male', 'Female', 'Unknown'
+  ];
+
+  const sourceTypeOptions = [
+    'Unknown Caller', 'CI/CS', 'Witness', 'Victim', 'Officer', 'Other'
+  ];
+
+  const sourceRatingOptions = [
+    'A - Completely Reliable', 'B - Usually Reliable', 'C - Fairly Reliable', 
+    'D - Not Usually Reliable', 'E - Unreliable', 'F - Reliability Cannot Be Judged'
+  ];
+
+  const reliabilityOptions = [
+    '1 - Confirmed by Other Sources', '2 - Probably True', '3 - Possibly True', 
+    '4 - Doubtful', '5 - Improbable', '6 - Truth Cannot Be Judged'
   ];
 
   const handleInputChange = (field: string, value: any) => {
@@ -103,7 +150,32 @@ const IntelReportFormSimple: React.FC = () => {
                 caseNumber: '',
                 subject: '',
                 criminalActivity: '',
-                summary: ''
+                summary: '',
+                // Subject Information
+                subjectFirstName: '',
+                subjectMiddleName: '',
+                subjectLastName: '',
+                subjectAddress: '',
+                subjectDateOfBirth: '',
+                subjectRace: '',
+                subjectSex: '',
+                subjectPhone: '',
+                subjectSSN: '',
+                subjectLicense: '',
+                // Organization/Business
+                businessName: '',
+                businessPhone: '',
+                businessAddress: '',
+                // Source Information
+                sourceId: '',
+                sourceRating: '',
+                sourceType: '',
+                sourceReliability: '',
+                sourceFirstName: '',
+                sourceMiddleName: '',
+                sourceLastName: '',
+                sourcePhone: '',
+                sourceAddress: ''
               });
             }}
           >
@@ -242,6 +314,271 @@ const IntelReportFormSimple: React.FC = () => {
             onChange={(e) => handleInputChange('summary', e.target.value)}
             sx={{ mb: 2 }}
           />
+        </Box>
+
+        {/* Subject Information Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant="h5" sx={{ mb: 3 }}>Subject Information</Typography>
+        
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="First Name"
+              value={formData.subjectFirstName}
+              onChange={(e) => handleInputChange('subjectFirstName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Middle Name"
+              value={formData.subjectMiddleName}
+              onChange={(e) => handleInputChange('subjectMiddleName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Last Name"
+              value={formData.subjectLastName}
+              onChange={(e) => handleInputChange('subjectLastName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
+            label="Address"
+            value={formData.subjectAddress}
+            onChange={(e) => handleInputChange('subjectAddress', e.target.value)}
+            sx={{ mb: 2 }}
+          />
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Date of Birth"
+              type="date"
+              value={formData.subjectDateOfBirth}
+              onChange={(e) => handleInputChange('subjectDateOfBirth', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Race</InputLabel>
+              <Select
+                value={formData.subjectRace}
+                onChange={(e) => handleInputChange('subjectRace', e.target.value)}
+                label="Race"
+              >
+                {raceOptions.map((race) => (
+                  <MenuItem key={race} value={race}>{race}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Sex</InputLabel>
+              <Select
+                value={formData.subjectSex}
+                onChange={(e) => handleInputChange('subjectSex', e.target.value)}
+                label="Sex"
+              >
+                {sexOptions.map((sex) => (
+                  <MenuItem key={sex} value={sex}>{sex}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Phone"
+              value={formData.subjectPhone}
+              onChange={(e) => handleInputChange('subjectPhone', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Social Security Number"
+              value={formData.subjectSSN}
+              onChange={(e) => handleInputChange('subjectSSN', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="License Number & State"
+              value={formData.subjectLicense}
+              onChange={(e) => handleInputChange('subjectLicense', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+        </Box>
+
+        {/* Organization/Business Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant="h5" sx={{ mb: 3 }}>Organization/Business Information</Typography>
+        
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Business/Organization Name"
+              value={formData.businessName}
+              onChange={(e) => handleInputChange('businessName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Phone"
+              value={formData.businessPhone}
+              onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
+            label="Address"
+            value={formData.businessAddress}
+            onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+            sx={{ mb: 2 }}
+          />
+        </Box>
+
+        {/* Source Information Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant="h5" sx={{ mb: 3 }}>Source Information</Typography>
+        
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Source ID"
+              value={formData.sourceId}
+              onChange={(e) => handleInputChange('sourceId', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Source Type</InputLabel>
+              <Select
+                value={formData.sourceType}
+                onChange={(e) => handleInputChange('sourceType', e.target.value)}
+                label="Source Type"
+              >
+                {sourceTypeOptions.map((type) => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Source Rating</InputLabel>
+              <Select
+                value={formData.sourceRating}
+                onChange={(e) => handleInputChange('sourceRating', e.target.value)}
+                label="Source Rating"
+              >
+                {sourceRatingOptions.map((rating) => (
+                  <MenuItem key={rating} value={rating}>{rating}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Information Reliability</InputLabel>
+              <Select
+                value={formData.sourceReliability}
+                onChange={(e) => handleInputChange('sourceReliability', e.target.value)}
+                label="Information Reliability"
+              >
+                {reliabilityOptions.map((reliability) => (
+                  <MenuItem key={reliability} value={reliability}>{reliability}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        <Typography variant="h6" sx={{ mb: 2 }}>Source Contact Information (if applicable)</Typography>
+        
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="First Name"
+              value={formData.sourceFirstName}
+              onChange={(e) => handleInputChange('sourceFirstName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Middle Name"
+              value={formData.sourceMiddleName}
+              onChange={(e) => handleInputChange('sourceMiddleName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Last Name"
+              value={formData.sourceLastName}
+              onChange={(e) => handleInputChange('sourceLastName', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Phone"
+              value={formData.sourcePhone}
+              onChange={(e) => handleInputChange('sourcePhone', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+            <TextField
+              fullWidth
+              label="Address"
+              value={formData.sourceAddress}
+              onChange={(e) => handleInputChange('sourceAddress', e.target.value)}
+              sx={{ mb: 2 }}
+            />
+          </Box>
         </Box>
 
         {/* Review Section */}

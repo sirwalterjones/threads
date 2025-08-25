@@ -150,7 +150,7 @@ const UsersManage: React.FC = () => {
   };
 
   const handleReset2FA = async (userId: number, username: string) => {
-    if (!confirm(`Reset 2FA for user ${username}? This will require them to set up 2FA again.`)) {
+    if (!window.confirm(`Reset 2FA for user ${username}? This will require them to set up 2FA again.`)) {
       return;
     }
 
