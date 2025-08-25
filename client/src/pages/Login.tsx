@@ -18,18 +18,16 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showSetup2FA, setShowSetup2FA] = useState(false);
   const [showVerify2FA, setShowVerify2FA] = useState(false);
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
 
-  const { login, complete2FA } = useAuth();
+  const { login, complete2FA, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
     try {
       console.log('Login form submitted, calling login...');
@@ -46,9 +44,11 @@ const Login: React.FC = () => {
         if (!status.enabled && status.required) {
           console.log('Setting showSetup2FA to true');
           setShowSetup2FA(true);
+          console.log('showSetup2FA state should now be true');
         } else if (status.enabled) {
           console.log('Setting showVerify2FA to true');
           setShowVerify2FA(true);
+          console.log('showVerify2FA state should now be true');
         }
       } else {
         console.log('No 2FA required, navigating to home');
@@ -57,8 +57,6 @@ const Login: React.FC = () => {
     } catch (error: any) {
       console.error('Login error:', error);
       setError(error.response?.data?.error || 'Login failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -91,15 +89,21 @@ const Login: React.FC = () => {
     apiService.clearToken();
   };
 
+  console.log('Login component render - showSetup2FA:', showSetup2FA, 'showVerify2FA:', showVerify2FA);
+
   // Show 2FA setup if required
   if (showSetup2FA) {
+    console.log('Rendering 2FA setup component');
     return <TwoFactorSetup onComplete={handle2FASetupComplete} onCancel={handleCancel2FA} />;
   }
 
   // Show 2FA verification if enabled
   if (showVerify2FA) {
+    console.log('Rendering 2FA verification component');
     return <TwoFactorVerification onSuccess={handle2FAVerificationSuccess} onCancel={handleCancel2FA} />;
   }
+
+  console.log('Rendering default login form');
 
   // Default login form
   return (
@@ -173,7 +177,7 @@ const Login: React.FC = () => {
               autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={loading}
+              disabled={authLoading}
               sx={{ 
                 mb: 2,
                 '& .MuiOutlinedInput-root': {
@@ -233,7 +237,7 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
+              disabled={authLoading}
               sx={{ 
                 mb: 3,
                 '& .MuiOutlinedInput-root': {
@@ -310,9 +314,9 @@ const Login: React.FC = () => {
                 },
                 transition: 'all 0.2s ease-in-out'
               }}
-              disabled={loading || !username || !password}
+              disabled={authLoading || !username || !password}
             >
-              {loading ? <CircularProgress size={24} sx={{ color: '#000000' }} /> : 'Sign In'}
+              {authLoading ? <CircularProgress size={24} sx={{ color: '#000000' }} /> : 'Sign In'}
             </Button>
           </Box>
         </Box>
