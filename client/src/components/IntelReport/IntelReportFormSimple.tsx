@@ -116,11 +116,66 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     setError('');
     
     try {
-      // TODO: Implement API call to submit intel report
-      console.log('Submitting intel report:', formData);
+      // Prepare data for API submission
+      const submissionData = {
+        intel_number: formData.intelNumber,
+        classification: formData.classification,
+        date: formData.date,
+        case_number: formData.caseNumber,
+        subject: formData.subject,
+        criminal_activity: formData.criminalActivity,
+        summary: formData.summary,
+        subjects: JSON.stringify([{
+          first_name: formData.subjectFirstName,
+          middle_name: formData.subjectMiddleName,
+          last_name: formData.subjectLastName,
+          address: formData.subjectAddress,
+          date_of_birth: formData.subjectDateOfBirth,
+          race: formData.subjectRace,
+          sex: formData.subjectSex,
+          phone: formData.subjectPhone,
+          social_security_number: formData.subjectSSN,
+          license_number: formData.subjectLicense
+        }]),
+        organizations: JSON.stringify([{
+          business_name: formData.businessName,
+          phone: formData.businessPhone,
+          address: formData.businessAddress
+        }]),
+        source_info: JSON.stringify({
+          source_id: formData.sourceId,
+          rating: formData.sourceRating,
+          source: formData.sourceType,
+          information_reliable: formData.sourceReliability,
+          unknown_caller: formData.sourceType === 'Unknown Caller',
+          ci_cs: formData.sourceType === 'CI/CS',
+          first_name: formData.sourceFirstName,
+          middle_name: formData.sourceMiddleName,
+          last_name: formData.sourceLastName,
+          phone: formData.sourcePhone,
+          address: formData.sourceAddress
+        })
+      };
+
+      console.log('Submitting intel report:', submissionData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Make actual API call
+      const response = await fetch('/api/intel-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(submissionData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Report submitted successfully:', result);
       
       // Always set success first
       setSuccess(true);
@@ -173,6 +228,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       // Reset success state
       setSuccess(false);
     } catch (error: any) {
+      console.error('Error submitting report:', error);
       setError(error.message || 'Failed to submit intelligence report');
     } finally {
       setLoading(false);

@@ -83,6 +83,7 @@ const IntelReportsSimple: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('approved');
   const [searchTerm, setSearchTerm] = useState('');
   const [createReportModalOpen, setCreateReportModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const classificationColors: Record<string, string> = {
     'Sensitive': '#ff9800',
@@ -102,21 +103,35 @@ const IntelReportsSimple: React.FC = () => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        // TODO: Implement API call when backend is ready
-        // const response = await apiService.getIntelReports({ status: statusFilter });
-        // setReports(response.reports);
-        
-        // For now, start with empty array until backend is implemented
-        setReports([]);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No authentication token found');
+          setReports([]);
+          return;
+        }
+
+        const response = await fetch(`/api/intel-reports?status=${statusFilter}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setReports(data.reports || []);
       } catch (error) {
         console.error('Error fetching reports:', error);
+        setReports([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchReports();
-  }, [statusFilter]);
+  }, [statusFilter, refreshTrigger]);
 
   const filteredReports = reports.filter(report => {
     if (statusFilter !== 'all' && report.status !== statusFilter) return false;
@@ -131,6 +146,16 @@ const IntelReportsSimple: React.FC = () => {
 
   const handleViewReport = (report: IntelReport) => {
     setSelectedReport(report);
+  };
+
+  const handleRefreshReports = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleModalClose = () => {
+    setCreateReportModalOpen(false);
+    // Refresh the reports list after modal closes
+    handleRefreshReports();
   };
 
   const getClassificationChip = (classification: string) => (
@@ -206,7 +231,7 @@ const IntelReportsSimple: React.FC = () => {
         </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton sx={{ color: '#1D9BF0' }} title="Refresh">
+          <IconButton sx={{ color: '#1D9BF0' }} title="Refresh" onClick={handleRefreshReports}>
             <RefreshIcon />
           </IconButton>
           <IconButton sx={{ color: '#1D9BF0' }} title="Export Reports">
@@ -217,38 +242,92 @@ const IntelReportsSimple: React.FC = () => {
 
       {/* Status Cards */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-        <Card sx={{ flex: '1 1 200px', textAlign: 'center', cursor: 'pointer' }} 
+        <Card sx={{ 
+          flex: '1 1 200px', 
+          textAlign: 'center', 
+          cursor: 'pointer',
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }} 
               onClick={() => setStatusFilter('pending')}>
           <CardContent sx={{ py: 2 }}>
-            <Typography variant="h4" color="warning.main">{pendingCount}</Typography>
-            <Typography variant="body2" color="text.secondary">Pending</Typography>
+            <Typography variant="h4" sx={{ color: '#ff9800' }}>{pendingCount}</Typography>
+            <Typography variant="body2" sx={{ color: '#71767B' }}>Pending</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: '1 1 200px', textAlign: 'center', cursor: 'pointer' }}>
+        <Card sx={{ 
+          flex: '1 1 200px', 
+          textAlign: 'center', 
+          cursor: 'pointer',
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }}>
           <CardContent sx={{ py: 2 }}>
-            <Typography variant="h4" color="error.main">{expiredCount}</Typography>
-            <Typography variant="body2" color="text.secondary">Expired</Typography>
+            <Typography variant="h4" sx={{ color: '#f44336' }}>{expiredCount}</Typography>
+            <Typography variant="body2" sx={{ color: '#71767B' }}>Expired</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: '1 1 200px', textAlign: 'center', cursor: 'pointer' }}>
+        <Card sx={{ 
+          flex: '1 1 200px', 
+          textAlign: 'center', 
+          cursor: 'pointer',
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }}>
           <CardContent sx={{ py: 2 }}>
-            <Typography variant="h4" color="warning.main">{expiringSoonCount}</Typography>
-            <Typography variant="body2" color="text.secondary">Expiring Soon</Typography>
+            <Typography variant="h4" sx={{ color: '#ff9800' }}>{expiringSoonCount}</Typography>
+            <Typography variant="body2" sx={{ color: '#71767B' }}>Expiring Soon</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ flex: '1 1 200px', textAlign: 'center', cursor: 'pointer' }}
+        <Card sx={{ 
+          flex: '1 1 200px', 
+          textAlign: 'center', 
+          cursor: 'pointer',
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }}
               onClick={() => setStatusFilter('approved')}>
           <CardContent sx={{ py: 2 }}>
-            <Typography variant="h4" color="success.main">
+            <Typography variant="h4" sx={{ color: '#4caf50' }}>
               {reports.filter(r => r.status === 'approved').length}
             </Typography>
-            <Typography variant="body2" color="text.secondary">Approved</Typography>
+            <Typography variant="body2" sx={{ color: '#71767B' }}>Approved</Typography>
           </CardContent>
         </Card>
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, backgroundColor: 'background.paper' }}>
+      <Paper sx={{ 
+        p: 2, 
+        mb: 3, 
+        backgroundColor: '#1f1f1f',
+        border: '1px solid #2F3336',
+        '& .MuiInputLabel-root': { 
+          color: '#8B98A5',
+          '&.Mui-focused': { color: '#1D9BF0' }
+        }, 
+        '& .MuiOutlinedInput-root': { 
+          color: '#E7E9EA',
+          backgroundColor: '#1A1A1A',
+          '& .MuiOutlinedInput-notchedOutline': { 
+            borderColor: '#2F3336',
+            '&:hover': { borderColor: '#4A4A4A' }
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#1D9BF0'
+          }
+        },
+        '& .MuiSvgIcon-root': { color: '#E7E9EA' },
+        '& .MuiMenuItem-root': { 
+          color: '#E7E9EA', 
+          backgroundColor: '#1A1A1A',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }
+      }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
           <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
             <TextField
@@ -267,15 +346,15 @@ const IntelReportsSimple: React.FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status"
               >
-                <MenuItem value="all">All Status</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
+                <MenuItem value="all" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>All Status</MenuItem>
+                <MenuItem value="pending" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Pending</MenuItem>
+                <MenuItem value="approved" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Approved</MenuItem>
+                <MenuItem value="rejected" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Rejected</MenuItem>
               </Select>
             </FormControl>
           </Box>
           <Box sx={{ flex: '1 1 200px' }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: '#71767B' }}>
               Showing {filteredReports.length} of {reports.length} reports
             </Typography>
           </Box>
@@ -286,21 +365,31 @@ const IntelReportsSimple: React.FC = () => {
       {loading ? (
         <Box>
           <LinearProgress sx={{ mb: 2 }} />
-          <Typography textAlign="center">Loading reports...</Typography>
+          <Typography sx={{ textAlign: 'center', color: '#E7E9EA' }}>Loading reports...</Typography>
         </Box>
       ) : filteredReports.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
-          <SecurityIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: 'center', 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336'
+        }}>
+          <SecurityIcon sx={{ fontSize: 64, color: '#71767B', mb: 2 }} />
+          <Typography variant="h6" sx={{ color: '#71767B' }}>
             No reports found
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: '#71767B', mb: 2 }}>
             Try adjusting your filters or create a new report
           </Typography>
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
             onClick={() => setCreateReportModalOpen(true)}
+            sx={{ 
+              backgroundColor: '#1D9BF0',
+              color: '#ffffff',
+              '&:hover': { backgroundColor: '#1a8cd8' }
+            }}
           >
             Create New Report
           </Button>
@@ -422,7 +511,7 @@ const IntelReportsSimple: React.FC = () => {
       {/* Create Report Modal */}
       <Dialog
         open={createReportModalOpen}
-        onClose={() => setCreateReportModalOpen(false)}
+        onClose={handleModalClose}
         maxWidth="lg"
         fullWidth
         PaperProps={{
@@ -438,7 +527,7 @@ const IntelReportsSimple: React.FC = () => {
       >
         <IntelReportFormSimple 
           isModal={true}
-          onClose={() => setCreateReportModalOpen(false)}
+          onClose={handleModalClose}
         />
       </Dialog>
 
