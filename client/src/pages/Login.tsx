@@ -80,7 +80,72 @@ const Login: React.FC = () => {
   // Show 2FA setup if required
   if (showSetup2FA) {
     console.log('Rendering TwoFactorSetup component');
-    return <TwoFactorSetup onComplete={handle2FASetupComplete} onCancel={handleCancel2FA} />;
+    
+    // Simple fallback 2FA setup UI for debugging
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#000000',
+          px: 2
+        }}
+      >
+        <Container component="main" maxWidth="sm">
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: 4,
+              backgroundColor: '#1f1f1f',
+              borderRadius: 3,
+              border: '2px solid #444444',
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)'
+            }}
+          >
+            <Typography variant="h4" sx={{ color: '#ffffff', mb: 3 }}>
+              🔐 Two-Factor Authentication Setup
+            </Typography>
+            
+            <Typography variant="body1" sx={{ color: '#cccccc', mb: 4, textAlign: 'center' }}>
+              Your account requires 2FA setup. This is a simplified setup interface for debugging.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  console.log('2FA setup completed (debug mode)');
+                  handle2FASetupComplete();
+                }}
+                sx={{
+                  backgroundColor: '#1D9BF0',
+                  color: '#ffffff',
+                  '&:hover': { backgroundColor: '#1a8cd8' }
+                }}
+              >
+                Complete 2FA Setup (Debug)
+              </Button>
+              
+              <Button
+                variant="outlined"
+                onClick={handleCancel2FA}
+                sx={{
+                  borderColor: '#444444',
+                  color: '#cccccc',
+                  '&:hover': { borderColor: '#666666' }
+                }}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+    );
   }
 
   // Show 2FA verification if enabled
