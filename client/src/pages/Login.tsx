@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   TextField,
@@ -23,10 +23,6 @@ const Login: React.FC = () => {
   const [showVerify2FA, setShowVerify2FA] = useState(false);
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
 
-  // Debug state changes
-  useEffect(() => {
-    console.log('showSetup2FA state changed to:', showSetup2FA);
-  }, [showSetup2FA]);
   const { login, complete2FA } = useAuth();
   const navigate = useNavigate();
 
@@ -39,11 +35,24 @@ const Login: React.FC = () => {
       const result = await login(username, password);
       
       if (result.requires2FA) {
-        // User needs 2FA setup - complete login first, then show setup
-        console.log('2FA required, completing login and showing setup component');
-        console.log('Setting showSetup2FA to true');
-        setShowSetup2FA(true);
-        console.log('showSetup2FA state after set:', true);
+        console.log('2FA required, checking user status...');
+        // Check if user needs to set up 2FA or just verify
+        try {
+          const status = await apiService.get2FAStatus();
+          console.log('2FA status:', status);
+          setTwoFactorStatus(status);
+          
+          if (!status.enabled && status.required) {
+            console.log('User needs 2FA setup - setting showSetup2FA to true');
+            setShowSetup2FA(true);
+          } else if (status.enabled) {
+            console.log('User has 2FA enabled - setting showVerify2FA to true');
+            setShowVerify2FA(true);
+          }
+        } catch (error) {
+          console.error('Failed to get 2FA status:', error);
+          setShowSetup2FA(true); // Default to setup if status check fails
+        }
       } else {
         navigate('/');
       }
@@ -85,11 +94,7 @@ const Login: React.FC = () => {
 
   // Show 2FA setup if required
   if (showSetup2FA) {
-    console.log('Rendering TwoFactorSetup component');
-    console.log('showSetup2FA state:', showSetup2FA);
-    console.log('About to render 2FA setup UI...');
-    
-    // Simple fallback 2FA setup UI for debugging
+    console.log('Rendering 2FA setup component');
     return (
       <Box
         sx={{
@@ -154,15 +159,15 @@ const Login: React.FC = () => {
         </Container>
       </Box>
     );
-    }
-    
-    console.log('2FA setup component rendered successfully');
+  }
 
   // Show 2FA verification if enabled
   if (showVerify2FA) {
+    console.log('Rendering 2FA verification component');
     return <TwoFactorVerification onSuccess={handle2FAVerificationSuccess} onCancel={handleCancel2FA} />;
   }
 
+  // Default login form
   return (
     <Box
       sx={{
