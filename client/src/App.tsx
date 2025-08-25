@@ -68,7 +68,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route 
         path="/login" 
-        element={user ? <Navigate to="/" replace /> : <Login />} 
+        element={<Login />} 
       />
       <Route
         path="/*"
