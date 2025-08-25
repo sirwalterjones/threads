@@ -294,8 +294,8 @@ const IntelReportForm: React.FC = () => {
 
   const renderBasicInformation = () => (
     <Box sx={{ mt: 2 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
           <TextField
             fullWidth
             label="Intel #"
@@ -305,8 +305,8 @@ const IntelReportForm: React.FC = () => {
             required
             sx={{ mb: 2 }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
           <FormControl fullWidth required sx={{ mb: 2 }}>
             <InputLabel>Classification</InputLabel>
             <Select
@@ -331,8 +331,8 @@ const IntelReportForm: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
           <TextField
             fullWidth
             label="Date"
@@ -343,8 +343,8 @@ const IntelReportForm: React.FC = () => {
             InputLabelProps={{ shrink: true }}
             sx={{ mb: 2 }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
           <TextField
             fullWidth
             label="Agent Name"
@@ -353,8 +353,8 @@ const IntelReportForm: React.FC = () => {
             required
             sx={{ mb: 2 }}
           />
-        </Grid>
-        <Grid item xs={12} sm={6}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
           <TextField
             fullWidth
             label="Case #"
@@ -363,8 +363,8 @@ const IntelReportForm: React.FC = () => {
             helperText="Put the associated case # if applicable"
             sx={{ mb: 2 }}
           />
-        </Grid>
-        <Grid item xs={12}>
+        </Box>
+        <Box sx={{ flex: '1 1 100%' }}>
           <TextField
             fullWidth
             label="Subject"
@@ -373,8 +373,8 @@ const IntelReportForm: React.FC = () => {
             required
             sx={{ mb: 2 }}
           />
-        </Grid>
-        <Grid item xs={12}>
+        </Box>
+        <Box sx={{ flex: '1 1 100%' }}>
           <TextField
             fullWidth
             label="Describe Criminal Activity"
@@ -384,8 +384,8 @@ const IntelReportForm: React.FC = () => {
             onChange={(e) => handleInputChange('criminalActivity', e.target.value)}
             sx={{ mb: 2 }}
           />
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Box>
   );
 

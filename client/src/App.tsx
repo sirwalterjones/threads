@@ -13,9 +13,9 @@ import AuditLog from './pages/AuditLog';
 import PostExpiration from './pages/PostExpiration';
 import Profile from './pages/Profile';
 import HotList from './pages/HotList';
-import IntelReports from './pages/IntelReports';
-import IntelReportsApproval from './pages/IntelReportsApproval';
-import IntelReportForm from './components/IntelReport/IntelReportForm';
+import IntelReportsSimple from './pages/IntelReportsSimple';
+import IntelReportsApprovalSimple from './pages/IntelReportsApprovalSimple';
+import IntelReportFormSimple from './components/IntelReport/IntelReportFormSimple';
 import { CircularProgress, Box } from '@mui/material';
 
 // Theme is now controlled by ThemeModeProvider
@@ -95,9 +95,9 @@ const AppRoutes: React.FC = () => {
                 <Route path="/audit" element={<AuditLog />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/hotlist" element={<HotList />} />
-                <Route path="/intel-reports" element={<IntelReports />} />
-                <Route path="/intel-reports/new" element={<IntelReportForm />} />
-                <Route path="/intel-reports/approval" element={<IntelReportsApproval />} />
+                <Route path="/intel-reports" element={<IntelReportsSimple />} />
+                <Route path="/intel-reports/new" element={<IntelReportFormSimple />} />
+                <Route path="/intel-reports/approval" element={<IntelReportsApprovalSimple />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>
             </Layout>
