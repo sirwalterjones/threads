@@ -48,10 +48,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await apiService.login(username, password);
       
-      // If 2FA is required, don't set user/token yet
+      // If 2FA is required, store token but don't set user yet
       if (response.requires2FA) {
-        // Store token temporarily for 2FA verification
         apiService.setToken(response.token);
+        setToken(response.token);
+        localStorage.setItem('token', response.token);
         return { requires2FA: true };
       }
       

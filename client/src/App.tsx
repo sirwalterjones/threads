@@ -39,7 +39,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!user) {
+  // Check if we have a token but no user (might be in 2FA flow)
+  const hasToken = localStorage.getItem('token');
+  if (!user && !hasToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If we have a token but no user, redirect to login for 2FA
+  if (!user && hasToken) {
     return <Navigate to="/login" replace />;
   }
 

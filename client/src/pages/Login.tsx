@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   TextField,
@@ -22,9 +22,44 @@ const Login: React.FC = () => {
   const [showSetup2FA, setShowSetup2FA] = useState(false);
   const [showVerify2FA, setShowVerify2FA] = useState(false);
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
+  const [pendingLogin, setPendingLogin] = useState(false);
 
   const { login, complete2FA } = useAuth();
   const navigate = useNavigate();
+
+  // Prevent navigation away from login when in 2FA mode
+  useEffect(() => {
+    if (showSetup2FA || showVerify2FA) {
+      console.log('In 2FA mode, preventing navigation');
+      // Store in sessionStorage to persist across potential redirects
+      sessionStorage.setItem('inTwoFactorFlow', 'true');
+    } else {
+      sessionStorage.removeItem('inTwoFactorFlow');
+    }
+  }, [showSetup2FA, showVerify2FA]);
+
+  // Check for 2FA flow on component mount
+  useEffect(() => {
+    const inTwoFactorFlow = sessionStorage.getItem('inTwoFactorFlow');
+    const hasToken = localStorage.getItem('token');
+    
+    if (inTwoFactorFlow && hasToken) {
+      console.log('Detected 2FA flow in progress, checking status...');
+      // Re-check 2FA status
+      apiService.get2FAStatus().then(status => {
+        console.log('Restored 2FA status:', status);
+        setTwoFactorStatus(status);
+        if (!status.enabled && status.required) {
+          setShowSetup2FA(true);
+        } else if (status.enabled) {
+          setShowVerify2FA(true);
+        }
+      }).catch(error => {
+        console.error('Error checking 2FA status on mount:', error);
+        sessionStorage.removeItem('inTwoFactorFlow');
+      });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +71,8 @@ const Login: React.FC = () => {
       
       if (result.requires2FA) {
         console.log('2FA required, checking user status...');
+        setPendingLogin(true); // Flag that we're in 2FA flow
+        
         // Check if user needs to set up 2FA or just verify
         try {
           const status = await apiService.get2FAStatus();
@@ -45,6 +82,8 @@ const Login: React.FC = () => {
           if (!status.enabled && status.required) {
             console.log('User needs 2FA setup - setting showSetup2FA to true');
             setShowSetup2FA(true);
+            console.log('showSetup2FA state after setting:', true);
+            console.log('Current showSetup2FA state:', showSetup2FA);
           } else if (status.enabled) {
             console.log('User has 2FA enabled - setting showVerify2FA to true');
             setShowVerify2FA(true);
@@ -88,9 +127,13 @@ const Login: React.FC = () => {
     setShowSetup2FA(false);
     setShowVerify2FA(false);
     setTwoFactorStatus(null);
+    setPendingLogin(false);
+    sessionStorage.removeItem('inTwoFactorFlow');
     // Clear any stored token
     apiService.clearToken();
   };
+
+  console.log('Login component render - showSetup2FA:', showSetup2FA, 'showVerify2FA:', showVerify2FA);
 
   // Show 2FA setup if required
   if (showSetup2FA) {
