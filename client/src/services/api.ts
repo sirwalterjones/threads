@@ -518,6 +518,88 @@ class ApiService {
     const response = await axios.post(`${API_BASE_URL}/2fa/admin/toggle-requirement/${userId}`, { required });
     return response.data;
   }
+
+  // Intelligence Reports Methods
+  async getIntelReports(params?: {
+    status?: string;
+    classification?: string;
+    expiration?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    reports: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const response = await axios.get(`${API_BASE_URL}/intel-reports`, {
+      headers: this.getAuthHeaders(),
+      params
+    });
+    return response.data;
+  }
+
+  async getIntelReport(id: string): Promise<any> {
+    const response = await axios.get(`${API_BASE_URL}/intel-reports/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async createIntelReport(reportData: FormData): Promise<{ message: string; report: any }> {
+    const response = await axios.post(`${API_BASE_URL}/intel-reports`, reportData, {
+      headers: {
+        ...this.getAuthHeaders(),
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  }
+
+  async updateIntelReportStatus(
+    id: string, 
+    status: 'approved' | 'rejected', 
+    reviewComments?: string
+  ): Promise<{ message: string; report: any }> {
+    const response = await axios.patch(
+      `${API_BASE_URL}/intel-reports/${id}/status`,
+      { status, review_comments: reviewComments },
+      { headers: this.getAuthHeaders() }
+    );
+    return response.data;
+  }
+
+  async extendIntelReportExpiration(id: string, days: number = 30): Promise<{ message: string; report: any }> {
+    const response = await axios.patch(
+      `${API_BASE_URL}/intel-reports/${id}/extend`,
+      { days },
+      { headers: this.getAuthHeaders() }
+    );
+    return response.data;
+  }
+
+  async deleteIntelReport(id: string): Promise<{ message: string }> {
+    const response = await axios.delete(`${API_BASE_URL}/intel-reports/${id}`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
+
+  async getIntelReportsStats(): Promise<{
+    total_reports: number;
+    pending_reports: number;
+    approved_reports: number;
+    rejected_reports: number;
+    expired_reports: number;
+    expiring_soon_reports: number;
+  }> {
+    const response = await axios.get(`${API_BASE_URL}/intel-reports/stats/overview`, {
+      headers: this.getAuthHeaders()
+    });
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();

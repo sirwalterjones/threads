@@ -24,6 +24,7 @@ const notificationsRoutes = require('./routes/notifications');
 const hotlistRoutes = require('./routes/hotlist');
 const healthRoutes = require('./routes/health');
 const twoFactorRoutes = require('./routes/two-factor');
+const intelReportsRoutes = require('./routes/intel-reports');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -220,6 +221,7 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/hotlist', hotlistRoutes);
 app.use('/api/2fa', twoFactorRoutes);
+app.use('/api/intel-reports', intelReportsRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
