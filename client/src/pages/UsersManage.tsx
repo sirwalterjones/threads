@@ -457,7 +457,26 @@ const UsersManage: React.FC = () => {
             label="Role"
             select
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ 
+              mt: 2, 
+              '& .MuiInputLabel-root': { 
+                color: '#8B98A5',
+                '&.Mui-focused': { color: '#1D9BF0' }
+              }, 
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#2F3336',
+                  '&:hover': { borderColor: '#4A4A4A' }
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              }, 
+              '& .MuiFormHelperText-root': { color: '#8B98A5' }, 
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' } 
+            }}
             value={editUser.role}
             onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}
           >
