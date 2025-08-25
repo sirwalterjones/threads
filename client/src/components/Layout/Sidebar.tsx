@@ -89,13 +89,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const contentPages = [
             { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
-    { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] }
+    { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
+    { text: 'Intel Reports', icon: <IntelIcon />, path: '/intel-reports', roles: ['edit', 'admin'] }
   ];
 
   const systemAdminPages = [
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
-    { text: 'Intel Reports', icon: <IntelIcon />, path: '/intel-reports', roles: ['admin'] },
+    { text: 'Intel Approval', icon: <IntelIcon />, path: '/intel-reports/approval', roles: ['admin'] },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }
   ];
