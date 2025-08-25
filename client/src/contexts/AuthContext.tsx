@@ -53,7 +53,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         apiService.setToken(response.token);
         setToken(response.token);
         localStorage.setItem('token', response.token);
-        // Don't set isLoading to false here - keep it true during 2FA flow
         return { requires2FA: true };
       }
       
@@ -69,11 +68,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { user: response.user, token: response.token };
     } catch (error) {
       console.error('Login failed:', error);
-      setIsLoading(false);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
-    // Only set isLoading to false for normal login, not 2FA
-    setIsLoading(false);
   };
 
   const logout = async () => {
@@ -99,10 +97,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (currentToken) {
         localStorage.setItem('token', currentToken);
       }
-      setIsLoading(false); // Complete the loading state when 2FA is done
     } catch (error) {
       console.error('Failed to complete 2FA login:', error);
-      setIsLoading(false);
       throw error;
     }
   };

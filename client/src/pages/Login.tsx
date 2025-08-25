@@ -36,20 +36,22 @@ const Login: React.FC = () => {
       
       if (result.requires2FA) {
         console.log('2FA required, checking status...');
-        // Check if user needs to set up 2FA or just verify
-        const status = await apiService.get2FAStatus();
-        console.log('2FA status:', status);
-        setTwoFactorStatus(status);
-        
-        if (!status.enabled && status.required) {
-          console.log('Setting showSetup2FA to true');
-          setShowSetup2FA(true);
-          console.log('showSetup2FA state should now be true');
-        } else if (status.enabled) {
-          console.log('Setting showVerify2FA to true');
-          setShowVerify2FA(true);
-          console.log('showVerify2FA state should now be true');
-        }
+        // Use setTimeout to ensure state update happens after AuthContext is done
+        setTimeout(async () => {
+          const status = await apiService.get2FAStatus();
+          console.log('2FA status:', status);
+          setTwoFactorStatus(status);
+          
+          if (!status.enabled && status.required) {
+            console.log('Setting showSetup2FA to true');
+            setShowSetup2FA(true);
+            console.log('showSetup2FA state should now be true');
+          } else if (status.enabled) {
+            console.log('Setting showVerify2FA to true');
+            setShowVerify2FA(true);
+            console.log('showVerify2FA state should now be true');
+          }
+        }, 0);
       } else {
         console.log('No 2FA required, navigating to home');
         navigate('/');
