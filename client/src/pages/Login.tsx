@@ -193,6 +193,17 @@ const Login: React.FC = () => {
     apiService.clearToken();
   };
 
+  // Clear stale 2FA state on fresh page load if user is not actually in 2FA flow
+  useEffect(() => {
+    const hasToken = localStorage.getItem('token');
+    if (!hasToken) {
+      console.log('No token found, clearing any stale 2FA state');
+      sessionStorage.removeItem('inTwoFactorFlow');
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
+    }
+  }, []);
+
   console.log('Login component render - showSetup2FA:', showSetup2FA, 'showVerify2FA:', showVerify2FA);
 
   // Show 2FA setup if required

@@ -16,7 +16,7 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import { QrCode, Smartphone, Security, CheckCircle } from '@mui/icons-material';
+import { QrCode, Smartphone, Security, CheckCircle, Shield, Download } from '@mui/icons-material';
 import apiService from '../../services/api';
 
 interface TwoFactorSetupProps {
@@ -79,6 +79,19 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
   const handleComplete = () => {
     setBackupCodesDialogOpen(false);
     onComplete();
+  };
+
+  const downloadBackupCodesCSV = () => {
+    const csvContent = "Backup Code\n" + backupCodes.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'vector-2fa-backup-codes.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const renderStep = () => {
@@ -182,7 +195,7 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
       case 2:
         return (
           <Box textAlign="center">
-            <Security sx={{ fontSize: 80, color: '#ffffff', mb: 3 }} />
+            <Shield sx={{ fontSize: 80, color: '#ffffff', mb: 3 }} />
             <Typography variant="h5" gutterBottom sx={{ color: '#ffffff', fontWeight: 600 }}>
               Verify Setup
             </Typography>
@@ -306,7 +319,7 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
                 }
               }}
             >
-              Continue to App
+              Continue to Vector
             </Button>
           </Box>
         );
@@ -466,7 +479,19 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
             ))}
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ justifyContent: 'space-between' }}>
+          <Button
+            onClick={downloadBackupCodesCSV}
+            startIcon={<Download />}
+            sx={{
+              color: '#1D9BF0',
+              '&:hover': {
+                backgroundColor: 'rgba(29, 155, 240, 0.1)'
+              }
+            }}
+          >
+            Download CSV
+          </Button>
           <Button
             onClick={() => setBackupCodesDialogOpen(false)}
             sx={{

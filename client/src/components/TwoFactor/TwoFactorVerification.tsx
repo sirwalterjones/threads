@@ -9,7 +9,7 @@ import {
   CircularProgress,
   Link
 } from '@mui/material';
-import { Security, Phone, Backup } from '@mui/icons-material';
+import { Security, Shield, Backup } from '@mui/icons-material';
 import apiService from '../../services/api';
 
 interface TwoFactorVerificationProps {
@@ -100,7 +100,7 @@ const TwoFactorVerification: React.FC<TwoFactorVerificationProps> = ({ onSuccess
           </>
         ) : (
           <>
-            <Phone sx={{ fontSize: 60, color: '#ffffff', mb: 3 }} />
+            <Shield sx={{ fontSize: 60, color: '#ffffff', mb: 3 }} />
             <Typography variant="h6" sx={{ color: '#ffffff', mb: 3 }}>
               Enter Authenticator Code
             </Typography>
