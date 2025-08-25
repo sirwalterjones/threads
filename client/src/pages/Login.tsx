@@ -35,8 +35,35 @@ const Login: React.FC = () => {
     if (!hasToken) {
       sessionStorage.removeItem('showSetup2FA');
       sessionStorage.removeItem('showVerify2FA');
+      setShowSetup2FA(false);
+      setShowVerify2FA(false);
     }
   }, []);
+
+  // Sync state with sessionStorage changes
+  useEffect(() => {
+    const checkSessionStorage = () => {
+      const setup = sessionStorage.getItem('showSetup2FA') === 'true';
+      const verify = sessionStorage.getItem('showVerify2FA') === 'true';
+      console.log('Syncing with sessionStorage - setup:', setup, 'verify:', verify);
+      if (setup !== showSetup2FA) {
+        console.log('Updating showSetup2FA to:', setup);
+        setShowSetup2FA(setup);
+      }
+      if (verify !== showVerify2FA) {
+        console.log('Updating showVerify2FA to:', verify);
+        setShowVerify2FA(verify);
+      }
+    };
+
+    // Check immediately
+    checkSessionStorage();
+    
+    // Set up interval to check periodically (in case of async timing issues)
+    const interval = setInterval(checkSessionStorage, 100);
+    
+    return () => clearInterval(interval);
+  }, [showSetup2FA, showVerify2FA]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
