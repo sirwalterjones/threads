@@ -75,6 +75,7 @@ const Login: React.FC = () => {
   };
 
   const handleCancel2FA = () => {
+    console.log('handleCancel2FA called - resetting 2FA state');
     setShowSetup2FA(false);
     setShowVerify2FA(false);
     setTwoFactorStatus(null);
