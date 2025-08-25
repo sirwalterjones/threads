@@ -19,8 +19,39 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showSetup2FA, setShowSetup2FA] = useState(false);
-  const [showVerify2FA, setShowVerify2FA] = useState(false);
+  // Initialize state from sessionStorage to persist across re-renders
+  const [showSetup2FA, setShowSetup2FA] = useState(() => {
+    const saved = sessionStorage.getItem('showSetup2FA');
+    console.log('Initialize showSetup2FA from sessionStorage:', saved);
+    return saved === 'true';
+  });
+  const [showVerify2FA, setShowVerify2FA] = useState(() => {
+    const saved = sessionStorage.getItem('showVerify2FA');
+    console.log('Initialize showVerify2FA from sessionStorage:', saved);
+    return saved === 'true';
+  });
+
+  // Custom setters that persist to sessionStorage
+  const setShowSetup2FAWithPersist = (value: boolean) => {
+    console.log('Setting showSetup2FA to:', value);
+    setShowSetup2FA(value);
+    sessionStorage.setItem('showSetup2FA', value.toString());
+  };
+
+  const setShowVerify2FAWithPersist = (value: boolean) => {
+    console.log('Setting showVerify2FA to:', value);
+    setShowVerify2FA(value);
+    sessionStorage.setItem('showVerify2FA', value.toString());
+  };
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('showSetup2FA changed to:', showSetup2FA);
+  }, [showSetup2FA]);
+
+  useEffect(() => {
+    console.log('showVerify2FA changed to:', showVerify2FA);
+  }, [showVerify2FA]);
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
   const [pendingLogin, setPendingLogin] = useState(false);
 
@@ -40,8 +71,11 @@ const Login: React.FC = () => {
 
   // Check for 2FA flow on component mount
   useEffect(() => {
+    console.log('useEffect mount - checking for existing 2FA flow');
     const inTwoFactorFlow = sessionStorage.getItem('inTwoFactorFlow');
     const hasToken = localStorage.getItem('token');
+    
+    console.log('Mount check - inTwoFactorFlow:', inTwoFactorFlow, 'hasToken:', !!hasToken);
     
     if (inTwoFactorFlow && hasToken) {
       console.log('Detected 2FA flow in progress, checking status...');
@@ -50,14 +84,18 @@ const Login: React.FC = () => {
         console.log('Restored 2FA status:', status);
         setTwoFactorStatus(status);
         if (!status.enabled && status.required) {
-          setShowSetup2FA(true);
+          console.log('Restoring 2FA setup state');
+          setShowSetup2FAWithPersist(true);
         } else if (status.enabled) {
-          setShowVerify2FA(true);
+          console.log('Restoring 2FA verification state');
+          setShowVerify2FAWithPersist(true);
         }
       }).catch(error => {
         console.error('Error checking 2FA status on mount:', error);
         sessionStorage.removeItem('inTwoFactorFlow');
       });
+    } else {
+      console.log('No existing 2FA flow detected on mount');
     }
   }, []);
 
@@ -81,16 +119,16 @@ const Login: React.FC = () => {
           
           if (!status.enabled && status.required) {
             console.log('User needs 2FA setup - setting showSetup2FA to true');
-            setShowSetup2FA(true);
+            setShowSetup2FAWithPersist(true);
             console.log('showSetup2FA state after setting:', true);
             console.log('Current showSetup2FA state:', showSetup2FA);
           } else if (status.enabled) {
             console.log('User has 2FA enabled - setting showVerify2FA to true');
-            setShowVerify2FA(true);
+            setShowVerify2FAWithPersist(true);
           }
         } catch (error) {
           console.error('Failed to get 2FA status:', error);
-          setShowSetup2FA(true); // Default to setup if status check fails
+          setShowSetup2FAWithPersist(true); // Default to setup if status check fails
         }
       } else {
         navigate('/');
@@ -105,30 +143,42 @@ const Login: React.FC = () => {
   const handle2FASetupComplete = async () => {
     try {
       await complete2FA();
+      // Clear 2FA state
+      setShowSetup2FAWithPersist(false);
+      sessionStorage.removeItem('inTwoFactorFlow');
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       navigate('/');
     } catch (error) {
       setError('Failed to complete setup. Please try logging in again.');
-      setShowSetup2FA(false);
+      setShowSetup2FAWithPersist(false);
     }
   };
 
   const handle2FAVerificationSuccess = async () => {
     try {
       await complete2FA();
+      // Clear 2FA state
+      setShowVerify2FAWithPersist(false);
+      sessionStorage.removeItem('inTwoFactorFlow');
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       navigate('/');
     } catch (error) {
       setError('Failed to complete verification. Please try logging in again.');
-      setShowVerify2FA(false);
+      setShowVerify2FAWithPersist(false);
     }
   };
 
   const handleCancel2FA = () => {
     console.log('handleCancel2FA called - resetting 2FA state');
-    setShowSetup2FA(false);
-    setShowVerify2FA(false);
+    setShowSetup2FAWithPersist(false);
+    setShowVerify2FAWithPersist(false);
     setTwoFactorStatus(null);
     setPendingLogin(false);
     sessionStorage.removeItem('inTwoFactorFlow');
+    sessionStorage.removeItem('showSetup2FA');
+    sessionStorage.removeItem('showVerify2FA');
     // Clear any stored token
     apiService.clearToken();
   };
