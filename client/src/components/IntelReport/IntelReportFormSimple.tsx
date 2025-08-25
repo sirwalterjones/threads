@@ -129,8 +129,8 @@ const IntelReportFormSimple: React.FC = () => {
 
   if (success) {
     return (
-      <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: 3, backgroundColor: 'background.default', minHeight: '100vh' }}>
+        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
           <Typography variant="h4" color="primary" gutterBottom>
             Report Submitted Successfully
           </Typography>
@@ -187,8 +187,14 @@ const IntelReportFormSimple: React.FC = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
-      <Paper sx={{ p: { xs: 2, md: 4 } }}>
+    <Box sx={{ 
+      maxWidth: 1200, 
+      mx: 'auto', 
+      p: { xs: 2, md: 3 },
+      backgroundColor: 'background.default',
+      minHeight: '100vh'
+    }}>
+      <Paper sx={{ p: { xs: 2, md: 4 }, backgroundColor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <SecurityIcon sx={{ fontSize: 40, color: 'primary.main' }} />
           <Typography variant="h4" component="h1">
@@ -592,7 +598,7 @@ const IntelReportFormSimple: React.FC = () => {
           </Box>
         )}
 
-        <Paper sx={{ p: 2, backgroundColor: '#f5f5f5', mb: 3 }}>
+        <Paper sx={{ p: 2, backgroundColor: 'action.hover', mb: 3 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ flex: '1 1 200px' }}>
               <Typography variant="body2" color="textSecondary">Intel #:</Typography>

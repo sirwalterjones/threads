@@ -49,6 +49,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useNavigate } from 'react-router-dom';
 
 interface IntelReport {
   id: string;
@@ -76,6 +77,7 @@ interface IntelReport {
 const IntelReportsSimple: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   
   const [reports, setReports] = useState<IntelReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,7 +182,13 @@ const IntelReportsSimple: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: 'auto', p: { xs: 2, md: 3 } }}>
+    <Box sx={{ 
+      maxWidth: 1400, 
+      mx: 'auto', 
+      p: { xs: 2, md: 3 },
+      backgroundColor: 'background.default',
+      minHeight: '100vh'
+    }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -240,7 +248,7 @@ const IntelReportsSimple: React.FC = () => {
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 2, mb: 3, backgroundColor: 'background.paper' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
           <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
             <TextField
@@ -281,7 +289,7 @@ const IntelReportsSimple: React.FC = () => {
           <Typography textAlign="center">Loading reports...</Typography>
         </Box>
       ) : filteredReports.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
           <SecurityIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             No reports found
@@ -289,7 +297,11 @@ const IntelReportsSimple: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Try adjusting your filters or create a new report
           </Typography>
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button 
+            variant="contained" 
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/intel-reports/new')}
+          >
             Create New Report
           </Button>
         </Paper>
@@ -342,7 +354,7 @@ const IntelReportsSimple: React.FC = () => {
           ))}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ backgroundColor: 'background.paper' }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -411,6 +423,7 @@ const IntelReportsSimple: React.FC = () => {
       <Fab
         color="primary"
         aria-label="add"
+        onClick={() => navigate('/intel-reports/new')}
         sx={{
           position: 'fixed',
           bottom: 16,

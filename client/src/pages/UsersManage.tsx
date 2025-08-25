@@ -375,7 +375,26 @@ const UsersManage: React.FC = () => {
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } } }}
+            sx={{ 
+              mt: 1, 
+              '& .MuiInputLabel-root': { 
+                color: '#8B98A5',
+                '&.Mui-focused': { color: '#1D9BF0' }
+              }, 
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#2F3336',
+                  '&:hover': { borderColor: '#4A4A4A' }
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              }, 
+              '& .MuiFormHelperText-root': { color: '#8B98A5' }, 
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' } 
+            }}
             value={editUser.username}
             onChange={(e) => setEditUser((s) => ({ ...s, username: e.target.value }))}
           />
@@ -383,7 +402,26 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ 
+              mt: 2, 
+              '& .MuiInputLabel-root': { 
+                color: '#8B98A5',
+                '&.Mui-focused': { color: '#1D9BF0' }
+              }, 
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#2F3336',
+                  '&:hover': { borderColor: '#4A4A4A' }
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              }, 
+              '& .MuiFormHelperText-root': { color: '#8B98A5' }, 
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' } 
+            }}
             value={editUser.email}
             onChange={(e) => setEditUser((s) => ({ ...s, email: e.target.value }))}
           />
@@ -391,7 +429,26 @@ const UsersManage: React.FC = () => {
             type="password"
             label="New Password (leave blank to keep current)"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ 
+              mt: 2, 
+              '& .MuiInputLabel-root': { 
+                color: '#8B98A5',
+                '&.Mui-focused': { color: '#1D9BF0' }
+              }, 
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#2F3336',
+                  '&:hover': { borderColor: '#4A4A4A' }
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              }, 
+              '& .MuiFormHelperText-root': { color: '#8B98A5' }, 
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' } 
+            }}
             value={editUser.password}
             onChange={(e) => setEditUser((s) => ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters if changing password"

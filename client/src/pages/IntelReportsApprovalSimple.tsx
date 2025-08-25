@@ -171,7 +171,13 @@ const IntelReportsApprovalSimple: React.FC = () => {
   );
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: 'auto', p: { xs: 2, md: 3 } }}>
+    <Box sx={{ 
+      maxWidth: 1400, 
+      mx: 'auto', 
+      p: { xs: 2, md: 3 },
+      backgroundColor: 'background.default',
+      minHeight: '100vh'
+    }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Badge badgeContent={pendingCount} color="warning">
@@ -188,7 +194,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 2, mb: 3, backgroundColor: 'background.paper' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
           <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
             <FormControl fullWidth size="small">
@@ -219,7 +225,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
           <Typography>Loading reports...</Typography>
         </Box>
       ) : filteredReports.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
           <Typography variant="h6" color="text.secondary">
             No reports found
           </Typography>
