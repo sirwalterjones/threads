@@ -444,8 +444,20 @@ const HomeSimple: React.FC = () => {
                 fontWeight: 300,
                 fontSize: { xs: '2.5rem', md: '3.5rem' }
               }}>
-                Search Vector
+                {location.pathname === '/my-threads' ? 'My Threads' : 'Search Vector'}
               </Typography>
+              
+              {location.pathname === '/my-threads' && (
+                <Typography variant="h6" sx={{ 
+                  color: '#71767B', 
+                  textAlign: 'center', 
+                  mb: 4,
+                  fontWeight: 400,
+                  fontSize: { xs: '1rem', md: '1.25rem' }
+                }}>
+                  Create and manage your own intelligence threads
+                </Typography>
+              )}
               
               <Box sx={{ 
                 position: 'relative',
@@ -459,7 +471,7 @@ const HomeSimple: React.FC = () => {
                 <TextField
                   fullWidth
                   variant="outlined"
-                  placeholder="Search your threads..."
+                  placeholder={location.pathname === '/my-threads' ? "Search your threads..." : "Search your threads..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -550,6 +562,33 @@ const HomeSimple: React.FC = () => {
                     {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
                     Search
                   </Button>
+                  
+                  {location.pathname === '/my-threads' && (
+                    <Button 
+                      variant="contained" 
+                      onClick={() => {
+                        const evt = new CustomEvent('open-new-post-modal', { detail: {} });
+                        window.dispatchEvent(evt);
+                      }}
+                      size="small"
+                      sx={{ 
+                        borderRadius: '8px',
+                        backgroundColor: '#1D9BF0',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        px: 3,
+                        py: 1,
+                        textTransform: 'none',
+                        '&:hover': {
+                          backgroundColor: '#1a8cd8'
+                        },
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Create New Thread
+                    </Button>
+                  )}
                   
                   <Button 
                     variant="outlined" 
@@ -1376,10 +1415,13 @@ const HomeSimple: React.FC = () => {
                          {posts.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <Typography variant="h6" color="textSecondary">
-                  No posts found
+                  {location.pathname === '/my-threads' ? 'No threads found' : 'No posts found'}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Try adjusting your search criteria
+                  {location.pathname === '/my-threads' 
+                    ? 'Create your first thread or try adjusting your search criteria' 
+                    : 'Try adjusting your search criteria'
+                  }
                 </Typography>
               </Box>
             ) : viewMode === 'grid' ? (
