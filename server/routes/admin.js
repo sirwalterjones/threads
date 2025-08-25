@@ -790,6 +790,48 @@ router.post('/reset-user-password', authenticateToken, authorizeRole(['admin']),
   }
 });
 
+// Temporarily disable 2FA for a user
+router.post('/disable-2fa-temp', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    // Check if user exists
+    const userResult = await pool.query(
+      'SELECT id, username FROM users WHERE username = $1',
+      [username]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Temporarily disable 2FA requirement
+    await pool.query(
+      'UPDATE users SET force_2fa_setup = false, totp_enabled = false WHERE username = $1',
+      [username]
+    );
+    
+    console.log(`✅ Temporarily disabled 2FA for user: ${username}`);
+    
+    res.json({ 
+      message: '2FA temporarily disabled',
+      username: username,
+      note: 'User can now login without 2FA setup. Re-enable when 2FA flow is fixed.'
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to disable 2FA:', error);
+    res.status(500).json({ 
+      error: 'Failed to disable 2FA', 
+      details: error.message 
+    });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 
