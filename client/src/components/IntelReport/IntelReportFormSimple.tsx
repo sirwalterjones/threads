@@ -26,8 +26,21 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // Generate auto-incrementing Intel number
+  const generateIntelNumber = () => {
+    const currentYear = new Date().getFullYear();
+    const currentDate = new Date();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const daysSinceStart = Math.floor((currentDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Format: YYYYDDDNNN (Year + Day of Year + Sequential Number)
+    // For now, we'll use a simple approach with timestamp to ensure uniqueness
+    const timestamp = Date.now().toString().slice(-4);
+    return `${currentYear}${timestamp}`;
+  };
+
   const [formData, setFormData] = useState({
-    intelNumber: '',
+    intelNumber: generateIntelNumber(),
     classification: '',
     date: new Date().toISOString().split('T')[0],
     agentName: '',
@@ -109,48 +122,56 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Always set success first
+      setSuccess(true);
+      
+      // Wait a moment to show success message
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       if (isModal && onClose) {
-        // Close modal and let parent handle success notification
+        // Close modal after showing success
         onClose();
-        // Reset form for next use
-        setFormData({
-          intelNumber: '',
-          classification: '',
-          date: new Date().toISOString().split('T')[0],
-          agentName: '',
-          caseNumber: '',
-          subject: '',
-          criminalActivity: '',
-          summary: '',
-          // Subject Information
-          subjectFirstName: '',
-          subjectMiddleName: '',
-          subjectLastName: '',
-          subjectAddress: '',
-          subjectDateOfBirth: '',
-          subjectRace: '',
-          subjectSex: '',
-          subjectPhone: '',
-          subjectSSN: '',
-          subjectLicense: '',
-          // Organization/Business
-          businessName: '',
-          businessPhone: '',
-          businessAddress: '',
-          // Source Information
-          sourceId: '',
-          sourceRating: '',
-          sourceType: '',
-          sourceReliability: '',
-          sourceFirstName: '',
-          sourceMiddleName: '',
-          sourceLastName: '',
-          sourcePhone: '',
-          sourceAddress: ''
-        });
-      } else {
-        setSuccess(true);
       }
+      
+      // Reset form for next use
+      setFormData({
+        intelNumber: generateIntelNumber(),
+        classification: '',
+        date: new Date().toISOString().split('T')[0],
+        agentName: '',
+        caseNumber: '',
+        subject: '',
+        criminalActivity: '',
+        summary: '',
+        // Subject Information
+        subjectFirstName: '',
+        subjectMiddleName: '',
+        subjectLastName: '',
+        subjectAddress: '',
+        subjectDateOfBirth: '',
+        subjectRace: '',
+        subjectSex: '',
+        subjectPhone: '',
+        subjectSSN: '',
+        subjectLicense: '',
+        // Organization/Business
+        businessName: '',
+        businessPhone: '',
+        businessAddress: '',
+        // Source Information
+        sourceId: '',
+        sourceRating: '',
+        sourceType: '',
+        sourceReliability: '',
+        sourceFirstName: '',
+        sourceMiddleName: '',
+        sourceLastName: '',
+        sourcePhone: '',
+        sourceAddress: ''
+      });
+      
+      // Reset success state
+      setSuccess(false);
     } catch (error: any) {
       setError(error.message || 'Failed to submit intelligence report');
     } finally {
@@ -175,12 +196,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
   if (success) {
     return (
-      <Box sx={{ maxWidth: 800, mx: 'auto', p: 3, backgroundColor: 'background.default', minHeight: '100vh' }}>
-        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
-          <Typography variant="h4" color="primary" gutterBottom>
-            Report Submitted Successfully
+      <Box sx={{ 
+        maxWidth: 800, 
+        mx: 'auto', 
+        p: 3, 
+        backgroundColor: isModal ? 'transparent' : '#000000', 
+        minHeight: isModal ? 'auto' : '100vh',
+        color: '#E7E9EA'
+      }}>
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: 'center', 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336'
+        }}>
+          <Typography variant="h4" sx={{ color: '#4caf50', mb: 2 }} gutterBottom>
+            ✓ Report Submitted Successfully
           </Typography>
-          <Typography variant="body1" sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ mb: 3, color: '#E7E9EA' }}>
             Your intelligence report has been submitted and is now under review.
           </Typography>
           <Button 
@@ -189,7 +222,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               setSuccess(false);
               // Reset form data
               setFormData({
-                intelNumber: '',
+                intelNumber: generateIntelNumber(),
                 classification: '',
                 date: new Date().toISOString().split('T')[0],
                 agentName: '',
@@ -224,6 +257,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                 sourceAddress: ''
               });
             }}
+            sx={{ 
+              backgroundColor: '#1D9BF0',
+              color: '#ffffff',
+              '&:hover': { backgroundColor: '#1a8cd8' }
+            }}
           >
             Create New Report
           </Button>
@@ -237,13 +275,39 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       maxWidth: isModal ? '100%' : 1200, 
       mx: 'auto', 
       p: { xs: 2, md: 3 },
-      backgroundColor: isModal ? 'transparent' : 'background.default',
-      minHeight: isModal ? 'auto' : '100vh'
+      backgroundColor: isModal ? 'transparent' : '#000000',
+      minHeight: isModal ? 'auto' : '100vh',
+      color: '#E7E9EA'
     }}>
-      <Paper sx={{ p: { xs: 2, md: 4 }, backgroundColor: 'background.paper' }}>
+      <Paper sx={{ 
+        p: { xs: 2, md: 4 }, 
+        backgroundColor: '#1f1f1f',
+        border: '1px solid #2F3336',
+        '& .MuiInputLabel-root': { 
+          color: '#8B98A5',
+          '&.Mui-focused': { color: '#1D9BF0' }
+        }, 
+        '& .MuiOutlinedInput-root': { 
+          color: '#E7E9EA',
+          backgroundColor: '#1A1A1A',
+          '& .MuiOutlinedInput-notchedOutline': { 
+            borderColor: '#2F3336',
+            '&:hover': { borderColor: '#4A4A4A' }
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#1D9BF0'
+          }
+        },
+        '& .MuiSvgIcon-root': { color: '#E7E9EA' },
+        '& .MuiMenuItem-root': { 
+          color: '#E7E9EA', 
+          backgroundColor: '#1A1A1A',
+          '&:hover': { backgroundColor: '#2F3336' }
+        }
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-          <SecurityIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1">
+          <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
+          <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
             Intelligence Report
           </Typography>
         </Box>
@@ -262,11 +326,18 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             <TextField
               fullWidth
               label="Intel #"
-              type="number"
+              type="text"
               value={formData.intelNumber}
-              onChange={(e) => handleInputChange('intelNumber', e.target.value)}
-              required
+              InputProps={{
+                readOnly: true,
+                sx: { 
+                  backgroundColor: '#2F3336',
+                  color: '#E7E9EA',
+                  '& .MuiInputBase-input': { color: '#E7E9EA' }
+                }
+              }}
               sx={{ mb: 2 }}
+              helperText="Auto-generated Intel number"
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -671,9 +742,16 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             variant="contained" 
             size="large"
             onClick={handleSubmit}
-            disabled={loading || !formData.intelNumber || !formData.classification || !formData.agentName || !formData.subject}
+            disabled={loading || !formData.classification || !formData.agentName || !formData.subject}
             startIcon={loading ? <CircularProgress size={16} /> : null}
-            sx={{ px: 6, py: 2 }}
+            sx={{ 
+              px: 6, 
+              py: 2,
+              backgroundColor: '#1D9BF0',
+              color: '#ffffff',
+              '&:hover': { backgroundColor: '#1a8cd8' },
+              '&:disabled': { backgroundColor: '#2F3336', color: '#71767B' }
+            }}
           >
             {loading ? 'Submitting...' : 'Submit Report'}
           </Button>

@@ -185,30 +185,31 @@ const IntelReportsSimple: React.FC = () => {
       maxWidth: 1400, 
       mx: 'auto', 
       p: { xs: 2, md: 3 },
-      backgroundColor: 'background.default',
-      minHeight: '100vh'
+      backgroundColor: '#000000',
+      minHeight: '100vh',
+      color: '#E7E9EA'
     }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Badge badgeContent={pendingCount} color="warning">
-            <SecurityIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+            <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
           </Badge>
           <Box>
-            <Typography variant="h4" component="h1">
+            <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
               Intelligence Reports
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: '#71767B' }}>
               Manage and review intelligence reports
             </Typography>
           </Box>
         </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="primary" title="Refresh">
+          <IconButton sx={{ color: '#1D9BF0' }} title="Refresh">
             <RefreshIcon />
           </IconButton>
-          <IconButton color="primary" title="Export Reports">
+          <IconButton sx={{ color: '#1D9BF0' }} title="Export Reports">
             <ExportIcon />
           </IconButton>
         </Box>
@@ -426,9 +427,12 @@ const IntelReportsSimple: React.FC = () => {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: 'background.paper',
+            backgroundColor: '#1f1f1f',
+            border: '1px solid #2F3336',
             maxHeight: '90vh',
-            overflow: 'auto'
+            overflow: 'auto',
+            '& .MuiDialogTitle-root': { color: '#E7E9EA' },
+            '& .MuiDialogContent-root': { color: '#E7E9EA' }
           }
         }}
       >
