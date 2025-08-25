@@ -744,6 +744,52 @@ router.post('/migrate-2fa', authenticateToken, authorizeRole(['admin']), async (
   }
 });
 
+// Reset user password endpoint
+router.post('/reset-user-password', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { username, newPassword } = req.body;
+    
+    if (!username || !newPassword) {
+      return res.status(400).json({ error: 'Username and new password are required' });
+    }
+    
+    // Check if user exists
+    const userResult = await pool.query(
+      'SELECT id, username FROM users WHERE username = $1',
+      [username]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Hash the new password
+    const bcrypt = require('bcryptjs');
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update the password
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE username = $2',
+      [passwordHash, username]
+    );
+    
+    console.log(`✅ Password reset for user: ${username}`);
+    
+    res.json({ 
+      message: 'Password reset successfully',
+      username: username
+    });
+    
+  } catch (error) {
+    console.error('❌ Password reset failed:', error);
+    res.status(500).json({ 
+      error: 'Password reset failed', 
+      details: error.message 
+    });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 
