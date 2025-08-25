@@ -43,10 +43,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<{ requires2FA?: boolean; user?: User; token?: string }> => {
     setIsLoading(true);
     try {
       const response = await apiService.login(username, password);
+      
+      // If 2FA is required, don't set user/token yet
+      if (response.requires2FA) {
+        // Store token temporarily for 2FA verification
+        apiService.setToken(response.token);
+        return { requires2FA: true };
+      }
+      
+      // Normal login flow
       setUser(response.user);
       setToken(response.token);
       apiService.setToken(response.token);
@@ -54,6 +63,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Track successful login
       await auditService.trackLogin(username);
+      
+      return { user: response.user, token: response.token };
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -76,11 +87,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const complete2FA = async (): Promise<void> => {
+    try {
+      const profile = await apiService.getProfile();
+      setUser(profile);
+      const currentToken = apiService.getToken();
+      setToken(currentToken);
+      if (currentToken) {
+        localStorage.setItem('token', currentToken);
+      }
+    } catch (error) {
+      console.error('Failed to complete 2FA login:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     token,
     login,
     logout,
+    complete2FA,
     isLoading
   };
 

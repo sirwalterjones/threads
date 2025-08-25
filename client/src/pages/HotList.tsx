@@ -1117,12 +1117,7 @@ const HotList: React.FC = () => {
 
           
 
-          
 
-
-              
-              <Typography variant="caption" sx={{ color: '#9C27B0', display: 'block', mt: 1 }}>
-                
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} sx={{ color: '#71767B' }}>Cancel</Button>

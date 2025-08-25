@@ -136,7 +136,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
+      'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
       [username]
     );
 
@@ -155,7 +155,7 @@ router.post('/login', async (req, res) => {
 
           // Try login again
           const newResult = await pool.query(
-            'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
+            'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
             [username]
           );
 

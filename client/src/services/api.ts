@@ -473,6 +473,42 @@ class ApiService {
     const response = await axios.delete(`${API_BASE_URL}/hotlist/alerts`);
     return response.data;
   }
+
+  // Two-Factor Authentication
+  async setup2FA(): Promise<{ secret: string; qrCode: string; manualEntryKey: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/setup`);
+    return response.data;
+  }
+
+  async verify2FASetup(token: string): Promise<{ success: boolean; message: string; backupCodes: string[] }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/verify-setup`, { token });
+    return response.data;
+  }
+
+  async verify2FA(token: string, isBackupCode: boolean = false): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/verify`, { token, isBackupCode });
+    return response.data;
+  }
+
+  async get2FAStatus(): Promise<{ enabled: boolean; required: boolean; backupCodesRemaining: number }> {
+    const response = await axios.get(`${API_BASE_URL}/2fa/status`);
+    return response.data;
+  }
+
+  async disable2FA(currentPassword: string): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/disable`, { currentPassword });
+    return response.data;
+  }
+
+  async adminReset2FA(userId: string): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/admin/reset/${userId}`);
+    return response.data;
+  }
+
+  async adminToggle2FARequirement(userId: string, required: boolean): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/admin/toggle-requirement/${userId}`, { required });
+    return response.data;
+  }
 }
 
 const apiService = new ApiService();
