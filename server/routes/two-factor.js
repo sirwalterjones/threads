@@ -256,13 +256,21 @@ router.post('/admin/reset/:userId', authenticateToken, authorizeRole(['admin']),
   try {
     const targetUserId = req.params.userId;
     
+    // Allow super admins to reset their own 2FA, but not regular admins
     if (parseInt(targetUserId) === req.user.id) {
-      return res.status(400).json({ error: 'Cannot reset your own 2FA' });
+      const userResult = await pool.query(
+        'SELECT super_admin FROM users WHERE id = $1',
+        [req.user.id]
+      );
+      
+      if (userResult.rows.length === 0 || !userResult.rows[0].super_admin) {
+        return res.status(400).json({ error: 'Regular admins cannot reset their own 2FA. Only super admins can.' });
+      }
     }
     
     // Reset user's 2FA
     await pool.query(
-      'UPDATE users SET totp_enabled = false, totp_secret = null, totp_backup_codes = null, force_2fa_setup = true WHERE id = $1',
+      'UPDATE users SET totp_enabled = false, totp_secret = null, totp_backup_codes = null, force_2fa_setup = false WHERE id = $1',
       [targetUserId]
     );
     
@@ -274,7 +282,7 @@ router.post('/admin/reset/:userId', authenticateToken, authorizeRole(['admin']),
     console.error('Admin 2FA reset error:', error);
     res.status(500).json({ error: 'Failed to reset user 2FA' });
   }
-});
+ });
 
 // Admin: Toggle 2FA requirement (admin only)
 router.post('/admin/toggle-requirement/:userId', authenticateToken, authorizeRole(['admin']), async (req, res) => {

@@ -34,20 +34,8 @@ const Login: React.FC = () => {
       const result = await login(username, password);
       
       if (result.requires2FA) {
-        // Check if user needs to set up 2FA or just verify
-        try {
-          const status = await apiService.get2FAStatus();
-          setTwoFactorStatus(status);
-          
-          if (!status.enabled && status.required) {
-            setShowSetup2FA(true);
-          } else if (status.enabled) {
-            setShowVerify2FA(true);
-          }
-        } catch (error) {
-          console.error('Failed to get 2FA status:', error);
-          setShowSetup2FA(true); // Default to setup if status check fails
-        }
+        // User needs 2FA setup - go directly to setup without calling authenticated endpoints
+        setShowSetup2FA(true);
       } else {
         navigate('/');
       }

@@ -724,7 +724,7 @@ router.post('/migrate-2fa', authenticateToken, authorizeRole(['admin']), async (
       ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(255),
       ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS totp_backup_codes TEXT[],
-      ADD COLUMN IF NOT EXISTS force_2fa_setup BOOLEAN DEFAULT true;
+      ADD COLUMN IF NOT EXISTS force_2fa_setup BOOLEAN DEFAULT false;
     `);
     
     console.log('✅ Successfully added 2FA columns to users table');
