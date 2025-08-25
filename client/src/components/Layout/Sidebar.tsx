@@ -22,7 +22,8 @@ import {
   History as AuditIcon,
   AccessTime as ExpirationIcon,
   ExitToApp as LogoutIcon,
-  Whatshot as HotListIcon
+  Whatshot as HotListIcon,
+  Security as IntelIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -94,6 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const systemAdminPages = [
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
+    { text: 'Intel Reports', icon: <IntelIcon />, path: '/intel-reports', roles: ['admin'] },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }
   ];
