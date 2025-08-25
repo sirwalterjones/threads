@@ -80,6 +80,8 @@ const Login: React.FC = () => {
   // Show 2FA setup if required
   if (showSetup2FA) {
     console.log('Rendering TwoFactorSetup component');
+    console.log('showSetup2FA state:', showSetup2FA);
+    console.log('About to render 2FA setup UI...');
     
     // Simple fallback 2FA setup UI for debugging
     return (
@@ -146,7 +148,9 @@ const Login: React.FC = () => {
         </Container>
       </Box>
     );
-  }
+    }
+    
+    console.log('2FA setup component rendered successfully');
 
   // Show 2FA verification if enabled
   if (showVerify2FA) {
