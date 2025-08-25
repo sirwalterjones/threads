@@ -335,32 +335,47 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       minHeight: isModal ? 'auto' : '100vh',
       color: '#E7E9EA'
     }}>
-      <Paper sx={{ 
-        p: { xs: 2, md: 4 }, 
-        backgroundColor: '#1f1f1f',
-        border: '1px solid #2F3336',
-        '& .MuiInputLabel-root': { 
-          color: '#8B98A5',
-          '&.Mui-focused': { color: '#1D9BF0' }
-        }, 
-        '& .MuiOutlinedInput-root': { 
-          color: '#E7E9EA',
-          backgroundColor: '#1A1A1A',
-          '& .MuiOutlinedInput-notchedOutline': { 
-            borderColor: '#2F3336',
-            '&:hover': { borderColor: '#4A4A4A' }
+              <Paper sx={{ 
+          p: { xs: 2, md: 4 }, 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '& .MuiInputLabel-root': { 
+            color: '#8B98A5',
+            '&.Mui-focused': { color: '#1D9BF0' }
+          }, 
+          '& .MuiOutlinedInput-root': { 
+            color: '#E7E9EA',
+            backgroundColor: '#1A1A1A',
+            '& .MuiOutlinedInput-notchedOutline': { 
+              borderColor: '#2F3336',
+              '&:hover': { borderColor: '#4A4A4A' }
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#1D9BF0'
+            }
           },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#1D9BF0'
+          '& .MuiSvgIcon-root': { color: '#E7E9EA' },
+          '& .MuiMenuItem-root': { 
+            color: '#E7E9EA', 
+            backgroundColor: '#1A1A1A',
+            '&:hover': { backgroundColor: '#2F3336' }
+          },
+          '& .MuiFormHelperText-root': { 
+            color: '#71767B' 
+          },
+          '& .MuiInputBase-input': { 
+            color: '#E7E9EA' 
+          },
+          '& .MuiSelect-select': { 
+            color: '#E7E9EA' 
+          },
+          '& .MuiChip-root': { 
+            color: '#E7E9EA' 
+          },
+          '& .MuiDivider-root': { 
+            borderColor: '#2F3336' 
           }
-        },
-        '& .MuiSvgIcon-root': { color: '#E7E9EA' },
-        '& .MuiMenuItem-root': { 
-          color: '#E7E9EA', 
-          backgroundColor: '#1A1A1A',
-          '&:hover': { backgroundColor: '#2F3336' }
-        }
-      }}>
+        }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
           <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
@@ -392,7 +407,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                   '& .MuiInputBase-input': { color: '#E7E9EA' }
                 }
               }}
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                '& .MuiInputLabel-root': { color: '#8B98A5' },
+                '& .MuiFormHelperText-root': { color: '#71767B' }
+              }}
               helperText="Auto-generated Intel number"
             />
           </Box>

@@ -104,146 +104,72 @@ router.get('/', authenticateToken, async (req, res) => {
       valueIndex++;
     }
 
-    query += `
-      GROUP BY ir.id, u.username, reviewer.username
-      ORDER BY ir.created_at DESC
-      LIMIT $${valueIndex} OFFSET $${valueIndex + 1}
-    `;
-    
-    values.push(limit);
-    values.push((page - 1) * limit);
+    // Add grouping and pagination
+    query += ` GROUP BY ir.id, u.username, reviewer.username ORDER BY ir.created_at DESC`;
+
+    if (limit && page) {
+      const offset = (page - 1) * limit;
+      query += ` LIMIT $${valueIndex} OFFSET $${valueIndex + 1}`;
+      values.push(limit, offset);
+    }
 
     const result = await pool.query(query, values);
-
-    // Get total count
+    
+    // Get total count for pagination
     let countQuery = `
       SELECT COUNT(DISTINCT ir.id) as total
       FROM intel_reports ir
       WHERE 1=1
     `;
     
-    let countValues = [];
-    let countValueIndex = 1;
-
+    const countValues = [];
+    let countIndex = 1;
+    
     if (status !== 'all') {
-      countQuery += ` AND ir.status = $${countValueIndex}`;
+      countQuery += ` AND ir.status = $${countIndex}`;
       countValues.push(status);
-      countValueIndex++;
+      countIndex++;
     }
-
+    
     if (classification) {
-      countQuery += ` AND ir.classification = $${countValueIndex}`;
+      countQuery += ` AND ir.classification = $${countIndex}`;
       countValues.push(classification);
-      countValueIndex++;
+      countIndex++;
     }
-
+    
     if (expiration === 'expired') {
       countQuery += ` AND ir.expires_at < NOW()`;
     } else if (expiration === 'expiring_soon') {
       countQuery += ` AND ir.expires_at > NOW() AND ir.expires_at <= NOW() + INTERVAL '7 days'`;
     }
-
+    
     if (search) {
-      countQuery += ` AND (ir.subject ILIKE $${countValueIndex} OR ir.intel_number ILIKE $${countValueIndex})`;
+      countQuery += ` AND (ir.subject ILIKE $${countIndex} OR ir.intel_number ILIKE $${countIndex})`;
       countValues.push(`%${search}%`);
-      countValueIndex++;
+      countIndex++;
     }
-
+    
     if (agent_id) {
-      countQuery += ` AND ir.agent_id = $${countValueIndex}`;
+      countQuery += ` AND ir.agent_id = $${countIndex}`;
       countValues.push(agent_id);
-      countValueIndex++;
+      countIndex++;
     }
-
+    
     const countResult = await pool.query(countQuery, countValues);
+    const total = countResult.rows[0].total;
 
     res.json({
       reports: result.rows,
-      total: parseInt(countResult.rows[0].total),
-      page: parseInt(page),
-      limit: parseInt(limit),
-      totalPages: Math.ceil(parseInt(countResult.rows[0].total) / limit)
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
     console.error('Error fetching intel reports:', error);
     res.status(500).json({ error: 'Failed to fetch intel reports' });
-  }
-});
-
-// Get single intel report with full details
-router.get('/:id', authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Get main report data
-    const reportQuery = `
-      SELECT 
-        ir.*,
-        u.username as agent_name,
-        reviewer.username as reviewed_by_name,
-        CASE 
-          WHEN ir.expires_at < NOW() THEN true 
-          ELSE false 
-        END as is_expired,
-        CASE 
-          WHEN ir.expires_at > NOW() THEN CEIL(EXTRACT(EPOCH FROM (ir.expires_at - NOW())) / 86400)
-          ELSE 0
-        END as days_until_expiration
-      FROM intel_reports ir
-      JOIN users u ON ir.agent_id = u.id
-      LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
-      WHERE ir.id = $1
-    `;
-
-    const reportResult = await pool.query(reportQuery, [id]);
-    
-    if (reportResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Intel report not found' });
-    }
-
-    const report = reportResult.rows[0];
-
-    // Get subjects
-    const subjectsQuery = `
-      SELECT * FROM intel_report_subjects 
-      WHERE report_id = $1 
-      ORDER BY created_at
-    `;
-    const subjectsResult = await pool.query(subjectsQuery, [id]);
-
-    // Get organizations
-    const organizationsQuery = `
-      SELECT * FROM intel_report_organizations 
-      WHERE report_id = $1 
-      ORDER BY created_at
-    `;
-    const organizationsResult = await pool.query(organizationsQuery, [id]);
-
-    // Get source information
-    const sourceQuery = `
-      SELECT * FROM intel_report_sources 
-      WHERE report_id = $1
-    `;
-    const sourceResult = await pool.query(sourceQuery, [id]);
-
-    // Get files
-    const filesQuery = `
-      SELECT * FROM intel_report_files 
-      WHERE report_id = $1 
-      ORDER BY created_at
-    `;
-    const filesResult = await pool.query(filesQuery, [id]);
-
-    res.json({
-      ...report,
-      subjects: subjectsResult.rows,
-      organizations: organizationsResult.rows,
-      source_info: sourceResult.rows[0] || null,
-      files: filesResult.rows
-    });
-  } catch (error) {
-    console.error('Error fetching intel report:', error);
-    res.status(500).json({ error: 'Failed to fetch intel report' });
   }
 });
 
@@ -366,31 +292,150 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
   }
 });
 
-// Update intel report status (approve/reject)
+// Update intel report
+router.put('/:id', authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const { id } = req.params;
+    const {
+      intel_number,
+      classification,
+      date,
+      case_number,
+      subject,
+      criminal_activity,
+      summary,
+      subjects = '[]',
+      organizations = '[]',
+      source_info = '{}'
+    } = req.body;
+
+    // Check if user can edit this report
+    const reportQuery = await client.query(
+      'SELECT agent_id, status FROM intel_reports WHERE id = $1',
+      [id]
+    );
+
+    if (reportQuery.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Intel report not found' });
+    }
+
+    const report = reportQuery.rows[0];
+    
+    // Check permissions:
+    // - User can edit if they are the author AND report is not approved
+    // - Admin can edit any report
+    const isAuthor = report.agent_id === req.user.userId;
+    const isAdmin = req.user.role === 'admin' || req.user.super_admin;
+    const isApproved = report.status === 'approved';
+    
+    if (!isAdmin && (!isAuthor || isApproved)) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ 
+        error: 'You can only edit your own reports before they are approved. Once approved, only admins can modify reports.' 
+      });
+    }
+
+    // Update main report
+    const updateQuery = `
+      UPDATE intel_reports 
+      SET intel_number = $1, classification = $2, date = $3, case_number = $4,
+          subject = $5, criminal_activity = $6, summary = $7, updated_at = NOW()
+      WHERE id = $8
+      RETURNING *
+    `;
+
+    const updateResult = await client.query(updateQuery, [
+      intel_number, classification, date, case_number,
+      subject, criminal_activity, summary, id
+    ]);
+
+    // Delete existing related records
+    await client.query('DELETE FROM intel_report_subjects WHERE report_id = $1', [id]);
+    await client.query('DELETE FROM intel_report_organizations WHERE report_id = $1', [id]);
+    await client.query('DELETE FROM intel_report_sources WHERE report_id = $1', [id]);
+
+    // Insert updated subjects
+    const subjectsData = JSON.parse(subjects);
+    for (const subjectData of subjectsData) {
+      await client.query(`
+        INSERT INTO intel_report_subjects (
+          report_id, first_name, middle_name, last_name, address,
+          date_of_birth, race, sex, phone, social_security_number, license_number
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `, [
+        id, subjectData.first_name, subjectData.middle_name, subjectData.last_name,
+        subjectData.address, subjectData.date_of_birth, subjectData.race, subjectData.sex,
+        subjectData.phone, subjectData.social_security_number, subjectData.license_number
+      ]);
+    }
+
+    // Insert updated organizations
+    const organizationsData = JSON.parse(organizations);
+    for (const orgData of organizationsData) {
+      await client.query(`
+        INSERT INTO intel_report_organizations (
+          report_id, business_name, phone, address
+        ) VALUES ($1, $2, $3, $4)
+      `, [id, orgData.business_name, orgData.phone, orgData.address]);
+    }
+
+    // Insert updated source information
+    const sourceData = JSON.parse(source_info);
+    if (Object.keys(sourceData).length > 0) {
+      await client.query(`
+        INSERT INTO intel_report_sources (
+          report_id, source_id, rating, source, information_reliable,
+          unknown_caller, ci_cs, first_name, middle_name, last_name, phone, address
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `, [
+        id, sourceData.source_id, sourceData.rating, sourceData.source,
+        sourceData.information_reliable, sourceData.unknown_caller, sourceData.ci_cs,
+        sourceData.first_name, sourceData.middle_name, sourceData.last_name,
+        sourceData.phone, sourceData.address
+      ]);
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      message: 'Intel report updated successfully',
+      report: updateResult.rows[0]
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating intel report:', error);
+    res.status(500).json({ error: 'Failed to update intel report' });
+  } finally {
+    client.release();
+  }
+});
+
+// Update report status
 router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervisor']), async (req, res) => {
   try {
     const { id } = req.params;
     const { status, review_comments } = req.body;
 
-    if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be approved or rejected' });
-    }
-
     const query = `
       UPDATE intel_reports 
-      SET status = $1, reviewed_by = $2, reviewed_at = NOW(), review_comments = $3
+      SET status = $1, review_comments = $2, reviewed_by = $3, reviewed_at = NOW(), updated_at = NOW()
       WHERE id = $4
       RETURNING *
     `;
 
-    const result = await pool.query(query, [status, req.user.userId, review_comments, id]);
+    const result = await pool.query(query, [status, review_comments, req.user.userId, id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Intel report not found' });
     }
 
     res.json({
-      message: `Intel report ${status} successfully`,
+      message: `Intel report status updated to ${status}`,
       report: result.rows[0]
     });
   } catch (error) {
@@ -461,6 +506,83 @@ router.delete('/:id', authenticateToken, authorizeRole(['admin']), async (req, r
     res.status(500).json({ error: 'Failed to delete intel report' });
   } finally {
     client.release();
+  }
+});
+
+// Get a single intel report by ID (must be last to avoid conflicts)
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        ir.*,
+        u.username as agent_name,
+        reviewer.username as reviewed_by_name,
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'first_name', irs.first_name,
+            'middle_name', irs.middle_name,
+            'last_name', irs.last_name,
+            'address', irs.address,
+            'date_of_birth', irs.date_of_birth,
+            'race', irs.race,
+            'sex', irs.sex,
+            'phone', irs.phone,
+            'social_security_number', irs.social_security_number,
+            'license_number', irs.license_number
+          )
+        ) FILTER (WHERE irs.id IS NOT NULL) as subjects,
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'business_name', iro.business_name,
+            'phone', iro.phone,
+            'address', iro.address
+          )
+        ) FILTER (WHERE iro.id IS NOT NULL) as organizations,
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'source_id', irsrc.source_id,
+            'rating', irsrc.rating,
+            'source', irsrc.source,
+            'information_reliable', irsrc.information_reliable,
+            'first_name', irsrc.first_name,
+            'middle_name', irsrc.middle_name,
+            'last_name', irsrc.last_name,
+            'phone', irsrc.phone,
+            'address', irsrc.address
+          )
+        ) FILTER (WHERE irsrc.id IS NOT NULL) as sources
+      FROM intel_reports ir
+      JOIN users u ON ir.agent_id = u.id
+      LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
+      LEFT JOIN intel_report_subjects irs ON ir.id = irs.report_id
+      LEFT JOIN intel_report_organizations iro ON ir.id = iro.report_id
+      LEFT JOIN intel_report_sources irsrc ON ir.id = irsrc.report_id
+      WHERE ir.id = $1
+      GROUP BY ir.id, u.username, reviewer.username
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Intel report not found' });
+    }
+
+    const report = result.rows[0];
+    
+    // Check if user can view this report
+    const isAuthor = report.agent_id === req.user.userId;
+    const isAdmin = req.user.role === 'admin' || req.user.super_admin;
+    
+    if (!isAdmin && !isAuthor) {
+      return res.status(403).json({ error: 'You can only view your own reports' });
+    }
+
+    res.json({ report });
+  } catch (error) {
+    console.error('Error fetching intel report:', error);
+    res.status(500).json({ error: 'Failed to fetch intel report' });
   }
 });
 

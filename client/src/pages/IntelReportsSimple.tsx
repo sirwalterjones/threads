@@ -83,6 +83,8 @@ const IntelReportsSimple: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('approved');
   const [searchTerm, setSearchTerm] = useState('');
   const [createReportModalOpen, setCreateReportModalOpen] = useState(false);
+  const [editReportModalOpen, setEditReportModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const classificationColors: Record<string, string> = {
