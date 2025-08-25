@@ -96,78 +96,17 @@ const IntelReportsSimple: React.FC = () => {
     rejected: <RejectedIcon sx={{ color: '#f44336' }} />
   };
 
-  // Mock data with expiration dates
+  // Load reports from API
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // TODO: Implement API call when backend is ready
+        // const response = await apiService.getIntelReports({ status: statusFilter });
+        // setReports(response.reports);
         
-        const now = new Date();
-        const mockReports: IntelReport[] = [
-          {
-            id: '1',
-            intelNumber: '2024-001',
-            classification: 'Sensitive',
-            date: '2024-01-15',
-            agentName: 'Agent Smith',
-            caseNumber: 'CASE-2024-001',
-            subject: 'Drug trafficking investigation',
-            criminalActivity: 'Suspected narcotics distribution network operating in downtown area',
-            summary: 'Intelligence gathered indicates active drug trafficking operation involving multiple suspects.',
-            status: 'approved',
-            submittedAt: '2024-01-15T10:30:00Z',
-            reviewedAt: '2024-01-15T14:20:00Z',
-            reviewedBy: 'Supervisor Williams',
-            subjects: 3,
-            organizations: 1,
-            filesCount: 5,
-            expiresAt: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-            daysUntilExpiration: 5
-          },
-          {
-            id: '2',
-            intelNumber: '2024-002',
-            classification: 'Law Enforcement Only',
-            date: '2024-01-10',
-            agentName: 'Agent Johnson',
-            subject: 'Financial fraud scheme',
-            criminalActivity: 'Organized financial fraud targeting elderly victims',
-            summary: 'Evidence suggests coordinated effort to defraud senior citizens through phone scams.',
-            status: 'approved',
-            submittedAt: '2024-01-10T14:20:00Z',
-            reviewedAt: '2024-01-10T16:45:00Z',
-            reviewedBy: 'Supervisor Williams',
-            subjects: 2,
-            organizations: 3,
-            filesCount: 8,
-            expiresAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
-            daysUntilExpiration: 2
-          },
-          {
-            id: '3',
-            intelNumber: '2024-003',
-            classification: 'Classified',
-            date: '2024-01-05',
-            agentName: 'Agent Brown',
-            subject: 'Weapons trafficking',
-            criminalActivity: 'Illegal firearms distribution network',
-            summary: 'Intelligence on suspected weapons trafficking operation with interstate connections.',
-            status: 'approved',
-            submittedAt: '2024-01-05T09:15:00Z',
-            reviewedAt: '2024-01-05T11:30:00Z',
-            reviewedBy: 'Commander Davis',
-            subjects: 1,
-            organizations: 2,
-            filesCount: 3,
-            expiresAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Already expired
-            isExpired: true,
-            daysUntilExpiration: 0
-          }
-        ];
-        
-        setReports(mockReports);
+        // For now, start with empty array until backend is implemented
+        setReports([]);
       } catch (error) {
         console.error('Error fetching reports:', error);
       } finally {
@@ -176,7 +115,7 @@ const IntelReportsSimple: React.FC = () => {
     };
 
     fetchReports();
-  }, []);
+  }, [statusFilter]);
 
   const filteredReports = reports.filter(report => {
     if (statusFilter !== 'all' && report.status !== statusFilter) return false;

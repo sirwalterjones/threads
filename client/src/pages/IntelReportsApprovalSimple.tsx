@@ -86,70 +86,17 @@ const IntelReportsApprovalSimple: React.FC = () => {
     rejected: <RejectedIcon sx={{ color: '#f44336' }} />
   };
 
-  // Mock data
+  // Load reports from API
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // TODO: Implement API call when backend is ready
+        // const response = await apiService.getIntelReports({ status: 'pending' });
+        // setReports(response.reports);
         
-        const mockReports: IntelReport[] = [
-          {
-            id: '1',
-            intelNumber: '2024-001',
-            classification: 'Sensitive',
-            date: '2024-01-15',
-            agentName: 'Agent Smith',
-            caseNumber: 'CASE-2024-001',
-            subject: 'Drug trafficking investigation',
-            criminalActivity: 'Suspected narcotics distribution network operating in downtown area',
-            summary: 'Intelligence gathered indicates active drug trafficking operation involving multiple suspects. Requires further investigation and surveillance.',
-            status: 'pending',
-            submittedAt: '2024-01-15T10:30:00Z',
-            subjects: 3,
-            organizations: 1,
-            filesCount: 5
-          },
-          {
-            id: '2',
-            intelNumber: '2024-002',
-            classification: 'Law Enforcement Only',
-            date: '2024-01-16',
-            agentName: 'Agent Johnson',
-            subject: 'Financial fraud scheme',
-            criminalActivity: 'Organized financial fraud targeting elderly victims',
-            summary: 'Evidence suggests coordinated effort to defraud senior citizens through phone scams and identity theft.',
-            status: 'approved',
-            submittedAt: '2024-01-16T14:20:00Z',
-            reviewedAt: '2024-01-16T16:45:00Z',
-            reviewedBy: 'Supervisor Williams',
-            reviewComments: 'Report approved. Strong evidence supporting investigation.',
-            subjects: 2,
-            organizations: 3,
-            filesCount: 8
-          },
-          {
-            id: '3',
-            intelNumber: '2024-003',
-            classification: 'Classified',
-            date: '2024-01-17',
-            agentName: 'Agent Brown',
-            subject: 'Weapons trafficking',
-            criminalActivity: 'Illegal firearms distribution network',
-            summary: 'Intelligence on suspected weapons trafficking operation with interstate connections.',
-            status: 'rejected',
-            submittedAt: '2024-01-17T09:15:00Z',
-            reviewedAt: '2024-01-17T11:30:00Z',
-            reviewedBy: 'Commander Davis',
-            reviewComments: 'Insufficient evidence. Requires additional investigation before approval.',
-            subjects: 1,
-            organizations: 2,
-            filesCount: 3
-          }
-        ];
-        
-        setReports(mockReports);
+        // For now, start with empty array until backend is implemented
+        setReports([]);
       } catch (error) {
         console.error('Error fetching reports:', error);
       } finally {
@@ -158,7 +105,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
     };
 
     fetchReports();
-  }, []);
+  }, [statusFilter]);
 
   const filteredReports = reports.filter(report => {
     if (statusFilter === 'all') return true;
