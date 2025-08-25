@@ -175,26 +175,48 @@ const IntelReportsApprovalSimple: React.FC = () => {
       maxWidth: 1400, 
       mx: 'auto', 
       p: { xs: 2, md: 3 },
-      backgroundColor: 'background.default',
-      minHeight: '100vh'
+      backgroundColor: '#000000',
+      minHeight: '100vh',
+      color: '#E7E9EA'
     }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Badge badgeContent={pendingCount} color="warning">
-          <SecurityIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
         </Badge>
         <Box>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
             Intelligence Reports Approval
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: '#71767B' }}>
             Review and approve submitted intelligence reports
           </Typography>
         </Box>
       </Box>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, backgroundColor: 'background.paper' }}>
+      <Paper sx={{ 
+        p: 2, 
+        mb: 3, 
+        backgroundColor: '#1f1f1f',
+        border: '1px solid #2F3336',
+        '& .MuiInputLabel-root': { 
+          color: '#8B98A5',
+          '&.Mui-focused': { color: '#1D9BF0' }
+        }, 
+        '& .MuiOutlinedInput-root': { 
+          color: '#E7E9EA',
+          backgroundColor: '#1A1A1A',
+          '& .MuiOutlinedInput-notchedOutline': { 
+            borderColor: '#2F3336',
+            '&:hover': { borderColor: '#4A4A4A' }
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#1D9BF0'
+          }
+        },
+        '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+      }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
           <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
             <FormControl fullWidth size="small">
@@ -204,15 +226,15 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status Filter"
               >
-                <MenuItem value="all">All Reports</MenuItem>
-                <MenuItem value="pending">Pending ({pendingCount})</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
+                <MenuItem value="all" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>All Reports</MenuItem>
+                <MenuItem value="pending" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Pending ({pendingCount})</MenuItem>
+                <MenuItem value="approved" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Approved</MenuItem>
+                <MenuItem value="rejected" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Rejected</MenuItem>
               </Select>
             </FormControl>
           </Box>
           <Box sx={{ flex: '1 1 200px' }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: '#71767B' }}>
               Showing {filteredReports.length} of {reports.length} reports
             </Typography>
           </Box>
@@ -222,25 +244,34 @@ const IntelReportsApprovalSimple: React.FC = () => {
       {/* Reports List */}
       {loading ? (
         <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography>Loading reports...</Typography>
+          <Typography sx={{ color: '#E7E9EA' }}>Loading reports...</Typography>
         </Box>
       ) : filteredReports.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'background.paper' }}>
-          <Typography variant="h6" color="text.secondary">
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: 'center', 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336'
+        }}>
+          <Typography variant="h6" sx={{ color: '#71767B' }}>
             No reports found
           </Typography>
         </Paper>
       ) : isMobile ? (
         <Box>
           {filteredReports.map((report) => (
-            <Card key={report.id} sx={{ mb: 2 }}>
+            <Card key={report.id} sx={{ 
+              mb: 2, 
+              backgroundColor: '#1f1f1f',
+              border: '1px solid #2F3336'
+            }}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box>
-                    <Typography variant="h6" component="div">
+                    <Typography variant="h6" component="div" sx={{ color: '#E7E9EA' }}>
                       Intel #{report.intelNumber}
                     </Typography>
-                    <Typography color="text.secondary" gutterBottom>
+                    <Typography sx={{ color: '#71767B' }} gutterBottom>
                       {report.agentName} • {new Date(report.date).toLocaleDateString()}
                     </Typography>
                   </Box>
@@ -250,20 +281,21 @@ const IntelReportsApprovalSimple: React.FC = () => {
                   </Box>
                 </Box>
                 
-                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1, color: '#E7E9EA' }}>
                   {report.subject}
                 </Typography>
                 
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#71767B', mb: 2 }}>
                   {report.criminalActivity.substring(0, 100)}...
                 </Typography>
               </CardContent>
               
-              <CardActions>
+              <CardActions sx={{ backgroundColor: '#1f1f1f' }}>
                 <Button 
                   size="small" 
                   onClick={() => handleViewReport(report)}
                   startIcon={<VisibilityIcon />}
+                  sx={{ color: '#1D9BF0' }}
                 >
                   View Details
                 </Button>
@@ -277,6 +309,11 @@ const IntelReportsApprovalSimple: React.FC = () => {
                         handleReviewAction('approve');
                       }}
                       startIcon={<ApproveIcon />}
+                      sx={{ 
+                        backgroundColor: '#4caf50',
+                        color: '#ffffff',
+                        '&:hover': { backgroundColor: '#45a049' }
+                      }}
                     >
                       Approve
                     </Button>
@@ -288,6 +325,11 @@ const IntelReportsApprovalSimple: React.FC = () => {
                         handleReviewAction('reject');
                       }}
                       startIcon={<RejectIcon />}
+                      sx={{ 
+                        backgroundColor: '#f44336',
+                        color: '#ffffff',
+                        '&:hover': { backgroundColor: '#da190b' }
+                      }}
                     >
                       Reject
                     </Button>
