@@ -499,6 +499,11 @@ class ApiService {
     return response.data;
   }
 
+  async enable2FARequirement(): Promise<{ success: boolean; message: string }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/enable-requirement`);
+    return response.data;
+  }
+
   async disable2FA(currentPassword: string): Promise<{ success: boolean; message: string }> {
     const response = await axios.post(`${API_BASE_URL}/2fa/disable`, { currentPassword });
     return response.data;

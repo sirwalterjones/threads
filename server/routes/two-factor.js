@@ -208,6 +208,29 @@ router.get('/status', authenticateToken, async (req, res) => {
   }
 });
 
+// User can voluntarily enable 2FA requirement for themselves
+router.post('/enable-requirement', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Enable 2FA requirement for this user
+    await pool.query(
+      'UPDATE users SET force_2fa_setup = true WHERE id = $1',
+      [userId]
+    );
+    
+    console.log(`✅ User ${req.user.username} voluntarily enabled 2FA requirement`);
+    
+    res.json({
+      success: true,
+      message: '2FA requirement enabled. You will be prompted to set up 2FA on next login.'
+    });
+  } catch (error) {
+    console.error('Failed to enable 2FA requirement:', error);
+    res.status(500).json({ error: 'Failed to enable 2FA requirement' });
+  }
+});
+
 // Disable 2FA (user)
 router.post('/disable', authenticateToken, async (req, res) => {
   try {

@@ -832,6 +832,48 @@ router.post('/disable-2fa-temp', authenticateToken, authorizeRole(['admin']), as
   }
 });
 
+// Enable 2FA requirement for a user
+router.post('/enable-2fa-requirement', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    // Check if user exists
+    const userResult = await pool.query(
+      'SELECT id, username FROM users WHERE username = $1',
+      [username]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Enable 2FA requirement
+    await pool.query(
+      'UPDATE users SET force_2fa_setup = true WHERE username = $1',
+      [username]
+    );
+    
+    console.log(`✅ Enabled 2FA requirement for user: ${username}`);
+    
+    res.json({ 
+      message: '2FA requirement enabled',
+      username: username,
+      note: 'User will be prompted to set up 2FA on next login.'
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to enable 2FA requirement:', error);
+    res.status(500).json({ 
+      error: 'Failed to enable 2FA requirement', 
+      details: error.message 
+    });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 
