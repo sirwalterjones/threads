@@ -21,7 +21,11 @@ import {
   FormControlLabel,
   IconButton
 } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
+import { 
+  Edit as EditIcon,
+  Security as SecurityIcon,
+  LockReset as ResetIcon 
+} from '@mui/icons-material';
 import apiService from '../services/api';
 import { User } from '../types';
 
@@ -145,6 +149,32 @@ const UsersManage: React.FC = () => {
     }
   };
 
+  const handleReset2FA = async (userId: number, username: string) => {
+    if (!confirm(`Reset 2FA for user ${username}? This will require them to set up 2FA again.`)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      await apiService.adminReset2FA(userId.toString());
+      setSuccess(`2FA reset for user ${username}`);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to reset 2FA');
+    }
+  };
+
+  const handleToggle2FARequirement = async (userId: number, username: string, required: boolean) => {
+    try {
+      setError('');
+      setSuccess('');
+      await apiService.adminToggle2FARequirement(userId.toString(), required);
+      setSuccess(`2FA requirement ${required ? 'enabled' : 'disabled'} for user ${username}`);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to toggle 2FA requirement');
+    }
+  };
+
   return (
     <Box sx={{ 
       p: 2, 
@@ -245,6 +275,22 @@ const UsersManage: React.FC = () => {
                     }}
                   >
                     {savingId === u.id ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<ResetIcon fontSize="small" />}
+                    onClick={() => handleReset2FA(u.id, u.username)}
+                    sx={{ 
+                      color: '#FFC107',
+                      borderColor: '#FFC107',
+                      '&:hover': { 
+                        borderColor: '#FFB300',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)'
+                      }
+                    }}
+                  >
+                    Reset 2FA
                   </Button>
                 </Stack>
               </CardContent>

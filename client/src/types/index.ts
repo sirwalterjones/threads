@@ -142,8 +142,9 @@ export interface DashboardStats {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<{ requires2FA?: boolean; user?: User; token?: string }>;
+  logout: () => Promise<void>;
+  complete2FA: () => Promise<void>;
   isLoading: boolean;
 }
 

@@ -697,6 +697,53 @@ router.post('/migrate-hotlists', authenticateToken, authorizeRole(['admin']), as
   }
 });
 
+// Database migration endpoint - add 2FA columns to users table
+router.post('/migrate-2fa', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    console.log('🔄 Starting migration: Adding 2FA columns to users table...');
+    
+    // Check if columns already exist
+    const checkColumns = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name IN ('totp_secret', 'totp_enabled', 'totp_backup_codes', 'force_2fa_setup')
+    `);
+    
+    if (checkColumns.rows.length === 4) {
+      console.log('✅ All 2FA columns already exist in users table');
+      return res.json({ 
+        message: 'Migration already completed',
+        status: 'skipped',
+        details: 'All 2FA columns already exist'
+      });
+    }
+    
+    // Add 2FA columns
+    await pool.query(`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS totp_backup_codes TEXT[],
+      ADD COLUMN IF NOT EXISTS force_2fa_setup BOOLEAN DEFAULT true;
+    `);
+    
+    console.log('✅ Successfully added 2FA columns to users table');
+    
+    res.json({ 
+      message: '2FA migration completed successfully',
+      status: 'completed',
+      details: 'Added totp_secret, totp_enabled, totp_backup_codes, and force_2fa_setup columns'
+    });
+    
+  } catch (error) {
+    console.error('❌ 2FA migration failed:', error);
+    res.status(500).json({ 
+      error: '2FA migration failed', 
+      details: error.message 
+    });
+  }
+});
+
 // System health check
 router.get('/health', 
   authenticateToken, 

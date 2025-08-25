@@ -58,9 +58,13 @@ class ApiService {
     localStorage.removeItem('token');
   }
 
+  getToken(): string | null {
+    return this.token;
+  }
+
   // Authentication
-  async login(username: string, password: string): Promise<{ user: User; token: string }> {
-    const response: AxiosResponse<{ user: User; token: string }> = await axios.post(
+  async login(username: string, password: string): Promise<{ user: User; token: string; requires2FA?: boolean }> {
+    const response: AxiosResponse<{ user: User; token: string; requires2FA?: boolean }> = await axios.post(
       `${API_BASE_URL}/auth/login`,
       { username, password }
     );

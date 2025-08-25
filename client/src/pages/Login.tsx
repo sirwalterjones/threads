@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   TextField,
@@ -10,13 +10,19 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import TwoFactorSetup from '../components/TwoFactor/TwoFactorSetup';
+import TwoFactorVerification from '../components/TwoFactor/TwoFactorVerification';
+import apiService from '../services/api';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [showSetup2FA, setShowSetup2FA] = useState(false);
+  const [showVerify2FA, setShowVerify2FA] = useState(false);
+  const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
+  const { login, complete2FA } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,14 +31,70 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(username, password);
-      navigate('/');
+      const result = await login(username, password);
+      
+      if (result.requires2FA) {
+        // Check if user needs to set up 2FA or just verify
+        try {
+          const status = await apiService.get2FAStatus();
+          setTwoFactorStatus(status);
+          
+          if (!status.enabled && status.required) {
+            setShowSetup2FA(true);
+          } else if (status.enabled) {
+            setShowVerify2FA(true);
+          }
+        } catch (error) {
+          console.error('Failed to get 2FA status:', error);
+          setShowSetup2FA(true); // Default to setup if status check fails
+        }
+      } else {
+        navigate('/');
+      }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
+
+  const handle2FASetupComplete = async () => {
+    try {
+      await complete2FA();
+      navigate('/');
+    } catch (error) {
+      setError('Failed to complete setup. Please try logging in again.');
+      setShowSetup2FA(false);
+    }
+  };
+
+  const handle2FAVerificationSuccess = async () => {
+    try {
+      await complete2FA();
+      navigate('/');
+    } catch (error) {
+      setError('Failed to complete verification. Please try logging in again.');
+      setShowVerify2FA(false);
+    }
+  };
+
+  const handleCancel2FA = () => {
+    setShowSetup2FA(false);
+    setShowVerify2FA(false);
+    setTwoFactorStatus(null);
+    // Clear any stored token
+    apiService.clearToken();
+  };
+
+  // Show 2FA setup if required
+  if (showSetup2FA) {
+    return <TwoFactorSetup onComplete={handle2FASetupComplete} onCancel={handleCancel2FA} />;
+  }
+
+  // Show 2FA verification if enabled
+  if (showVerify2FA) {
+    return <TwoFactorVerification onSuccess={handle2FAVerificationSuccess} onCancel={handleCancel2FA} />;
+  }
 
   return (
     <Box

@@ -134,11 +134,29 @@ router.post('/login', async (req, res) => {
       hasDbPassword: !!process.env.DB_PASSWORD
     });
 
-    // Find user
-    const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
-      [username]
-    );
+    // Find user - handle missing 2FA columns gracefully
+    let result;
+    try {
+      result = await pool.query(
+        'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
+        [username]
+      );
+    } catch (error) {
+      // If 2FA columns don't exist, fall back to basic query
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        result = await pool.query(
+          'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
+          [username]
+        );
+        // Add default values for missing 2FA columns
+        result.rows.forEach(row => {
+          row.totp_enabled = false;
+          row.force_2fa_setup = false;
+        });
+      } else {
+        throw error;
+      }
+    }
 
     if (result.rows.length === 0) {
       // If admin user doesn't exist, create it
@@ -153,11 +171,29 @@ router.post('/login', async (req, res) => {
             VALUES ($1, $2, $3, $4)
           `, ['admin', 'admin@threads.local', passwordHash, 'admin']);
 
-          // Try login again
-          const newResult = await pool.query(
-            'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
-            [username]
-          );
+          // Try login again - handle missing 2FA columns gracefully
+          let newResult;
+          try {
+            newResult = await pool.query(
+              'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
+              [username]
+            );
+          } catch (error) {
+            // If 2FA columns don't exist, fall back to basic query
+            if (error.message.includes('column') && error.message.includes('does not exist')) {
+              newResult = await pool.query(
+                'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
+                [username]
+              );
+              // Add default values for missing 2FA columns
+              newResult.rows.forEach(row => {
+                row.totp_enabled = false;
+                row.force_2fa_setup = false;
+              });
+            } else {
+              throw error;
+            }
+          }
 
           if (newResult.rows.length > 0 && password === 'admin123456') {
             const user = newResult.rows[0];
