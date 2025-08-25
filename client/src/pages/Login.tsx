@@ -41,6 +41,14 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    console.log('handleSubmit called, authLoading:', authLoading);
+    
+    // Prevent multiple submissions
+    if (authLoading) {
+      console.log('Already loading, ignoring submission');
+      return;
+    }
 
     try {
       console.log('Login form submitted, calling login...');
@@ -120,7 +128,7 @@ const Login: React.FC = () => {
     apiService.clearToken();
   };
 
-  console.log('Login component render - showSetup2FA:', showSetup2FA, 'showVerify2FA:', showVerify2FA);
+  console.log('Login component render - showSetup2FA:', showSetup2FA, 'showVerify2FA:', showVerify2FA, 'authLoading:', authLoading);
 
   // Show 2FA setup if required
   if (showSetup2FA) {
@@ -322,6 +330,9 @@ const Login: React.FC = () => {
               fullWidth
               variant="contained"
               size="large"
+              onClick={(e) => {
+                console.log('Button clicked, disabled:', authLoading || !username || !password, 'authLoading:', authLoading);
+              }}
               sx={{ 
                 mt: 2, 
                 py: 2,
