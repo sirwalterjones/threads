@@ -34,14 +34,14 @@ const Login: React.FC = () => {
   // Custom setters that persist to sessionStorage
   const setShowSetup2FAWithPersist = (value: boolean) => {
     console.log('Setting showSetup2FA to:', value);
-    setShowSetup2FA(value);
     sessionStorage.setItem('showSetup2FA', value.toString());
+    setShowSetup2FA(value);
   };
 
   const setShowVerify2FAWithPersist = (value: boolean) => {
     console.log('Setting showVerify2FA to:', value);
-    setShowVerify2FA(value);
     sessionStorage.setItem('showVerify2FA', value.toString());
+    setShowVerify2FA(value);
   };
 
   // Debug state changes
@@ -119,15 +119,25 @@ const Login: React.FC = () => {
           
           if (!status.enabled && status.required) {
             console.log('User needs 2FA setup - setting showSetup2FA to true');
+            // Set sessionStorage IMMEDIATELY before setting state
+            sessionStorage.setItem('showSetup2FA', 'true');
+            sessionStorage.setItem('inTwoFactorFlow', 'true');
+            console.log('SessionStorage set before state update');
             setShowSetup2FAWithPersist(true);
             console.log('showSetup2FA state after setting:', true);
             console.log('Current showSetup2FA state:', showSetup2FA);
           } else if (status.enabled) {
             console.log('User has 2FA enabled - setting showVerify2FA to true');
+            // Set sessionStorage IMMEDIATELY before setting state
+            sessionStorage.setItem('showVerify2FA', 'true');
+            sessionStorage.setItem('inTwoFactorFlow', 'true');
             setShowVerify2FAWithPersist(true);
           }
         } catch (error) {
           console.error('Failed to get 2FA status:', error);
+          // Set sessionStorage IMMEDIATELY before setting state
+          sessionStorage.setItem('showSetup2FA', 'true');
+          sessionStorage.setItem('inTwoFactorFlow', 'true');
           setShowSetup2FAWithPersist(true); // Default to setup if status check fails
         }
       } else {
