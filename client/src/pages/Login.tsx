@@ -18,12 +18,25 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showSetup2FA, setShowSetup2FA] = useState(false);
-  const [showVerify2FA, setShowVerify2FA] = useState(false);
+  const [showSetup2FA, setShowSetup2FA] = useState(() => {
+    return sessionStorage.getItem('showSetup2FA') === 'true';
+  });
+  const [showVerify2FA, setShowVerify2FA] = useState(() => {
+    return sessionStorage.getItem('showVerify2FA') === 'true';
+  });
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean } | null>(null);
 
   const { login, complete2FA, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Clear stale 2FA state if no token exists
+  useEffect(() => {
+    const hasToken = localStorage.getItem('token');
+    if (!hasToken) {
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +57,17 @@ const Login: React.FC = () => {
           
           if (!status.enabled && status.required) {
             console.log('Setting showSetup2FA to true');
+            sessionStorage.setItem('showSetup2FA', 'true');
+            sessionStorage.setItem('showVerify2FA', 'false');
             setShowSetup2FA(true);
+            setShowVerify2FA(false);
             console.log('showSetup2FA state should now be true');
           } else if (status.enabled) {
             console.log('Setting showVerify2FA to true');
+            sessionStorage.setItem('showVerify2FA', 'true');
+            sessionStorage.setItem('showSetup2FA', 'false');
             setShowVerify2FA(true);
+            setShowSetup2FA(false);
             console.log('showVerify2FA state should now be true');
           }
         }, 0);
@@ -65,10 +84,14 @@ const Login: React.FC = () => {
   const handle2FASetupComplete = async () => {
     try {
       await complete2FA();
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       setShowSetup2FA(false);
       navigate('/');
     } catch (error) {
       setError('Failed to complete setup. Please try logging in again.');
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       setShowSetup2FA(false);
     }
   };
@@ -76,15 +99,21 @@ const Login: React.FC = () => {
   const handle2FAVerificationSuccess = async () => {
     try {
       await complete2FA();
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       setShowVerify2FA(false);
       navigate('/');
     } catch (error) {
       setError('Failed to complete verification. Please try logging in again.');
+      sessionStorage.removeItem('showSetup2FA');
+      sessionStorage.removeItem('showVerify2FA');
       setShowVerify2FA(false);
     }
   };
 
   const handleCancel2FA = () => {
+    sessionStorage.removeItem('showSetup2FA');
+    sessionStorage.removeItem('showVerify2FA');
     setShowSetup2FA(false);
     setShowVerify2FA(false);
     setTwoFactorStatus(null);
