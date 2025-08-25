@@ -16,7 +16,12 @@ import {
 } from '@mui/material';
 import { Security as SecurityIcon } from '@mui/icons-material';
 
-const IntelReportFormSimple: React.FC = () => {
+interface IntelReportFormProps {
+  isModal?: boolean;
+  onClose?: () => void;
+}
+
+const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -104,7 +109,48 @@ const IntelReportFormSimple: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      setSuccess(true);
+      if (isModal && onClose) {
+        // Close modal and let parent handle success notification
+        onClose();
+        // Reset form for next use
+        setFormData({
+          intelNumber: '',
+          classification: '',
+          date: new Date().toISOString().split('T')[0],
+          agentName: '',
+          caseNumber: '',
+          subject: '',
+          criminalActivity: '',
+          summary: '',
+          // Subject Information
+          subjectFirstName: '',
+          subjectMiddleName: '',
+          subjectLastName: '',
+          subjectAddress: '',
+          subjectDateOfBirth: '',
+          subjectRace: '',
+          subjectSex: '',
+          subjectPhone: '',
+          subjectSSN: '',
+          subjectLicense: '',
+          // Organization/Business
+          businessName: '',
+          businessPhone: '',
+          businessAddress: '',
+          // Source Information
+          sourceId: '',
+          sourceRating: '',
+          sourceType: '',
+          sourceReliability: '',
+          sourceFirstName: '',
+          sourceMiddleName: '',
+          sourceLastName: '',
+          sourcePhone: '',
+          sourceAddress: ''
+        });
+      } else {
+        setSuccess(true);
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to submit intelligence report');
     } finally {
@@ -188,11 +234,11 @@ const IntelReportFormSimple: React.FC = () => {
 
   return (
     <Box sx={{ 
-      maxWidth: 1200, 
+      maxWidth: isModal ? '100%' : 1200, 
       mx: 'auto', 
       p: { xs: 2, md: 3 },
-      backgroundColor: 'background.default',
-      minHeight: '100vh'
+      backgroundColor: isModal ? 'transparent' : 'background.default',
+      minHeight: isModal ? 'auto' : '100vh'
     }}>
       <Paper sx={{ p: { xs: 2, md: 4 }, backgroundColor: 'background.paper' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>

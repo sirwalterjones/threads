@@ -27,7 +27,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  Fab,
   Badge,
   LinearProgress
 } from '@mui/material';
@@ -49,7 +48,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useNavigate } from 'react-router-dom';
+import IntelReportFormSimple from '../components/IntelReport/IntelReportFormSimple';
 
 interface IntelReport {
   id: string;
@@ -77,13 +76,13 @@ interface IntelReport {
 const IntelReportsSimple: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const navigate = useNavigate();
   
   const [reports, setReports] = useState<IntelReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<IntelReport | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('approved');
   const [searchTerm, setSearchTerm] = useState('');
+  const [createReportModalOpen, setCreateReportModalOpen] = useState(false);
 
   const classificationColors: Record<string, string> = {
     'Sensitive': '#ff9800',
@@ -300,7 +299,7 @@ const IntelReportsSimple: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
-            onClick={() => navigate('/intel-reports/new')}
+            onClick={() => setCreateReportModalOpen(true)}
           >
             Create New Report
           </Button>
@@ -419,19 +418,25 @@ const IntelReportsSimple: React.FC = () => {
         </TableContainer>
       )}
 
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add"
-        onClick={() => navigate('/intel-reports/new')}
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
+      {/* Create Report Modal */}
+      <Dialog
+        open={createReportModalOpen}
+        onClose={() => setCreateReportModalOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'background.paper',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }
         }}
       >
-        <AddIcon />
-      </Fab>
+        <IntelReportFormSimple 
+          isModal={true}
+          onClose={() => setCreateReportModalOpen(false)}
+        />
+      </Dialog>
 
       {/* Report Details Dialog */}
       <Dialog 
