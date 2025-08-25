@@ -216,9 +216,13 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Check if 2FA is required
+    const requires2FA = user.force_2fa_setup || user.totp_enabled;
+
     res.json({
       message: 'Login successful',
       token,
+      requires2FA,
       user: {
         id: user.id,
         username: user.username,

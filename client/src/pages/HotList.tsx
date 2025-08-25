@@ -639,53 +639,35 @@ const HotList: React.FC = () => {
                 Hot List Alerts
               </Typography>
               
-              {/* Info about exact match vs word match */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Chip
-                  label="Exact Match"
-                  size="small"
-                  icon={<SearchIcon />}
-                  sx={{
-                    backgroundColor: '#9C27B0',
-                    color: 'white',
-                    fontSize: '10px'
-                  }}
-                />
-                <Typography variant="caption" sx={{ color: '#71767B' }}>
-                  Exact phrase
-                </Typography>
-                <Chip
-                  label="Word Match"
-                  size="small"
-                  icon={<TextFieldsIcon />}
-                  sx={{
-                    backgroundColor: '#FF9800',
-                    color: 'white',
-                    fontSize: '10px'
-                  }}
-                />
-                <Typography variant="caption" sx={{ color: '#71767B' }}>
-                  Any words
-                </Typography>
-              </Box>
-              
-              {/* Info about the difference */}
-              <Typography variant="caption" sx={{ color: '#71767B', ml: 1 }}>
-                Exact Match finds posts with the exact phrase, Word Match finds posts with any of the words
-              </Typography>
               {unreadAlertsCount > 0 && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
+                    variant="outlined"
                     size="small"
                     onClick={handleMarkAllAlertsRead}
-                    sx={{ color: '#1D9BF0' }}
+                    sx={{ 
+                      borderColor: '#2F3336',
+                      color: '#E7E9EA',
+                      '&:hover': {
+                        borderColor: '#1D9BF0',
+                        backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                      }
+                    }}
                   >
                     Mark All Read
                   </Button>
                   <Button
+                    variant="outlined"
                     size="small"
                     onClick={() => setClearConfirmOpen(true)}
-                    sx={{ color: '#F91880' }}
+                    sx={{ 
+                      borderColor: '#2F3336',
+                      color: '#E7E9EA',
+                      '&:hover': {
+                        borderColor: '#F91880',
+                        backgroundColor: 'rgba(249, 24, 128, 0.1)'
+                      }
+                    }}
                     startIcon={<ClearIcon />}
                   >
                     Clear All
@@ -839,9 +821,7 @@ const HotList: React.FC = () => {
                 }
               }}
             >
-              Hot Lists automatically monitor new posts for your specified search terms. Choose between word-based matching 
-              (finds posts containing any of the words) or exact phrase matching (finds posts containing the exact phrase). 
-              When a match is found, you'll receive a notification and the alert will appear in your alerts tab.
+              Hot Lists automatically monitor new posts for your specified search terms. When a match is found, you'll receive a notification.
             </Alert>
             
             {/* Match Type Legend */}
@@ -853,9 +833,10 @@ const HotList: React.FC = () => {
                   size="small"
                   icon={<SearchIcon />}
                   sx={{
-                    backgroundColor: '#9C27B0',
-                    color: 'white',
-                    fontSize: '11px'
+                    backgroundColor: '#2F3336',
+                    color: '#E7E9EA',
+                    fontSize: '11px',
+                    border: '1px solid #4A4A4A'
                   }}
                 />
                 <Typography variant="caption" sx={{ color: '#71767B' }}>
@@ -868,9 +849,10 @@ const HotList: React.FC = () => {
                   size="small"
                   icon={<TextFieldsIcon />}
                   sx={{
-                    backgroundColor: '#FF9800',
-                    color: 'white',
-                    fontSize: '11px'
+                    backgroundColor: '#2F3336',
+                    color: '#E7E9EA',
+                    fontSize: '11px',
+                    border: '1px solid #4A4A4A'
                   }}
                 />
                 <Typography variant="caption" sx={{ color: '#71767B' }}>
@@ -1126,79 +1108,21 @@ const HotList: React.FC = () => {
             </Typography>
           </Alert>
           
-          {/* Example text */}
-          <Box sx={{ mt: 1, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
-              <strong>Examples:</strong>
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
-              <strong>Word Match (off):</strong> "Meth Trafficking" will match posts containing both "Meth" and "Trafficking" anywhere in the content
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
-              <strong>Exact Match (on):</strong> "Meth Trafficking" will only match posts containing the exact phrase "Meth Trafficking"
-            </Typography>
-          </Box>
-          
-          {/* When to use each mode */}
+          {/* Simple example */}
           <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
-              <strong>When to use each mode:</strong>
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
-              <strong>Word Match:</strong> Use for broader searches, finding related topics, or when you want to catch variations
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
-              <strong>Exact Match:</strong> Use for specific names, exact phrases, or when you want to avoid false positives
+            <Typography variant="caption" sx={{ color: '#71767B' }}>
+              <strong>Example:</strong> "{newSearchTerm.trim() || 'Meth Trafficking'}" will {exactMatch ? 'only match the exact phrase' : 'match posts containing any of these words'}.
             </Typography>
           </Box>
-          
-          {/* Pro tip */}
-          <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 193, 7, 0.1)', borderRadius: 1, border: '1px solid rgba(255, 193, 7, 0.3)' }}>
-            <Typography variant="caption" sx={{ color: '#FFC107', display: 'block' }}>
-              <strong>💡 Pro Tip:</strong> For your "Porter" search, try Exact Match to find posts specifically mentioning "Porter" 
-              instead of posts that might contain similar words or variations.
-            </Typography>
-          </Box>
+
           
 
           
-          {/* Real-time preview */}
-          {newSearchTerm.trim() && (
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(29, 155, 240, 0.05)', borderRadius: 1, border: '1px solid rgba(29, 155, 240, 0.2)' }}>
-              <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mb: 1 }}>
-                <strong>📊 Expected Results:</strong>
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#71767B', display: 'block' }}>
-                {exactMatch 
-                  ? `This will create a hot list that triggers alerts only when posts contain the exact phrase "${newSearchTerm.trim()}". This is perfect for finding specific incidents, names, or exact text matches.`
-                  : `This will create a hot list that triggers alerts when posts contain any of the words: ${newSearchTerm.trim().split(/\s+/).filter(word => word.length > 0).map(word => `"${word}"`).join(', ')}. This is great for broader topic monitoring and catching variations.`
-                }
-              </Typography>
-            </Box>
-          )}
-          
-          {/* Performance note */}
-          <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(76, 175, 80, 0.1)', borderRadius: 1, border: '1px solid rgba(76, 175, 80, 0.3)' }}>
-            <Typography variant="caption" sx={{ color: '#4CAF50', display: 'block' }}>
-              <strong>⚡ Performance Note:</strong> Exact Match searches are typically faster and more precise, while Word Match searches 
-              may return more results but could include some false positives. Choose based on your specific needs.
-            </Typography>
-          </Box>
-          
-          {/* Current search term example */}
-          {newSearchTerm.trim() && (
-            <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(156, 39, 176, 0.1)', borderRadius: 1, border: '1px solid rgba(156, 39, 176, 0.3)' }}>
-              <Typography variant="caption" sx={{ color: '#9C27B0', display: 'block' }}>
-                <strong>🔍 Your Search: "{newSearchTerm.trim()}"</strong>
-              </Typography>
+
+
+              
               <Typography variant="caption" sx={{ color: '#9C27B0', display: 'block', mt: 1 }}>
-                {exactMatch 
-                  ? `Will find posts containing the exact phrase "${newSearchTerm.trim()}"`
-                  : `Will find posts containing any of these words: ${newSearchTerm.trim().split(/\s+/).filter(word => word.length > 0).map(word => `"${word}"`).join(', ')}`
-                }
-              </Typography>
-            </Box>
-          )}
+                
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} sx={{ color: '#71767B' }}>Cancel</Button>

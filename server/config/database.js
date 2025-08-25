@@ -49,7 +49,11 @@ if (USE_SQLITE) {
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW(),
           last_login TIMESTAMP,
-          is_active BOOLEAN DEFAULT true
+          is_active BOOLEAN DEFAULT true,
+          totp_secret VARCHAR(255),
+          totp_enabled BOOLEAN DEFAULT false,
+          totp_backup_codes TEXT[],
+          force_2fa_setup BOOLEAN DEFAULT true
         )
       `);
 
