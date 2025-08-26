@@ -944,7 +944,7 @@ const IntelReportsSimple: React.FC = () => {
                  selectedReport.status !== 'approved') && (
                 <Button 
                   variant="outlined"
-                  onClick={() => handleEditReport(selectedReport)}
+                  onClick={() => navigate(`/intel-reports/${selectedReport.id}/edit`)}
                   sx={{ 
                     borderColor: '#1D9BF0',
                     color: '#1D9BF0',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -15,7 +15,7 @@ import {
   Divider
 } from '@mui/material';
 import { Security as SecurityIcon, ArrowBack as BackIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface IntelReportFormProps {
   isModal?: boolean;
@@ -25,9 +25,11 @@ interface IntelReportFormProps {
 
 const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose, onReportSubmitted }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
   // Generate auto-incrementing Intel number
   const generateIntelNumber = () => {
@@ -80,6 +82,69 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     sourcePhone: '',
     sourceAddress: ''
   });
+
+  // Load existing report when editing
+  useEffect(() => {
+    const loadReport = async () => {
+      if (!id) return;
+      setIsEditMode(true);
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await fetch(`/api/intel-reports/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!resp.ok) throw new Error(`Failed to load report (${resp.status})`);
+        const payload = await resp.json();
+        const r = payload.report || payload;
+        setFormData(prev => ({
+          ...prev,
+          intelNumber: r.intel_number || r.intelNumber || prev.intelNumber,
+          classification: r.classification || '',
+          date: (r.date || '').slice(0,10) || prev.date,
+          agentName: r.agent_name || r.agentName || '',
+          caseNumber: r.case_number || r.caseNumber || '',
+          subject: r.subject || '',
+          criminalActivity: r.criminal_activity || r.criminalActivity || '',
+          summary: r.summary || '',
+          subjects: Array.isArray(r.subjects) && r.subjects.length ? r.subjects.map((s: any) => ({
+            firstName: s.first_name || '',
+            middleName: s.middle_name || '',
+            lastName: s.last_name || '',
+            address: s.address || '',
+            dateOfBirth: s.date_of_birth || '',
+            race: s.race || '',
+            sex: s.sex || '',
+            phone: s.phone || '',
+            ssn: s.social_security_number || '',
+            license: s.license_number || ''
+          })) : prev.subjects,
+          organizations: Array.isArray(r.organizations) && r.organizations.length ? r.organizations.map((o: any) => ({
+            businessName: o.business_name || '',
+            phone: o.phone || '',
+            address: o.address || ''
+          })) : prev.organizations,
+          // Map first source if present (UI currently supports one)
+          ...(Array.isArray(r.sources) && r.sources.length ? {
+            sourceId: r.sources[0].source_id || '',
+            sourceRating: r.sources[0].rating || '',
+            sourceType: r.sources[0].source || '',
+            sourceReliability: r.sources[0].information_reliable || '',
+            sourceFirstName: r.sources[0].first_name || '',
+            sourceMiddleName: r.sources[0].middle_name || '',
+            sourceLastName: r.sources[0].last_name || '',
+            sourcePhone: r.sources[0].phone || '',
+            sourceAddress: r.sources[0].address || ''
+          } : {})
+        }));
+      } catch (e: any) {
+        setError(e.message || 'Failed to load report');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadReport();
+  }, [id]);
 
   const classificationOptions = [
     { value: 'Sensitive', label: 'Sensitive', color: '#ff9800' },
@@ -268,7 +333,8 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
           phone: org.phone,
           address: org.address
         }))),
-        source_info: JSON.stringify({
+        // Also send sources array for compatibility
+        sources: JSON.stringify([{ 
           source_id: formData.sourceId,
           rating: formData.sourceRating,
           source: formData.sourceType,
@@ -280,15 +346,16 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
           last_name: formData.sourceLastName,
           phone: formData.sourcePhone,
           address: formData.sourceAddress
-        })
+        }])
       };
 
       console.log('Submitting intel report:', submissionData);
       console.log('Authorization header:', localStorage.getItem('token') ? 'Present' : 'Missing');
       
       // Make actual API call
-      const response = await fetch('/api/intel-reports', {
-        method: 'POST',
+      const isEdit = isEditMode && id;
+      const response = await fetch(isEdit ? `/api/intel-reports/${id}` : '/api/intel-reports', {
+        method: isEdit ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -326,8 +393,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         // Close modal after showing success
         onClose();
       } else {
-        // If not in modal, we're on a standalone page, so the success screen will show
-        // The user can click "Create New Report" or navigate away
+        // If not in modal, navigate back to list on edit, or show success on create
+        if (isEdit) {
+          navigate('/intel-reports');
+          return;
+        }
       }
       
       // Reset form for next use

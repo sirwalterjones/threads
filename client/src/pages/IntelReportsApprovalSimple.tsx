@@ -830,7 +830,10 @@ const IntelReportsApprovalSimple: React.FC = () => {
                  selectedReport.status !== 'approved') && (
                 <Button 
                   variant="outlined"
-                  onClick={() => handleEditReport(selectedReport)}
+                  onClick={() => {
+                    setSelectedReport(null);
+                    window.location.href = `/intel-reports/${selectedReport.id}/edit`;
+                  }}
                   startIcon={<EditIcon />}
                   sx={{ 
                     borderColor: '#1D9BF0',
