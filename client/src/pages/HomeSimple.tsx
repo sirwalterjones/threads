@@ -50,6 +50,7 @@ import PostDetailModal from '../components/PostDetailModal';
 import MediaGallery from '../components/MediaGallery';
 import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
+import IntelReportCard from '../components/IntelReportCard';
 
 
 const HomeSimple: React.FC = () => {
@@ -1443,6 +1444,25 @@ const HomeSimple: React.FC = () => {
                   const contentText = stripHtmlTags(post.content || '');
                   const contentCount = countMatches(contentText, highlightTerms);
                   const showCount = contentCount > 0;
+
+                  // Check if this is an intel report
+                  if (post.result_type === 'intel_report') {
+                    return (
+                      <IntelReportCard
+                        key={`intel_${post.id}`}
+                        report={post}
+                        onClick={(reportId) => {
+                          // Handle intel report click - could open a modal or navigate
+                          console.log('Intel report clicked:', reportId);
+                          // For now, you might want to open in a new tab or show a modal
+                          window.open(`/intel-reports/${reportId}`, '_blank');
+                        }}
+                        highlightText={highlightText}
+                      />
+                    );
+                  }
+
+                  // Regular post card
                   return (
                   <Card
                     key={post.id}

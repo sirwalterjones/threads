@@ -84,12 +84,10 @@ router.get('/', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
       // Non-admins can only see:
       // 1. Reports they created (regardless of status)
-      // 2. Non-classified reports that are pending or rejected
-      // 3. Non-classified reports that are approved (but not classified)
+      // 2. Non-classified reports that are pending, rejected, or approved
       query += ` AND (
         ir.agent_id = $${valueIndex} OR 
-        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected')) OR
-        (ir.classification != 'Classified' AND ir.status = 'approved')
+        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected', 'approved'))
       )`;
       values.push(req.user.id);
       valueIndex++;
@@ -152,8 +150,7 @@ router.get('/', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
       countQuery += ` AND (
         ir.agent_id = $${countIndex} OR 
-        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected')) OR
-        (ir.classification != 'Classified' AND ir.status = 'approved')
+        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected', 'approved'))
       )`;
       countValues.push(req.user.id);
       countIndex++;
@@ -749,13 +746,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
     if (req.user.role !== 'admin') {
       // Non-admins can only view:
       // 1. Reports they created (regardless of status)
-      // 2. Non-classified reports that are pending or rejected
-      // 3. Non-classified reports that are approved
+      // 2. Non-classified reports that are pending, rejected, or approved
       const canView = 
         report.agent_id === req.user.id || 
-        (report.classification !== 'Classified' && report.status === 'pending') ||
-        (report.classification !== 'Classified' && report.status === 'rejected') ||
-        (report.classification !== 'Classified' && report.status === 'approved');
+        (report.classification !== 'Classified' && (report.status === 'pending' || report.status === 'rejected' || report.status === 'approved'));
       
       if (!canView) {
         console.warn('[intel-reports] Access denied to classified report', { 
@@ -774,6 +768,87 @@ router.get('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching intel report:', error);
     res.status(500).json({ error: 'Failed to fetch intel report' });
+  }
+});
+
+// Search intel reports for system-wide search
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { 
+      search,
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    if (!search || search.trim().length === 0) {
+      return res.json({ reports: [], total: 0 });
+    }
+
+    const offset = (page - 1) * limit;
+    const searchTerm = `%${search}%`;
+
+    let query = `
+      SELECT 
+        ir.*,
+        u.username as agent_name,
+        'intel_report' as result_type
+      FROM intel_reports ir
+      LEFT JOIN users u ON ir.agent_id = u.id
+      WHERE (
+        ir.subject ILIKE $1 OR 
+        ir.intel_number ILIKE $1 OR
+        ir.summary ILIKE $1 OR
+        ir.criminal_activity ILIKE $1
+      )
+    `;
+
+    const values = [searchTerm];
+    let valueIndex = 2;
+
+    // Apply classification-based visibility rules
+    if (req.user.role !== 'admin') {
+      // Non-admins can only see non-classified approved reports
+      query += ` AND ir.classification != 'Classified' AND ir.status = 'approved'`;
+    } else {
+      // Admins can see all approved reports
+      query += ` AND ir.status = 'approved'`;
+    }
+
+    query += ` ORDER BY ir.created_at DESC LIMIT $${valueIndex} OFFSET $${valueIndex + 1}`;
+    values.push(limit, offset);
+
+    const result = await pool.query(query, values);
+
+    // Get total count
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM intel_reports ir
+      WHERE (
+        ir.subject ILIKE $1 OR 
+        ir.intel_number ILIKE $1 OR
+        ir.summary ILIKE $1 OR
+        ir.criminal_activity ILIKE $1
+      )
+    `;
+
+    if (req.user.role !== 'admin') {
+      countQuery += ` AND ir.classification != 'Classified' AND ir.status = 'approved'`;
+    } else {
+      countQuery += ` AND ir.status = 'approved'`;
+    }
+
+    const countResult = await pool.query(countQuery, [searchTerm]);
+    const total = countResult.rows[0].total;
+
+    res.json({
+      reports: result.rows,
+      total: parseInt(total),
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
+  } catch (error) {
+    console.error('Error searching intel reports:', error);
+    res.status(500).json({ error: 'Failed to search intel reports' });
   }
 });
 

@@ -198,7 +198,7 @@ router.get('/',
       `;
       
       const countResult = await pool.query(countQuery, queryParams);
-      const total = parseInt(countResult.rows[0].total);
+      const postsTotal = parseInt(countResult.rows[0].total);
 
       // Build the posts query with proper filtering
       const postsQuery = `
@@ -206,6 +206,7 @@ router.get('/',
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
+          'post' as result_type,
           COALESCE(
             (SELECT json_agg(
               json_build_object(
@@ -234,14 +235,78 @@ router.get('/',
 
     const postsResult = await pool.query(postsQuery, [...queryParams, parseInt(limit), parseInt(offset)]);
 
+    // If there's a search term, also get intel reports
+    let intelReports = [];
+    let intelTotal = 0;
+    if (search) {
+      try {
+        const intelSearchTerm = `%${search}%`;
+        
+        let intelQuery = `
+          SELECT 
+            ir.id, ir.intel_number, ir.subject as title, ir.summary as content,
+            ir.criminal_activity as excerpt, ir.agent_id, u.username as agent_name,
+            ir.created_at as wp_published_date, ir.created_at as ingested_at,
+            ir.classification, ir.status, 'intel_report' as result_type,
+            '[]'::json as attachments, 0 as comment_count,
+            NULL as wp_post_id, NULL as retention_date, NULL as metadata,
+            NULL as category_id, NULL as category_name, NULL as category_slug
+          FROM intel_reports ir
+          LEFT JOIN users u ON ir.agent_id = u.id
+          WHERE ir.status = 'approved' AND (
+            ir.subject ILIKE $1 OR 
+            ir.intel_number ILIKE $1 OR
+            ir.summary ILIKE $1 OR
+            ir.criminal_activity ILIKE $1
+          )
+        `;
+
+        // Apply classification-based visibility rules
+        if (req.user.role !== 'admin') {
+          intelQuery += ` AND ir.classification != 'Classified'`;
+        }
+
+        intelQuery += ` ORDER BY ir.created_at DESC LIMIT 5`;
+
+        const intelResult = await pool.query(intelQuery, [intelSearchTerm]);
+        intelReports = intelResult.rows;
+
+        // Get intel reports count
+        let intelCountQuery = `
+          SELECT COUNT(*) as total
+          FROM intel_reports ir
+          WHERE ir.status = 'approved' AND (
+            ir.subject ILIKE $1 OR 
+            ir.intel_number ILIKE $1 OR
+            ir.summary ILIKE $1 OR
+            ir.criminal_activity ILIKE $1
+          )
+        `;
+
+        if (req.user.role !== 'admin') {
+          intelCountQuery += ` AND ir.classification != 'Classified'`;
+        }
+
+        const intelCountResult = await pool.query(intelCountQuery, [intelSearchTerm]);
+        intelTotal = parseInt(intelCountResult.rows[0].total);
+      } catch (intelError) {
+        console.error('Error fetching intel reports in search:', intelError);
+      }
+    }
+
+    // Combine results
+    const allResults = [...postsResult.rows, ...intelReports];
+    const total = postsTotal + intelTotal;
+
       res.json({
-        posts: postsResult.rows,
+        posts: allResults,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
           total,
           pages: Math.ceil(total / limit)
-        }
+        },
+        intel_reports_count: intelTotal
       });
     } catch (error) {
       console.error('Error fetching posts:', error);
