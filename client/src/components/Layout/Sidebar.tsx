@@ -125,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const systemAdminPages = [
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
-    { text: 'Intel Approval', icon: <IntelIcon />, path: '/intel-reports/approval', roles: ['admin'] },
+    { text: 'Intel Approval', icon: <IntelIcon />, path: '/intel-reports/approval', roles: ['admin'], badge: () => pendingIntelCount },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }
   ];
@@ -214,6 +214,36 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                     {hotListAlertCount > 0 && (
                       <Badge
                         badgeContent={hotListAlertCount}
+                        color="warning"
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            backgroundColor: '#FFC107',
+                            color: '#000',
+                            fontSize: '10px',
+                            height: '16px',
+                            minWidth: '16px'
+                          }
+                        }}
+                      >
+                        <Box sx={{ width: 8 }} />
+                      </Badge>
+                    )}
+                  </Box>
+                ) : item.path === '/intel-reports/approval' ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Typography
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: isActive(item.path) ? 600 : 400,
+                        color: 'inherit',
+                        flex: 1
+                      }}
+                    >
+                      {item.text}
+                    </Typography>
+                    {pendingIntelCount > 0 && (
+                      <Badge
+                        badgeContent={pendingIntelCount}
                         color="warning"
                         sx={{
                           '& .MuiBadge-badge': {
