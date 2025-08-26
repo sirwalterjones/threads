@@ -465,12 +465,12 @@ const IntelReportsSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#2a2a2a',
-                      border: '1px solid #3a3a3a',
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
                       '& .MuiMenuItem-root': {
                         color: '#E7E9EA',
-                        backgroundColor: '#2a2a2a',
-                        '&:hover': { backgroundColor: '#3a3a3a' },
+                        backgroundColor: 'transparent',
+                        '&:hover': { backgroundColor: '#1D2126' },
                         '&.Mui-selected': { 
                           backgroundColor: '#1D9BF0',
                           color: '#ffffff',
@@ -482,9 +482,9 @@ const IntelReportsSimple: React.FC = () => {
                 }}
               >
                 <MenuItem value="all">All Status</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
+                <MenuItem value="pending">Pending ({reports.filter(r => r.status === 'pending').length})</MenuItem>
+                <MenuItem value="approved">Approved ({reports.filter(r => r.status === 'approved').length})</MenuItem>
+                <MenuItem value="rejected">Rejected ({reports.filter(r => r.status === 'rejected').length})</MenuItem>
               </Select>
             </FormControl>
           </Box>

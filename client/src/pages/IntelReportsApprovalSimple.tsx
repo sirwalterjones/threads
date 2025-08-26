@@ -111,8 +111,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
           return;
         }
 
-        // Fetch reports with pending status for approval
-        const response = await fetch(`/api/intel-reports?status=pending`, {
+        // Fetch reports with selected status for approval view
+        const response = await fetch(`/api/intel-reports?status=${statusFilter}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -164,6 +164,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
   });
 
   const pendingCount = reports.filter(r => r.status === 'pending').length;
+  const rejectedCount = reports.filter(r => r.status === 'rejected').length;
+  const approvedCount = reports.filter(r => r.status === 'approved').length;
 
   const handleViewReport = async (report: IntelReport) => {
     try {
@@ -336,11 +338,28 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status Filter"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#16181C',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#1D2126' },
+                        '&.Mui-selected': {
+                          backgroundColor: '#1D9BF0',
+                          color: '#ffffff',
+                          '&:hover': { backgroundColor: '#1a8cd8' }
+                        }
+                      }
+                    }
+                  }
+                }}
               >
-                <MenuItem value="all" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>All Reports</MenuItem>
-                <MenuItem value="pending" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Pending ({pendingCount})</MenuItem>
-                <MenuItem value="approved" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Approved</MenuItem>
-                <MenuItem value="rejected" sx={{ color: '#E7E9EA', bgcolor: '#1A1A1A' }}>Rejected</MenuItem>
+                <MenuItem value="all">All Reports</MenuItem>
+                <MenuItem value="pending">Pending ({pendingCount})</MenuItem>
+                <MenuItem value="approved">Approved ({approvedCount})</MenuItem>
+                <MenuItem value="rejected">Rejected ({rejectedCount})</MenuItem>
               </Select>
             </FormControl>
           </Box>
