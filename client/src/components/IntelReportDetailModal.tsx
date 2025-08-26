@@ -101,8 +101,8 @@ const IntelReportDetailModal: React.FC<IntelReportDetailModalProps> = ({ open, o
     setLoading(true);
     setError('');
     try {
-      const response = await apiService.get(`/intel-reports/${id}`);
-      setReport(response.data.report);
+      const response = await apiService.getIntelReport(id.toString());
+      setReport(response.report);
     } catch (error: any) {
       setError(error.response?.data?.error || 'Failed to load intel report details');
     } finally {
