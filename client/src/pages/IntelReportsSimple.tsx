@@ -57,6 +57,7 @@ interface IntelReport {
   classification: string;
   date: string;
   agentName: string;
+  agent_id?: number; // Add agent_id for permission checks
   caseNumber?: string;
   subject: string;
   criminalActivity: string;
@@ -133,7 +134,8 @@ const IntelReportsSimple: React.FC = () => {
         const transformedReports = (data.reports || []).map((report: any) => ({
           ...report,
           intelNumber: report.intel_number,
-          agentName: report.agent_name || 'Unknown'
+          agentName: report.agent_name || 'Unknown',
+          agent_id: report.agent_id
         }));
         
         setReports(transformedReports);
