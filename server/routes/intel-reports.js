@@ -188,11 +188,7 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    // Validate status
-    if (!['approved', 'rejected'].includes(status)) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Invalid status value' });
-    }
+    // New reports are always created as pending; ignore any status in body
 
     const {
       intel_number,
@@ -644,7 +640,7 @@ router.delete('/:id', authenticateToken, authorizeRole(['admin']), async (req, r
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[intel-reports] Fetch single report', { id, userId: req.user?.userId, role: req.user?.role, super: req.user?.super_admin });
+    console.log('[intel-reports] Fetch single report', { id, userId: req.user?.id, role: req.user?.role, super: req.user?.super_admin });
     
     const query = `
       SELECT 
@@ -708,11 +704,11 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const report = result.rows[0];
     
     // Check if user can view this report
-    const isAuthor = report.agent_id === req.user.userId;
+    const isAuthor = report.agent_id === req.user.id;
     const isAdmin = req.user.role === 'admin' || req.user.super_admin;
     
     if (!isAdmin && !isAuthor) {
-      console.warn('[intel-reports] Permission denied to view report', { id, requester: req.user?.userId, agentId: report.agent_id });
+      console.warn('[intel-reports] Permission denied to view report', { id, requester: req.user?.id, agentId: report.agent_id });
       return res.status(403).json({ error: 'You can only view your own reports' });
     }
 
