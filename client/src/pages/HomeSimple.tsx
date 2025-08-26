@@ -52,6 +52,7 @@ import MediaGallery from '../components/MediaGallery';
 import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
 import IntelReportCard from '../components/IntelReportCard';
+import TwitterStylePostCard from '../components/TwitterStylePostCard';
 
 
 const HomeSimple: React.FC = () => {
@@ -65,7 +66,7 @@ const HomeSimple: React.FC = () => {
   const [authorFilter, setAuthorFilter] = useState('');
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'twitter'>('grid');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [origin, setOrigin] = useState<'all'|'wordpress'|'manual'>('all');
   const [mineOnly, setMineOnly] = useState(false);
@@ -1407,6 +1408,9 @@ const HomeSimple: React.FC = () => {
                 <ToggleButton value="grid">
                   <ViewModule />
                 </ToggleButton>
+                <ToggleButton value="twitter">
+                  <ViewList />
+                </ToggleButton>
                 <ToggleButton value="table">
                   <ViewList />
                 </ToggleButton>
@@ -1778,6 +1782,39 @@ const HomeSimple: React.FC = () => {
                     </CardContent>
                   </Card>
                 );})}
+              </Box>
+            ) : viewMode === 'twitter' ? (
+              <Box sx={{ 
+                maxWidth: '600px', 
+                mx: 'auto',
+                backgroundColor: '#000000',
+                border: '1px solid #2F3336',
+                borderRadius: 2,
+                overflow: 'hidden'
+              }}>
+                {posts.map((post) => {
+                  // Check if this is an intel report and render appropriate card
+                  if (post.result_type === 'intel_report') {
+                    return (
+                      <IntelReportCard
+                        key={`intel_${post.id}`}
+                        report={post}
+                        onClick={handleIntelReportClick}
+                        highlightText={highlightText}
+                      />
+                    );
+                  }
+
+                  // Twitter-style post card
+                  return (
+                    <TwitterStylePostCard
+                      key={post.id}
+                      post={post}
+                      onClick={handlePostClick}
+                      highlightText={highlightText}
+                    />
+                  );
+                })}
               </Box>
             ) : (
               <Box sx={{ 
