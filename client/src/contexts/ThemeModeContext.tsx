@@ -17,7 +17,7 @@ export const useThemeMode = () => {
 };
 
 export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<Mode>(() => (localStorage.getItem('themeMode') as Mode) || 'light');
+  const [mode, setMode] = useState<Mode>(() => (localStorage.getItem('themeMode') as Mode) || 'dark');
 
   useEffect(() => {
     localStorage.setItem('themeMode', mode);
@@ -42,8 +42,8 @@ export const ThemeModeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         secondary: mode === 'light' ? '#475569' : '#CBD5E1'
       },
       background: {
-        default: mode === 'light' ? '#F8FAFC' : '#0F172A', // Deep dark blue for dark mode
-        paper: mode === 'light' ? '#FFFFFF' : '#1E293B' // Slate for cards/papers
+        default: mode === 'light' ? '#F8FAFC' : '#000000', // Pure black for dark mode
+        paper: mode === 'light' ? '#FFFFFF' : '#16181C' // Dark gray for cards/papers
       },
       divider: mode === 'light' ? '#E2E8F0' : '#334155',
       // Custom colors for the modern look

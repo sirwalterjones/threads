@@ -164,7 +164,8 @@ const RightSidebar: React.FC = () => {
       zIndex: 1200,
       pt: 1.5,
       maxHeight: '100vh',
-      overflow: 'visible'
+      overflow: 'visible',
+      backgroundColor: '#000000' // Ensure black background
     }}>
       {/* Recent Threads - Full Height */}
       {!loading && recentThreads.length > 0 && (
