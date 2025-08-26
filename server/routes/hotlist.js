@@ -199,16 +199,25 @@ router.get('/alerts', authenticateToken, async (req, res) => {
         hla.id,
         hla.hot_list_id,
         hla.post_id,
+        hla.intel_report_id,
         hla.is_read,
         hla.highlighted_content,
         hla.created_at,
         hl.search_term,
-        p.title as post_title,
-        p.author_name,
-        p.wp_published_date
+        COALESCE(p.title, ir.subject) as title,
+        COALESCE(p.author_name, u.username) as author_name,
+        COALESCE(p.wp_published_date, ir.created_at) as published_date,
+        CASE 
+          WHEN hla.post_id IS NOT NULL THEN 'post'
+          WHEN hla.intel_report_id IS NOT NULL THEN 'intel_report'
+        END as content_type,
+        ir.intel_number,
+        ir.classification
        FROM hot_list_alerts hla
        JOIN hot_lists hl ON hla.hot_list_id = hl.id
-       JOIN posts p ON hla.post_id = p.id
+       LEFT JOIN posts p ON hla.post_id = p.id
+       LEFT JOIN intel_reports ir ON hla.intel_report_id = ir.id
+       LEFT JOIN users u ON ir.agent_id = u.id
        ${whereClause}
        ORDER BY hla.created_at DESC
        LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,

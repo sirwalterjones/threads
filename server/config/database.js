@@ -225,17 +225,34 @@ if (USE_SQLITE) {
         )
       `);
 
-      // Hot List Alerts table - Matched posts for hot list terms
+      // Hot List Alerts table - Matched posts and intel reports for hot list terms
       await pool.query(`
         CREATE TABLE IF NOT EXISTS hot_list_alerts (
           id SERIAL PRIMARY KEY,
           hot_list_id INTEGER NOT NULL REFERENCES hot_lists(id) ON DELETE CASCADE,
-          post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+          post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+          intel_report_id INTEGER REFERENCES intel_reports(id) ON DELETE CASCADE,
           is_read BOOLEAN DEFAULT false,
           highlighted_content TEXT,
           created_at TIMESTAMP DEFAULT NOW(),
-          UNIQUE(hot_list_id, post_id)
+          CHECK (
+            (post_id IS NOT NULL AND intel_report_id IS NULL) OR 
+            (post_id IS NULL AND intel_report_id IS NOT NULL)
+          )
         )
+      `);
+
+      // Add unique constraints for both post and intel report alerts
+      await pool.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS hot_list_alerts_post_unique 
+        ON hot_list_alerts (hot_list_id, post_id) 
+        WHERE post_id IS NOT NULL
+      `);
+
+      await pool.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS hot_list_alerts_intel_unique 
+        ON hot_list_alerts (hot_list_id, intel_report_id) 
+        WHERE intel_report_id IS NOT NULL
       `);
 
       // Create indexes for hot list functionality

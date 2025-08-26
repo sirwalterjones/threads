@@ -304,28 +304,44 @@ class CronService {
       
       // Get posts from the last 2 minutes to check against hot lists
       const recentPostsResult = await pool.query(`
-        SELECT id, title, content, excerpt, author_name
+        SELECT id, title, content, excerpt, author_name, 'post' as result_type
         FROM posts
         WHERE ingested_at > NOW() - INTERVAL '2 minutes'
         ORDER BY ingested_at DESC
       `);
+
+      // Get intel reports from the last 2 minutes to check against hot lists
+      const recentIntelResult = await pool.query(`
+        SELECT id, intel_number, subject as title, summary as content, 
+               criminal_activity as excerpt, u.username as author_name, 'intel_report' as result_type,
+               classification, status
+        FROM intel_reports ir
+        LEFT JOIN users u ON ir.agent_id = u.id
+        WHERE ir.created_at > NOW() - INTERVAL '2 minutes'
+          AND ir.status = 'approved'
+          AND ir.classification != 'Classified'
+        ORDER BY ir.created_at DESC
+      `);
+
+      // Combine posts and intel reports
+      const recentItems = [...recentPostsResult.rows, ...recentIntelResult.rows];
       
-      if (recentPostsResult.rows.length === 0) {
-        console.log('📝 No recent posts to check');
+      if (recentItems.length === 0) {
+        console.log('📝 No recent posts or intel reports to check');
         return;
       }
       
-      console.log(`📋 Checking ${recentPostsResult.rows.length} recent posts against hot lists`);
+      console.log(`📋 Checking ${recentPostsResult.rows.length} recent posts and ${recentIntelResult.rows.length} recent intel reports against hot lists`);
       
       let alertsCreated = 0;
       
-      // Check each hot list against each recent post
+      // Check each hot list against each recent item (posts and intel reports)
       for (const hotList of hotListsResult.rows) {
           const searchTerm = hotList.search_term.toLowerCase();
           const exactMatch = hotList.exact_match;
           
-          for (const post of recentPostsResult.rows) {
-            const searchableContent = `${post.title} ${post.content || ''} ${post.excerpt || ''}`.toLowerCase();
+          for (const item of recentItems) {
+            const searchableContent = `${item.title} ${item.content || ''} ${item.excerpt || ''}`.toLowerCase();
             
             let matches = false;
             
@@ -339,26 +355,39 @@ class CronService {
             }
             
             if (matches) {
-            // Check if we already have an alert for this combination
-            const existingAlert = await pool.query(`
-              SELECT id FROM hot_list_alerts
-              WHERE hot_list_id = $1 AND post_id = $2
-            `, [hotList.id, post.id]);
-            
-            if (existingAlert.rows.length === 0) {
-              // Create new alert
-              const highlightedContent = this.createHighlightedContent(searchableContent, searchTerm, post.title);
+              // For intel reports, use intel_report_id; for posts, use post_id
+              const alertField = item.result_type === 'intel_report' ? 'intel_report_id' : 'post_id';
+              const alertValue = item.id;
+
+              // Check if we already have an alert for this combination
+              const existingAlert = await pool.query(`
+                SELECT id FROM hot_list_alerts
+                WHERE hot_list_id = $1 AND ${alertField} = $2
+              `, [hotList.id, alertValue]);
               
-              await pool.query(`
-                INSERT INTO hot_list_alerts (hot_list_id, post_id, highlighted_content, created_at, is_read)
-                VALUES ($1, $2, $3, NOW(), false)
-              `, [hotList.id, post.id, highlightedContent]);
-              
-              alertsCreated++;
-              console.log(`🔥 Created hot list alert for user ${hotList.user_id}, search: "${hotList.search_term}", post: "${post.title}"`);
+              if (existingAlert.rows.length === 0) {
+                // Create new alert
+                const highlightedContent = this.createHighlightedContent(searchableContent, searchTerm, item.title);
+                
+                // Insert with appropriate field set
+                if (item.result_type === 'intel_report') {
+                  await pool.query(`
+                    INSERT INTO hot_list_alerts (hot_list_id, intel_report_id, highlighted_content, created_at, is_read)
+                    VALUES ($1, $2, $3, NOW(), false)
+                  `, [hotList.id, item.id, highlightedContent]);
+                } else {
+                  await pool.query(`
+                    INSERT INTO hot_list_alerts (hot_list_id, post_id, highlighted_content, created_at, is_read)
+                    VALUES ($1, $2, $3, NOW(), false)
+                  `, [hotList.id, item.id, highlightedContent]);
+                }
+                
+                alertsCreated++;
+                const itemType = item.result_type === 'intel_report' ? 'intel report' : 'post';
+                console.log(`🔥 Created hot list alert for user ${hotList.user_id}, search: "${hotList.search_term}", ${itemType}: "${item.title}"`);
+              }
             }
           }
-        }
       }
       
       console.log(`✅ Hot List check completed. Created ${alertsCreated} new alerts`);
