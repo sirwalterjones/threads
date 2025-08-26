@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import {
   Box,
   Typography,
@@ -23,7 +23,7 @@ import MediaGallery from './MediaGallery';
 interface TwitterStylePostCardProps {
   post: Post;
   onClick: (postId: number) => void;
-  highlightText: (text: string) => string;
+  highlightText: (text: string) => string | ReactElement[];
   isLiked?: boolean;
   isBookmarked?: boolean;
   onLike?: (postId: number) => void;
@@ -267,7 +267,7 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
               wordBreak: 'break-word'
             }}
           >
-            {highlightText(stripHtmlTags(post.content.substring(0, 280))}
+            {post.content && highlightText(stripHtmlTags(post.content.substring(0, 280)))}
             {post.content && post.content.length > 280 && '...'}
           </Typography>
         )}
