@@ -374,6 +374,23 @@ router.post('/check-existing', authenticateToken, async (req, res) => {
 // Clear all hot list alerts for user
 router.delete('/alerts', authenticateToken, async (req, res) => {
   try {
+    console.log('Clearing hot list alerts for user:', req.user.id);
+    
+    // First check if user has any hot lists
+    const hotListsCheck = await pool.query(
+      'SELECT COUNT(*) as count FROM hot_lists WHERE user_id = $1',
+      [req.user.id]
+    );
+    
+    if (hotListsCheck.rows[0].count === 0) {
+      console.log('User has no hot lists, returning success with 0 deleted');
+      return res.json({ 
+        message: 'No hot list alerts to clear',
+        deletedCount: 0 
+      });
+    }
+    
+    // Delete alerts for user's hot lists
     const result = await pool.query(`
       DELETE FROM hot_list_alerts 
       WHERE hot_list_id IN (
@@ -381,13 +398,20 @@ router.delete('/alerts', authenticateToken, async (req, res) => {
       )
     `, [req.user.id]);
 
+    console.log('Successfully deleted', result.rowCount, 'hot list alerts');
     res.json({ 
       message: 'All hot list alerts cleared successfully',
       deletedCount: result.rowCount 
     });
   } catch (error) {
     console.error('Error clearing hot list alerts:', error);
-    res.status(500).json({ error: 'Failed to clear hot list alerts' });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint
+    });
+    res.status(500).json({ error: 'Failed to clear hot list alerts: ' + error.message });
   }
 });
 
