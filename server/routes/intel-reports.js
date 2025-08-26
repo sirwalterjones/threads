@@ -444,10 +444,14 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 // Update report status
 router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervisor']), async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const { status, review_comments } = req.body;
 
+    await client.query('BEGIN');
+
+    // Update status and reviewer
     const query = `
       UPDATE intel_reports 
       SET status = $1, review_comments = $2, reviewed_by = $3, reviewed_at = NOW(), updated_at = NOW()
@@ -455,19 +459,79 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervis
       RETURNING *
     `;
 
-    const result = await pool.query(query, [status, review_comments, req.user.userId, id]);
+    const result = await client.query(query, [status, review_comments, req.user.userId, id]);
 
     if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Intel report not found' });
     }
 
+    const report = result.rows[0];
+
+    // Ensure review notes table exists (lightweight migration)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS intel_report_review_notes (
+        id SERIAL PRIMARY KEY,
+        report_id INTEGER NOT NULL REFERENCES intel_reports(id) ON DELETE CASCADE,
+        reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+        action VARCHAR(20) NOT NULL, -- 'approved' | 'rejected' | 'comment'
+        comments TEXT,
+        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+      );
+    `);
+
+    // Insert review trail entry
+    await client.query(
+      `INSERT INTO intel_report_review_notes (report_id, reviewer_id, action, comments)
+       VALUES ($1, $2, $3, $4)`,
+      [id, req.user.userId, status, review_comments || null]
+    );
+
+    // If rejected, create a notification for the author to edit
+    if (status === 'rejected') {
+      // notifications table assumed to exist
+      await client.query(`
+        INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
+        VALUES ($1, $2, $3, $4, $5, false, NOW())
+      `, [
+        report.agent_id,
+        'intel_report_rejected',
+        'Intel report rejected',
+        'Your intel report was rejected. Tap to review and edit.',
+        JSON.stringify({ kind: 'intel_report', report_id: report.id })
+      ]);
+    }
+
+    await client.query('COMMIT');
+
     res.json({
       message: `Intel report status updated to ${status}`,
-      report: result.rows[0]
+      report
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error updating intel report status:', error);
     res.status(500).json({ error: 'Failed to update intel report status' });
+  } finally {
+    client.release();
+  }
+});
+
+// Get review trail for a report
+router.get('/:id/reviews', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notes = await pool.query(`
+      SELECT n.*, u.username AS reviewer_name
+      FROM intel_report_review_notes n
+      LEFT JOIN users u ON n.reviewer_id = u.id
+      WHERE n.report_id = $1
+      ORDER BY n.created_at DESC
+    `, [id]);
+    res.json({ reviews: notes.rows });
+  } catch (error) {
+    console.error('Error fetching review notes:', error);
+    res.status(500).json({ error: 'Failed to fetch review notes' });
   }
 });
 

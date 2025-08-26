@@ -103,7 +103,13 @@ const NotificationBell: React.FC = () => {
       // Close the notification menu
       setAnchorEl(null);
 
-      // Open the post detail modal if there's a related post
+      // Deep link to intel report edit if applicable
+      if (notification.data?.kind === 'intel_report' && notification.data?.report_id) {
+        window.location.href = `/intel-reports/${notification.data.report_id}/edit`;
+        return;
+      }
+
+      // Fallback: open related post
       if (notification.related_post_id) {
         const evt = new CustomEvent('open-post-detail', { 
           detail: { postId: notification.related_post_id } 

@@ -50,6 +50,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate } from 'react-router-dom';
+import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
 

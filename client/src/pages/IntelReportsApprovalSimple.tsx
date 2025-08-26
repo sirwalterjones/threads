@@ -44,6 +44,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
+import apiService from '../services/api';
 
 interface IntelReport {
   id: string;
@@ -219,31 +220,12 @@ const IntelReportsApprovalSimple: React.FC = () => {
     if (!selectedReport || !reviewAction) return;
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
-
-      // Call API to update report status
-      const response = await fetch(`/api/intel-reports/${selectedReport.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: reviewAction === 'approve' ? 'approved' : 'rejected',
-          review_comments: reviewComments,
-          reviewed_by: 'current_user' // This will be set by the backend
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      // Use API service to update status (triggers review trail + notification)
+      const result = await apiService.updateIntelReportStatus(
+        selectedReport.id,
+        reviewAction === 'approve' ? 'approved' : 'rejected',
+        reviewComments
+      );
       console.log('Report status updated:', result);
 
       // Update local state
