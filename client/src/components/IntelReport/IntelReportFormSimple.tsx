@@ -14,7 +14,7 @@ import {
   CircularProgress,
   Divider
 } from '@mui/material';
-import { Security as SecurityIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import { Security as SecurityIcon, ArrowBack as BackIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 interface IntelReportFormProps {
@@ -50,21 +50,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     subject: '',
     criminalActivity: '',
     summary: '',
-    // Subject Information
-    subjectFirstName: '',
-    subjectMiddleName: '',
-    subjectLastName: '',
-    subjectAddress: '',
-    subjectDateOfBirth: '',
-    subjectRace: '',
-    subjectSex: '',
-    subjectPhone: '',
-    subjectSSN: '',
-    subjectLicense: '',
-    // Organization/Business
-    businessName: '',
-    businessPhone: '',
-    businessAddress: '',
+    // Arrays for multiple subjects and organizations
+    subjects: [{
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      address: '',
+      dateOfBirth: '',
+      race: '',
+      sex: '',
+      phone: '',
+      ssn: '',
+      license: ''
+    }],
+    organizations: [{
+      businessName: '',
+      phone: '',
+      address: ''
+    }],
     // Source Information
     sourceId: '',
     sourceRating: '',
@@ -166,6 +169,71 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     }));
   };
 
+  const handleSubjectChange = (index: number, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      subjects: prev.subjects.map((subject, i) => 
+        i === index ? { ...subject, [field]: value } : subject
+      )
+    }));
+  };
+
+  const handleOrganizationChange = (index: number, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      organizations: prev.organizations.map((org, i) => 
+        i === index ? { ...org, [field]: value } : org
+      )
+    }));
+  };
+
+  const addSubject = () => {
+    setFormData(prev => ({
+      ...prev,
+      subjects: [...prev.subjects, {
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        address: '',
+        dateOfBirth: '',
+        race: '',
+        sex: '',
+        phone: '',
+        ssn: '',
+        license: ''
+      }]
+    }));
+  };
+
+  const removeSubject = (index: number) => {
+    if (formData.subjects.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        subjects: prev.subjects.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const addOrganization = () => {
+    setFormData(prev => ({
+      ...prev,
+      organizations: [...prev.organizations, {
+        businessName: '',
+        phone: '',
+        address: ''
+      }]
+    }));
+  };
+
+  const removeOrganization = (index: number) => {
+    if (formData.organizations.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        organizations: prev.organizations.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
@@ -176,27 +244,29 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         intel_number: formData.intelNumber,
         classification: formData.classification,
         date: formData.date,
+        agent_name: formData.agentName,
         case_number: formData.caseNumber,
         subject: formData.subject,
         criminal_activity: formData.criminalActivity,
         summary: formData.summary,
-        subjects: JSON.stringify([{
-          first_name: formData.subjectFirstName,
-          middle_name: formData.subjectMiddleName,
-          last_name: formData.subjectLastName,
-          address: formData.subjectAddress,
-          date_of_birth: formData.subjectDateOfBirth,
-          race: formData.subjectRace,
-          sex: formData.subjectSex,
-          phone: formData.subjectPhone,
-          social_security_number: formData.subjectSSN,
-          license_number: formData.subjectLicense
-        }]),
-        organizations: JSON.stringify([{
-          business_name: formData.businessName,
-          phone: formData.businessPhone,
-          address: formData.businessAddress
-        }]),
+        status: 'pending',
+        subjects: JSON.stringify(formData.subjects.map(subject => ({
+          first_name: subject.firstName,
+          middle_name: subject.middleName,
+          last_name: subject.lastName,
+          address: subject.address,
+          date_of_birth: subject.dateOfBirth,
+          race: subject.race,
+          sex: subject.sex,
+          phone: subject.phone,
+          social_security_number: subject.ssn,
+          license_number: subject.license
+        }))),
+        organizations: JSON.stringify(formData.organizations.map(org => ({
+          business_name: org.businessName,
+          phone: org.phone,
+          address: org.address
+        }))),
         source_info: JSON.stringify({
           source_id: formData.sourceId,
           rating: formData.sourceRating,
@@ -256,21 +326,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         subject: '',
         criminalActivity: '',
         summary: '',
-        // Subject Information
-        subjectFirstName: '',
-        subjectMiddleName: '',
-        subjectLastName: '',
-        subjectAddress: '',
-        subjectDateOfBirth: '',
-        subjectRace: '',
-        subjectSex: '',
-        subjectPhone: '',
-        subjectSSN: '',
-        subjectLicense: '',
-        // Organization/Business
-        businessName: '',
-        businessPhone: '',
-        businessAddress: '',
+        // Arrays for multiple subjects and organizations
+        subjects: [{
+          firstName: '',
+          middleName: '',
+          lastName: '',
+          address: '',
+          dateOfBirth: '',
+          race: '',
+          sex: '',
+          phone: '',
+          ssn: '',
+          license: ''
+        }],
+        organizations: [{
+          businessName: '',
+          phone: '',
+          address: ''
+        }],
         // Source Information
         sourceId: '',
         sourceRating: '',
@@ -360,21 +433,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                   subject: '',
                   criminalActivity: '',
                   summary: '',
-                  // Subject Information
-                  subjectFirstName: '',
-                  subjectMiddleName: '',
-                  subjectLastName: '',
-                  subjectAddress: '',
-                  subjectDateOfBirth: '',
-                  subjectRace: '',
-                  subjectSex: '',
-                  subjectPhone: '',
-                  subjectSSN: '',
-                  subjectLicense: '',
-                  // Organization/Business
-                  businessName: '',
-                  businessPhone: '',
-                  businessAddress: '',
+                  // Arrays for multiple subjects and organizations
+                  subjects: [{
+                    firstName: '',
+                    middleName: '',
+                    lastName: '',
+                    address: '',
+                    dateOfBirth: '',
+                    race: '',
+                    sex: '',
+                    phone: '',
+                    ssn: '',
+                    license: ''
+                  }],
+                  organizations: [{
+                    businessName: '',
+                    phone: '',
+                    address: ''
+                  }],
                   // Source Information
                   sourceId: '',
                   sourceRating: '',
@@ -491,11 +567,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #cccccc',
+                      backgroundColor: '#2a2a2a',
+                      border: '1px solid #3a3a3a',
                       '& .MuiMenuItem-root': {
-                        color: '#000000',
-                        '&:hover': { backgroundColor: '#f5f5f5' }
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#3a3a3a' }
                       }
                     }
                   }
@@ -594,166 +670,230 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
         {/* Subject Information Section */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h5" sx={{ mb: 3 }}>Subject Information</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Typography variant="h5" sx={{ color: '#E7E9EA' }}>Subject Information</Typography>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={addSubject}
+            sx={{ color: '#1D9BF0', '&:hover': { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}
+          >
+            Add Subject
+          </Button>
+        </Box>
         
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="First Name"
-              value={formData.subjectFirstName}
-              onChange={(e) => handleInputChange('subjectFirstName', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Middle Name"
-              value={formData.subjectMiddleName}
-              onChange={(e) => handleInputChange('subjectMiddleName', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Last Name"
-              value={formData.subjectLastName}
-              onChange={(e) => handleInputChange('subjectLastName', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-        </Box>
+        {formData.subjects.map((subject, index) => (
+          <Paper key={index} sx={{ p: 3, mb: 3, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#E7E9EA' }}>Subject {index + 1}</Typography>
+              {formData.subjects.length > 1 && (
+                <Button
+                  startIcon={<RemoveIcon />}
+                  onClick={() => removeSubject(index)}
+                  sx={{ color: '#f44336', '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' } }}
+                >
+                  Remove
+                </Button>
+              )}
+            </Box>
+            
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  value={subject.firstName}
+                  onChange={(e) => handleSubjectChange(index, 'firstName', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Middle Name"
+                  value={subject.middleName}
+                  onChange={(e) => handleSubjectChange(index, 'middleName', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  value={subject.lastName}
+                  onChange={(e) => handleSubjectChange(index, 'lastName', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+            </Box>
 
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            label="Address"
-            value={formData.subjectAddress}
-            onChange={(e) => handleInputChange('subjectAddress', e.target.value)}
-            sx={{ mb: 2 }}
-          />
-        </Box>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Address"
+                value={subject.address}
+                onChange={(e) => handleSubjectChange(index, 'address', e.target.value)}
+                sx={fieldStyles}
+              />
+            </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Date of Birth"
-              type="date"
-              value={formData.subjectDateOfBirth}
-              onChange={(e) => handleInputChange('subjectDateOfBirth', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Race</InputLabel>
-              <Select
-                value={formData.subjectRace}
-                onChange={(e) => handleInputChange('subjectRace', e.target.value)}
-                label="Race"
-              >
-                {raceOptions.map((race) => (
-                  <MenuItem key={race} value={race}>{race}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={selectStyles}>
-              <InputLabel>Sex</InputLabel>
-              <Select
-                value={formData.subjectSex}
-                onChange={(e) => handleInputChange('subjectSex', e.target.value)}
-                label="Sex"
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #cccccc',
-                      '& .MuiMenuItem-root': {
-                        color: '#000000',
-                        '&:hover': { backgroundColor: '#f5f5f5' }
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Date of Birth"
+                  type="date"
+                  value={subject.dateOfBirth}
+                  onChange={(e) => handleSubjectChange(index, 'dateOfBirth', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <FormControl fullWidth sx={selectStyles}>
+                  <InputLabel>Race</InputLabel>
+                  <Select
+                    value={subject.race}
+                    onChange={(e) => handleSubjectChange(index, 'race', e.target.value)}
+                    label="Race"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: '#2a2a2a',
+                          border: '1px solid #3a3a3a',
+                          '& .MuiMenuItem-root': {
+                            color: '#E7E9EA',
+                            '&:hover': { backgroundColor: '#3a3a3a' }
+                          }
+                        }
                       }
-                    }
-                  }
-                }}
-              >
-                {sexOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
+                    }}
+                  >
+                    {raceOptions.map((race) => (
+                      <MenuItem key={race} value={race}>{race}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <FormControl fullWidth sx={selectStyles}>
+                  <InputLabel>Sex</InputLabel>
+                  <Select
+                    value={subject.sex}
+                    onChange={(e) => handleSubjectChange(index, 'sex', e.target.value)}
+                    label="Sex"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          backgroundColor: '#2a2a2a',
+                          border: '1px solid #3a3a3a',
+                          '& .MuiMenuItem-root': {
+                            color: '#E7E9EA',
+                            '&:hover': { backgroundColor: '#3a3a3a' }
+                          }
+                        }
+                      }
+                    }}
+                  >
+                    {sexOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Phone"
-              value={formData.subjectPhone}
-              onChange={(e) => handleInputChange('subjectPhone', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Social Security Number"
-              value={formData.subjectSSN}
-              onChange={(e) => handleInputChange('subjectSSN', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="License Number & State"
-              value={formData.subjectLicense}
-              onChange={(e) => handleInputChange('subjectLicense', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-        </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  value={subject.phone}
+                  onChange={(e) => handleSubjectChange(index, 'phone', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Social Security Number"
+                  value={subject.ssn}
+                  onChange={(e) => handleSubjectChange(index, 'ssn', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="License Number & State"
+                  value={subject.license}
+                  onChange={(e) => handleSubjectChange(index, 'license', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+            </Box>
+          </Paper>
+        ))}
 
         {/* Organization/Business Section */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h5" sx={{ mb: 3 }}>Organization/Business Information</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Typography variant="h5" sx={{ color: '#E7E9EA' }}>Organization/Business Information</Typography>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={addOrganization}
+            sx={{ color: '#1D9BF0', '&:hover': { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}
+          >
+            Add Organization
+          </Button>
+        </Box>
         
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Business/Organization Name"
-              value={formData.businessName}
-              onChange={(e) => handleInputChange('businessName', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-          <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <TextField
-              fullWidth
-              label="Phone"
-              value={formData.businessPhone}
-              onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          </Box>
-        </Box>
+        {formData.organizations.map((org, index) => (
+          <Paper key={index} sx={{ p: 3, mb: 3, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#E7E9EA' }}>Organization {index + 1}</Typography>
+              {formData.organizations.length > 1 && (
+                <Button
+                  startIcon={<RemoveIcon />}
+                  onClick={() => removeOrganization(index)}
+                  sx={{ color: '#f44336', '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.1)' } }}
+                >
+                  Remove
+                </Button>
+              )}
+            </Box>
+            
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Business/Organization Name"
+                  value={org.businessName}
+                  onChange={(e) => handleOrganizationChange(index, 'businessName', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  value={org.phone}
+                  onChange={(e) => handleOrganizationChange(index, 'phone', e.target.value)}
+                  sx={fieldStyles}
+                />
+              </Box>
+            </Box>
 
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            label="Address"
-            value={formData.businessAddress}
-            onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-            sx={{ mb: 2 }}
-          />
-        </Box>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                label="Address"
+                value={org.address}
+                onChange={(e) => handleOrganizationChange(index, 'address', e.target.value)}
+                sx={fieldStyles}
+              />
+            </Box>
+          </Paper>
+        ))}
 
         {/* Source Information Section */}
         <Divider sx={{ my: 3 }} />
@@ -766,16 +906,28 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="Source ID"
               value={formData.sourceId}
               onChange={(e) => handleInputChange('sourceId', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={selectStyles}>
               <InputLabel>Source Type</InputLabel>
               <Select
                 value={formData.sourceType}
                 onChange={(e) => handleInputChange('sourceType', e.target.value)}
                 label="Source Type"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#2a2a2a',
+                      border: '1px solid #3a3a3a',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#3a3a3a' }
+                      }
+                    }
+                  }
+                }}
               >
                 {sourceTypeOptions.map((type) => (
                   <MenuItem key={type} value={type}>{type}</MenuItem>
@@ -787,12 +939,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={selectStyles}>
               <InputLabel>Source Rating</InputLabel>
               <Select
                 value={formData.sourceRating}
                 onChange={(e) => handleInputChange('sourceRating', e.target.value)}
                 label="Source Rating"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#2a2a2a',
+                      border: '1px solid #3a3a3a',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#3a3a3a' }
+                      }
+                    }
+                  }
+                }}
               >
                 {sourceRatingOptions.map((rating) => (
                   <MenuItem key={rating} value={rating}>{rating}</MenuItem>
@@ -801,12 +965,24 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             </FormControl>
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={selectStyles}>
               <InputLabel>Information Reliability</InputLabel>
               <Select
                 value={formData.sourceReliability}
                 onChange={(e) => handleInputChange('sourceReliability', e.target.value)}
                 label="Information Reliability"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#2a2a2a',
+                      border: '1px solid #3a3a3a',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#3a3a3a' }
+                      }
+                    }
+                  }
+                }}
               >
                 {reliabilityOptions.map((reliability) => (
                   <MenuItem key={reliability} value={reliability}>{reliability}</MenuItem>
@@ -825,7 +1001,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="First Name"
               value={formData.sourceFirstName}
               onChange={(e) => handleInputChange('sourceFirstName', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -834,7 +1010,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="Middle Name"
               value={formData.sourceMiddleName}
               onChange={(e) => handleInputChange('sourceMiddleName', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -843,7 +1019,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="Last Name"
               value={formData.sourceLastName}
               onChange={(e) => handleInputChange('sourceLastName', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
         </Box>
@@ -855,7 +1031,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="Phone"
               value={formData.sourcePhone}
               onChange={(e) => handleInputChange('sourcePhone', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -864,7 +1040,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               label="Address"
               value={formData.sourceAddress}
               onChange={(e) => handleInputChange('sourceAddress', e.target.value)}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
         </Box>
