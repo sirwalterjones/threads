@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { Security as SecurityIcon, ArrowBack as BackIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface IntelReportFormProps {
   isModal?: boolean;
@@ -26,6 +27,7 @@ interface IntelReportFormProps {
 const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose, onReportSubmitted }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -82,6 +84,13 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     sourcePhone: '',
     sourceAddress: ''
   });
+
+  // Prefill agent name from logged-in user when creating
+  useEffect(() => {
+    if (!id && user?.username) {
+      setFormData(prev => ({ ...prev, agentName: user.username }));
+    }
+  }, [id, user?.username]);
 
   // Load existing report when editing
   useEffect(() => {
@@ -699,7 +708,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               fullWidth
               label="Agent Name"
               value={formData.agentName}
-              onChange={(e) => handleInputChange('agentName', e.target.value)}
+              InputProps={{ readOnly: true }}
               required
               sx={fieldStyles}
             />
