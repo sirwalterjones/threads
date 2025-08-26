@@ -60,7 +60,8 @@ router.get('/', authenticateToken, async (req, res) => {
         CASE 
           WHEN ir.expires_at > NOW() THEN CEIL(EXTRACT(EPOCH FROM (ir.expires_at - NOW())) / 86400)
           ELSE 0
-        END as days_until_expiration
+        END as days_until_expiration,
+        ir.expires_at as expiration_date
       FROM intel_reports ir
       LEFT JOIN users u ON ir.agent_id = u.id
       LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
@@ -197,9 +198,9 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
     // Generate intel number if not provided
     const finalIntelNumber = intel_number || await generateIntelNumber();
 
-    // Set expiration date (default: 90 days from now)
+    // Set expiration date (default: 5 years from now)
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 90);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 5);
 
     // Insert main report
     const reportQuery = `

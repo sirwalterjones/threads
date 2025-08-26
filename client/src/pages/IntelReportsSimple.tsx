@@ -232,6 +232,16 @@ const IntelReportsSimple: React.FC = () => {
       label={status.charAt(0).toUpperCase() + status.slice(1)}
       variant="outlined"
       size="small"
+      sx={{
+        color: '#E7E9EA',
+        borderColor: status === 'pending' ? '#ff9800' : status === 'approved' ? '#4caf50' : '#f44336',
+        '& .MuiChip-label': {
+          color: '#E7E9EA !important'
+        },
+        '& .MuiChip-icon': {
+          color: status === 'pending' ? '#ff9800' : status === 'approved' ? '#4caf50' : '#f44336
+        }
+      }}
     />
   );
 
@@ -239,7 +249,7 @@ const IntelReportsSimple: React.FC = () => {
     if (report.isExpired) {
       return <Chip label="Expired" color="error" size="small" />;
     }
-    if (report.daysUntilExpiration && report.daysUntilExpiration <= 7) {
+    if (report.daysUntilExpiration && report.daysUntilExpiration <= 30) {
       return (
         <Chip 
           label={`${report.daysUntilExpiration} days left`} 
@@ -252,7 +262,7 @@ const IntelReportsSimple: React.FC = () => {
     if (report.daysUntilExpiration) {
       return (
         <Chip 
-          label={`${report.daysUntilExpiration} days left`} 
+          label={`${Math.floor(report.daysUntilExpiration / 365)} years left`} 
           color="info" 
           size="small" 
         />

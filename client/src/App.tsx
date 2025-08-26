@@ -96,7 +96,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/hotlist" element={<HotList />} />
                 <Route path="/intel-reports" element={<IntelReportsSimple />} />
-                <Route path="/intel-reports/new" element={<IntelReportFormSimple />} />
+                <Route path="/intel-reports/new" element={<IntelReportFormWrapper />} />
                 <Route path="/intel-reports/approval" element={<IntelReportsApprovalSimple />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>

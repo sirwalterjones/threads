@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 interface IntelReportFormProps {
   isModal?: boolean;
   onClose?: () => void;
+  onReportSubmitted?: () => void; // Callback to refresh reports list
 }
 
 const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose }) => {
@@ -315,6 +316,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       
       // Wait a moment to show success message
       await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Call the refresh callback if provided
+      if (onReportSubmitted) {
+        onReportSubmitted();
+      }
       
       if (isModal && onClose) {
         // Close modal after showing success
