@@ -121,7 +121,15 @@ const IntelReportsSimple: React.FC = () => {
         }
 
         const data = await response.json();
-        setReports(data.reports || []);
+        
+        // Transform the data to match the interface
+        const transformedReports = (data.reports || []).map((report: any) => ({
+          ...report,
+          intelNumber: report.intel_number,
+          agentName: report.agent_name || 'Unknown'
+        }));
+        
+        setReports(transformedReports);
       } catch (error) {
         console.error('Error fetching reports:', error);
         setReports([]);

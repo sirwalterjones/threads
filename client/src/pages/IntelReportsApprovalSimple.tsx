@@ -91,14 +91,51 @@ const IntelReportsApprovalSimple: React.FC = () => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        // TODO: Implement API call when backend is ready
-        // const response = await apiService.getIntelReports({ status: 'pending' });
-        // setReports(response.reports);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No authentication token found');
+          setReports([]);
+          return;
+        }
+
+        // Fetch reports with pending status for approval
+        const response = await fetch(`/api/intel-reports?status=pending`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
         
-        // For now, start with empty array until backend is implemented
-        setReports([]);
+        // Transform the data to match the interface
+        const transformedReports = (data.reports || []).map((report: any) => ({
+          id: report.id,
+          intelNumber: report.intel_number,
+          classification: report.classification,
+          date: report.date,
+          agentName: report.agent_name || 'Unknown',
+          caseNumber: report.case_number,
+          subject: report.subject,
+          criminalActivity: report.criminal_activity,
+          summary: report.summary,
+          status: report.status,
+          submittedAt: report.created_at,
+          reviewedAt: report.reviewed_at,
+          reviewedBy: report.reviewed_by_name,
+          reviewComments: report.review_comments,
+          subjects: parseInt(report.subjects_count) || 0,
+          organizations: parseInt(report.organizations_count) || 0,
+          filesCount: parseInt(report.files_count) || 0
+        }));
+        
+        setReports(transformedReports);
       } catch (error) {
         console.error('Error fetching reports:', error);
+        setReports([]);
       } finally {
         setLoading(false);
       }
@@ -127,12 +164,39 @@ const IntelReportsApprovalSimple: React.FC = () => {
     if (!selectedReport || !reviewAction) return;
 
     try {
-      // TODO: Implement API call to update report status
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
+      // Call API to update report status
+      const response = await fetch(`/api/intel-reports/${selectedReport.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          status: reviewAction === 'approve' ? 'approved' : 'rejected',
+          review_comments: reviewComments,
+          reviewed_by: 'current_user' // This will be set by the backend
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Report status updated:', result);
+
+      // Update local state
       const updatedReport = {
         ...selectedReport,
         status: reviewAction === 'approve' ? 'approved' as const : 'rejected' as const,
         reviewedAt: new Date().toISOString(),
-        reviewedBy: 'Current User', // Replace with actual user
+        reviewedBy: 'Current User',
         reviewComments
       };
 

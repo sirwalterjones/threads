@@ -532,7 +532,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         )}
 
         {/* Basic Information */}
-        <Typography variant="h5" sx={{ mb: 3 }}>Basic Information</Typography>
+        <Typography variant="h5" sx={{ mb: 3, color: '#E7E9EA' }}>Basic Information</Typography>
         
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -905,7 +905,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
         {/* Source Information Section */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h5" sx={{ mb: 3 }}>Source Information</Typography>
+        <Typography variant="h5" sx={{ mb: 3, color: '#E7E9EA' }}>Source Information</Typography>
         
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -1000,7 +1000,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
           </Box>
         </Box>
 
-        <Typography variant="h6" sx={{ mb: 2 }}>Source Contact Information (if applicable)</Typography>
+        <Typography variant="h6" sx={{ mb: 2, color: '#E7E9EA' }}>Source Contact Information (if applicable)</Typography>
         
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
