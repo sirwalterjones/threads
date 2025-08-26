@@ -65,12 +65,16 @@ interface IntelReport {
   reviewedAt?: string;
   reviewedBy?: string;
   reviewComments?: string;
-  subjects: number;
-  organizations: number;
-  filesCount: number;
+  subjects: number; // Count
+  organizations: number; // Count
+  filesCount: number; // Count
   expiresAt?: string;
   isExpired?: boolean;
   daysUntilExpiration?: number;
+  // Full data for details view
+  subjectsData?: any[];
+  organizationsData?: any[];
+  sourcesData?: any[];
 }
 
 const IntelReportsSimple: React.FC = () => {
@@ -152,8 +156,40 @@ const IntelReportsSimple: React.FC = () => {
   const expiredCount = reports.filter(r => r.isExpired).length;
   const expiringSoonCount = reports.filter(r => r.daysUntilExpiration && r.daysUntilExpiration <= 7 && !r.isExpired).length;
 
-  const handleViewReport = (report: IntelReport) => {
-    setSelectedReport(report);
+  const handleViewReport = async (report: IntelReport) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        setSelectedReport(report);
+        return;
+      }
+
+      // Fetch the complete report data including subjects, organizations, and sources
+      const response = await fetch(`/api/intel-reports/${report.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const fullReport = await response.json();
+        // Merge the full data with the existing report
+        const completeReport: IntelReport = {
+          ...report,
+          subjectsData: fullReport.subjects || [],
+          organizationsData: fullReport.organizations || [],
+          sourcesData: fullReport.sources || []
+        };
+        setSelectedReport(completeReport);
+      } else {
+        // If we can't fetch full data, just show the basic report
+        setSelectedReport(report);
+      }
+    } catch (error) {
+      console.error('Error fetching full report data:', error);
+      setSelectedReport(report);
+    }
   };
 
   const handleRefreshReports = () => {
@@ -670,12 +706,12 @@ const IntelReportsSimple: React.FC = () => {
               )}
 
               {/* Subjects Section */}
-              {selectedReport.subjects && selectedReport.subjects.length > 0 && (
+              {selectedReport.subjectsData && selectedReport.subjectsData.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
-                    Subjects ({selectedReport.subjects.length})
+                    Subjects ({selectedReport.subjectsData.length})
                   </Typography>
-                  {selectedReport.subjects.map((subject: any, index: number) => (
+                  {selectedReport.subjectsData.map((subject: any, index: number) => (
                     <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
                       <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
                         Subject {index + 1}
@@ -730,12 +766,12 @@ const IntelReportsSimple: React.FC = () => {
               )}
 
               {/* Organizations Section */}
-              {selectedReport.organizations && selectedReport.organizations.length > 0 && (
+              {selectedReport.organizationsData && selectedReport.organizationsData.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
-                    Organizations ({selectedReport.organizations.length})
+                    Organizations ({selectedReport.organizationsData.length})
                   </Typography>
-                  {selectedReport.organizations.map((org: any, index: number) => (
+                  {selectedReport.organizationsData.map((org: any, index: number) => (
                     <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
                       <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
                         Organization {index + 1}
@@ -766,12 +802,12 @@ const IntelReportsSimple: React.FC = () => {
               )}
 
               {/* Source Information Section */}
-              {selectedReport.sources && selectedReport.sources.length > 0 && (
+              {selectedReport.sourcesData && selectedReport.sourcesData.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
                     Source Information
                   </Typography>
-                  {selectedReport.sources.map((source: any, index: number) => (
+                  {selectedReport.sourcesData.map((source: any, index: number) => (
                     <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
                         <Box>
