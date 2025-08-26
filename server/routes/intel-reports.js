@@ -192,7 +192,8 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
       summary,
       subjects = '[]',
       organizations = '[]',
-      source_info = '{}'
+      source_info = '{}',
+      sources = '[]'
     } = req.body;
 
     // Generate intel number if not provided
@@ -250,20 +251,44 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
       `, [reportId, orgData.business_name, orgData.phone, orgData.address]);
     }
 
-    // Insert source information
-    const sourceData = JSON.parse(source_info);
-    if (Object.keys(sourceData).length > 0) {
-      await client.query(`
-        INSERT INTO intel_report_sources (
-          report_id, source_id, rating, source, information_reliable,
-          unknown_caller, ci_cs, first_name, middle_name, last_name, phone, address
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      `, [
-        reportId, sourceData.source_id, sourceData.rating, sourceData.source,
-        sourceData.information_reliable, sourceData.unknown_caller, sourceData.ci_cs,
-        sourceData.first_name, sourceData.middle_name, sourceData.last_name,
-        sourceData.phone, sourceData.address
-      ]);
+    // Insert source information (supports single object or array of sources)
+    let sourcesArray = [];
+    try {
+      sourcesArray = JSON.parse(sources);
+      if (!Array.isArray(sourcesArray)) sourcesArray = [];
+    } catch (_) {
+      sourcesArray = [];
+    }
+
+    if (sourcesArray.length > 0) {
+      for (const src of sourcesArray) {
+        await client.query(`
+          INSERT INTO intel_report_sources (
+            report_id, source_id, rating, source, information_reliable,
+            unknown_caller, ci_cs, first_name, middle_name, last_name, phone, address
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `, [
+          reportId, src.source_id, src.rating, src.source,
+          src.information_reliable, src.unknown_caller, src.ci_cs,
+          src.first_name, src.middle_name, src.last_name,
+          src.phone, src.address
+        ]);
+      }
+    } else {
+      const sourceData = JSON.parse(source_info);
+      if (Object.keys(sourceData).length > 0) {
+        await client.query(`
+          INSERT INTO intel_report_sources (
+            report_id, source_id, rating, source, information_reliable,
+            unknown_caller, ci_cs, first_name, middle_name, last_name, phone, address
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `, [
+          reportId, sourceData.source_id, sourceData.rating, sourceData.source,
+          sourceData.information_reliable, sourceData.unknown_caller, sourceData.ci_cs,
+          sourceData.first_name, sourceData.middle_name, sourceData.last_name,
+          sourceData.phone, sourceData.address
+        ]);
+      }
     }
 
     // Insert file records
