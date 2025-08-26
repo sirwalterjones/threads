@@ -771,7 +771,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Search intel reports for system-wide search
+// Search intel reports for system-wide search functionality
 router.get('/search', authenticateToken, async (req, res) => {
   try {
     const { 
