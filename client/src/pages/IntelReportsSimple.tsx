@@ -369,17 +369,54 @@ const IntelReportsSimple: React.FC = () => {
             />
           </Box>
           <Box sx={{ flex: '1 1 150px', minWidth: '150px' }}>
-            <FormControl fullWidth size="small">
+            <FormControl fullWidth size="small" sx={{
+              '& .MuiInputLabel-root': { 
+                color: '#E7E9EA',
+                '&.Mui-focused': { color: '#1D9BF0' }
+              },
+              '& .MuiOutlinedInput-root': { 
+                backgroundColor: '#2a2a2a',
+                '& .MuiSelect-select': { color: '#E7E9EA' },
+                '& .MuiOutlinedInput-notchedOutline': { 
+                  borderColor: '#3a3a3a'
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              },
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+            }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#2a2a2a',
+                      border: '1px solid #3a3a3a',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        backgroundColor: '#2a2a2a',
+                        '&:hover': { backgroundColor: '#3a3a3a' },
+                        '&.Mui-selected': { 
+                          backgroundColor: '#1D9BF0',
+                          color: '#ffffff',
+                          '&:hover': { backgroundColor: '#1a8cd8' }
+                        }
+                      }
+                    }
+                  }
+                }}
               >
-                <MenuItem value="all" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>All Status</MenuItem>
-                <MenuItem value="pending" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Pending</MenuItem>
-                <MenuItem value="approved" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Approved</MenuItem>
-                <MenuItem value="rejected" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Rejected</MenuItem>
+                <MenuItem value="all">All Status</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="approved">Approved</MenuItem>
+                <MenuItem value="rejected">Rejected</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -473,7 +510,34 @@ const IntelReportsSimple: React.FC = () => {
           ))}
         </Box>
       ) : (
-        <TableContainer component={Paper} sx={{ backgroundColor: 'background.paper' }}>
+        <TableContainer component={Paper} sx={{ 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '& .MuiTable-root': {
+            backgroundColor: '#1f1f1f'
+          },
+          '& .MuiTableHead-root': {
+            backgroundColor: '#2a2a2a',
+            '& .MuiTableCell-root': {
+              color: '#E7E9EA',
+              borderBottom: '1px solid #2F3336',
+              fontWeight: 'bold'
+            }
+          },
+          '& .MuiTableBody-root': {
+            backgroundColor: '#1f1f1f',
+            '& .MuiTableRow-root': {
+              backgroundColor: '#1f1f1f',
+              '&:hover': {
+                backgroundColor: '#2a2a2a'
+              },
+              '& .MuiTableCell-root': {
+                color: '#E7E9EA',
+                borderBottom: '1px solid #2F3336'
+              }
+            }
+          }
+        }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -596,6 +660,211 @@ const IntelReportsSimple: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">Summary:</Typography>
                 <Typography variant="body1">{selectedReport.summary}</Typography>
               </Box>
+
+              {/* Case Number */}
+              {selectedReport.caseNumber && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary">Case Number:</Typography>
+                  <Typography variant="body1">{selectedReport.caseNumber}</Typography>
+                </Box>
+              )}
+
+              {/* Subjects Section */}
+              {selectedReport.subjects && selectedReport.subjects.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Subjects ({selectedReport.subjects.length})
+                  </Typography>
+                  {selectedReport.subjects.map((subject: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
+                        Subject {index + 1}
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.first_name} {subject.middle_name} {subject.last_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Date of Birth:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.date_of_birth}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Race/Sex:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.race} / {subject.sex}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.address}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>License:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.license_number}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>SSN:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.social_security_number}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Organizations Section */}
+              {selectedReport.organizations && selectedReport.organizations.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Organizations ({selectedReport.organizations.length})
+                  </Typography>
+                  {selectedReport.organizations.map((org: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
+                        Organization {index + 1}
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Business Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.business_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.address}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Source Information Section */}
+              {selectedReport.sources && selectedReport.sources.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Source Information
+                  </Typography>
+                  {selectedReport.sources.map((source: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Source ID:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.source_id}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Source Type:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.source}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Rating:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.rating}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Reliability:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.information_reliable}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Contact Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.first_name} {source.middle_name} {source.last_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.address}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Flags:</Typography>
+                          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                            {source.unknown_caller && (
+                              <Chip label="Unknown Caller" size="small" color="warning" />
+                            )}
+                            {source.ci_cs && (
+                              <Chip label="CI/CS" size="small" color="info" />
+                            )}
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Review Information */}
+              {selectedReport.reviewedBy && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Review Information
+                  </Typography>
+                  <Paper sx={{ p: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: '#71767B' }}>Reviewed By:</Typography>
+                        <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                          {selectedReport.reviewedBy}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ color: '#71767B' }}>Review Date:</Typography>
+                        <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                          {selectedReport.reviewedAt ? new Date(selectedReport.reviewedAt).toLocaleDateString() : 'N/A'}
+                        </Typography>
+                      </Box>
+                      {selectedReport.reviewComments && (
+                        <Box sx={{ gridColumn: '1 / -1' }}>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Comments:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {selectedReport.reviewComments}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Paper>
+                </Box>
+              )}
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setSelectedReport(null)}>Close</Button>

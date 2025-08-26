@@ -404,7 +404,34 @@ const IntelReportsApprovalSimple: React.FC = () => {
           ))}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ 
+          backgroundColor: '#1f1f1f',
+          border: '1px solid #2F3336',
+          '& .MuiTable-root': {
+            backgroundColor: '#1f1f1f'
+          },
+          '& .MuiTableHead-root': {
+            backgroundColor: '#2a2a2a',
+            '& .MuiTableCell-root': {
+              color: '#E7E9EA',
+              borderBottom: '1px solid #2F3336',
+              fontWeight: 'bold'
+            }
+          },
+          '& .MuiTableBody-root': {
+            backgroundColor: '#1f1f1f',
+            '& .MuiTableRow-root': {
+              backgroundColor: '#1f1f1f',
+              '&:hover': {
+                backgroundColor: '#2a2a2a'
+              },
+              '& .MuiTableCell-root': {
+                color: '#E7E9EA',
+                borderBottom: '1px solid #2F3336'
+              }
+            }
+          }
+        }}>
           <Table>
             <TableHead>
               <TableRow>
