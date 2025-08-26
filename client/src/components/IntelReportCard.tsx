@@ -9,22 +9,10 @@ import {
 } from '@mui/material';
 import { Security, AssignmentInd } from '@mui/icons-material';
 import { format } from 'date-fns';
-
-interface IntelReport {
-  id: number;
-  intel_number: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  agent_name: string;
-  wp_published_date: string;
-  classification: string;
-  status: string;
-  result_type: 'intel_report';
-}
+import { Post } from '../types';
 
 interface IntelReportCardProps {
-  report: IntelReport;
+  report: Post;
   onClick: (reportId: number) => void;
   highlightText?: (text: string) => React.ReactNode;
 }
@@ -34,7 +22,8 @@ const IntelReportCard: React.FC<IntelReportCardProps> = ({
   onClick,
   highlightText = (text) => text
 }) => {
-  const getClassificationColor = (classification: string) => {
+  const getClassificationColor = (classification?: string) => {
+    if (!classification) return '#10b981'; // Green default
     switch (classification.toLowerCase()) {
       case 'classified':
         return '#ef4444'; // Red
@@ -102,11 +91,11 @@ const IntelReportCard: React.FC<IntelReportCardProps> = ({
                 gap: 0.5
               }}
             >
-              Intel Report • {report.intel_number}
+              Intel Report • {report.intel_number || 'N/A'}
             </Typography>
           </Box>
           <Chip
-            label={report.classification}
+            label={report.classification || 'Unclassified'}
             size="small"
             sx={{
               backgroundColor: getClassificationColor(report.classification),
@@ -167,7 +156,7 @@ const IntelReportCard: React.FC<IntelReportCardProps> = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AssignmentInd sx={{ fontSize: 14, color: '#71767B' }} />
             <Typography variant="caption" sx={{ color: '#71767B', fontSize: '0.75rem' }}>
-              Agent: {report.agent_name}
+              Agent: {report.agent_name || 'Unknown'}
             </Typography>
           </Box>
           

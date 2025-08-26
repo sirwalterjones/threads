@@ -30,7 +30,7 @@ export interface Post {
   wp_published_date: string;
   wp_modified_date?: string;
   ingested_at: string;
-  retention_date: string;
+  retention_date?: string;
   category_id?: number;
   category_name?: string;
   category_slug?: string;
@@ -40,7 +40,11 @@ export interface Post {
   metadata?: any;
   rank?: number;
   comment_count?: number;
-  result_type?: string; // For search results to distinguish between posts and intel reports
+  result_type?: 'post' | 'intel_report';
+  // Intel report specific fields (when result_type is 'intel_report')
+  intel_number?: string;
+  classification?: string;
+  agent_name?: string;
 }
 
 export interface PostComment {
