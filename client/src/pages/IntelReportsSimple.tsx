@@ -267,25 +267,42 @@ const IntelReportsSimple: React.FC = () => {
 
   const getExpirationChip = (report: IntelReport) => {
     if (report.isExpired) {
-      return <Chip label="Expired" color="error" size="small" />;
+      return (
+        <Box>
+          <Chip label="Expired" color="error" size="small" />
+          <Typography variant="caption" sx={{ display: 'block', color: '#f44336', mt: 0.5 }}>
+            {report.expiresAt ? new Date(report.expiresAt).toLocaleDateString() : 'Unknown'}
+          </Typography>
+        </Box>
+      );
     }
     if (report.daysUntilExpiration && report.daysUntilExpiration <= 30) {
       return (
-        <Chip 
-          label={`${report.daysUntilExpiration} days left`} 
-          color="warning" 
-          size="small"
-          icon={<WarningIcon />}
-        />
+        <Box>
+          <Chip 
+            label={`${report.daysUntilExpiration} days left`} 
+            color="warning" 
+            size="small"
+            icon={<WarningIcon />}
+          />
+          <Typography variant="caption" sx={{ display: 'block', color: '#ff9800', mt: 0.5 }}>
+            {report.expiresAt ? new Date(report.expiresAt).toLocaleDateString() : 'Unknown'}
+          </Typography>
+        </Box>
       );
     }
     if (report.daysUntilExpiration) {
       return (
-        <Chip 
-          label={`${Math.floor(report.daysUntilExpiration / 365)} years left`} 
-          color="info" 
-          size="small" 
-        />
+        <Box>
+          <Chip 
+            label={`${Math.floor(report.daysUntilExpiration / 365)} years left`} 
+            color="info" 
+            size="small" 
+          />
+          <Typography variant="caption" sx={{ display: 'block', color: '#2196f3', mt: 0.5 }}>
+            {report.expiresAt ? new Date(report.expiresAt).toLocaleDateString() : 'Unknown'}
+          </Typography>
+        </Box>
       );
     }
     return null;

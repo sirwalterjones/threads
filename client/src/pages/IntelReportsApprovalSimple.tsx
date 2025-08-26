@@ -66,6 +66,10 @@ interface IntelReport {
   subjects: number;
   organizations: number;
   filesCount: number;
+  // Expiration fields
+  expiresAt?: string;
+  isExpired?: boolean;
+  daysUntilExpiration?: number;
   // Full data for details view
   subjectsData?: any[];
   organizationsData?: any[];
@@ -146,7 +150,11 @@ const IntelReportsApprovalSimple: React.FC = () => {
           reviewComments: report.review_comments,
           subjects: parseInt(report.subjects_count) || 0,
           organizations: parseInt(report.organizations_count) || 0,
-          filesCount: parseInt(report.files_count) || 0
+          filesCount: parseInt(report.files_count) || 0,
+          // Expiration fields
+          expiresAt: report.expiration_date,
+          isExpired: report.is_expired,
+          daysUntilExpiration: report.days_until_expiration
         }));
         
         setReports(transformedReports);
@@ -298,6 +306,31 @@ const IntelReportsApprovalSimple: React.FC = () => {
       }}
     />
   );
+
+  const getExpirationChip = (report: IntelReport) => {
+    if (report.isExpired) {
+      return <Chip label="Expired" color="error" size="small" />;
+    }
+    if (report.daysUntilExpiration && report.daysUntilExpiration <= 30) {
+      return (
+        <Chip 
+          label={`${report.daysUntilExpiration} days left`} 
+          color="warning" 
+          size="small"
+        />
+      );
+    }
+    if (report.daysUntilExpiration) {
+      return (
+        <Chip 
+          label={`${Math.floor(report.daysUntilExpiration / 365)} years left`} 
+          color="info" 
+          size="small" 
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <Box sx={{ 
@@ -523,6 +556,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 <TableCell>Agent</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Expiration</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -553,6 +587,9 @@ const IntelReportsApprovalSimple: React.FC = () => {
                     {report.status === 'pending' && report.corrected && (
                       <Chip label="Corrected" size="small" sx={{ ml: 1 }} color="info" />
                     )}
+                  </TableCell>
+                  <TableCell>
+                    {getExpirationChip(report)}
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>

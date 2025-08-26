@@ -233,9 +233,9 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
     // Generate intel number if not provided
     const finalIntelNumber = intel_number || await generateIntelNumber();
 
-    // Set expiration date (default: 5 years from now)
+    // Set expiration date (default: 1 year from now)
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 5);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
     // Insert main report
     const reportQuery = `
