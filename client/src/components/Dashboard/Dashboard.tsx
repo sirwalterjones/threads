@@ -31,7 +31,9 @@ import {
   CalendarToday,
   Visibility,
   Clear as ClearIcon,
-  Bookmark
+  Bookmark,
+  ViewModule,
+  ViewList
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService, { API_BASE_URL } from '../../services/api';
@@ -58,6 +60,16 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'following'>('following');
   const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
   const [followingLoading, setFollowingLoading] = useState(false);
+  
+  // View toggle state for Following posts
+  const [followingViewMode, setFollowingViewMode] = useState<'cards' | 'feed'>('cards');
+  
+  // Sort posts by modification date (newest first)
+  const sortedFollowingPosts = [...followingPosts].sort((a, b) => {
+    const dateA = new Date(a.wp_modified_date || a.wp_published_date);
+    const dateB = new Date(b.wp_modified_date || b.wp_published_date);
+    return dateB.getTime() - dateA.getTime();
+  });
 
   // Utility functions for text processing
   const stripHtmlTags = (html: string) => {
@@ -476,18 +488,71 @@ const Dashboard: React.FC = () => {
   </Box>
 )}
 
-{/* Following Posts Grid - Show when no search results */}
+{/* Following Posts Section - Show when no search results */}
 {searchResults.length === 0 && followingPosts.length > 0 && (
   <Box sx={{ mb: 4, px: { xs: 2, sm: 3, md: 3 } }}>
+    {/* View Toggle Header */}
     <Box sx={{ 
-      display: 'grid', 
-      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: 3,
-      maxWidth: '100%', 
-      mx: 'auto',
-      overflow: 'hidden'
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      mb: 3,
+      backgroundColor: '#16181C',
+      border: '1px solid #2F3336',
+      borderRadius: 2,
+      p: 2
     }}>
-      {followingPosts.map((post) => (
+      <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
+        Following Posts ({sortedFollowingPosts.length})
+      </Typography>
+      
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Button
+          variant={followingViewMode === 'cards' ? 'contained' : 'outlined'}
+          size="small"
+          startIcon={<ViewModule />}
+          onClick={() => setFollowingViewMode('cards')}
+          sx={{
+            backgroundColor: followingViewMode === 'cards' ? '#1D9BF0' : 'transparent',
+            color: followingViewMode === 'cards' ? '#FFFFFF' : '#1D9BF0',
+            borderColor: '#1D9BF0',
+            '&:hover': {
+              backgroundColor: followingViewMode === 'cards' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)',
+            }
+          }}
+        >
+          Cards
+        </Button>
+        <Button
+          variant={followingViewMode === 'feed' ? 'contained' : 'outlined'}
+          size="small"
+          startIcon={<ViewList />}
+          onClick={() => setFollowingViewMode('feed')}
+          sx={{
+            backgroundColor: followingViewMode === 'feed' ? '#1D9BF0' : 'transparent',
+            color: followingViewMode === 'feed' ? '#FFFFFF' : '#1D9BF0',
+            borderColor: '#1D9BF0',
+            '&:hover': {
+              backgroundColor: followingViewMode === 'feed' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)',
+            }
+          }}
+        >
+          Feed
+        </Button>
+      </Box>
+    </Box>
+
+    {/* Cards View */}
+    {followingViewMode === 'cards' && (
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: 3,
+        maxWidth: '100%', 
+        mx: 'auto',
+        overflow: 'hidden'
+      }}>
+              {sortedFollowingPosts.map((post) => (
         <Box key={post.id}>
           <Card 
             sx={{ 
@@ -689,6 +754,258 @@ const Dashboard: React.FC = () => {
         </Box>
       ))}
     </Box>
+    )}
+
+    {/* Feed View */}
+    {followingViewMode === 'feed' && (
+      <Box sx={{ 
+        maxWidth: '800px', 
+        mx: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3
+      }}>
+        {sortedFollowingPosts.map((post) => (
+          <Card
+            key={post.id}
+            sx={{
+              backgroundColor: '#16181C',
+              border: '1px solid #2F3336',
+              borderRadius: 3,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              },
+            }}
+            onClick={() => handlePostClick(post.id)}
+          >
+            {/* Post Header */}
+            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid #2F3336' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                {/* Author Avatar Placeholder */}
+                <Box sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  backgroundColor: '#1D9BF0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem'
+                }}>
+                  {post.author_name.charAt(0).toUpperCase()}
+                </Box>
+                
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600, mb: 0.5 }}>
+                    {post.author_name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#71767B' }}>
+                      {format(new Date(post.wp_published_date), 'MMM dd, yyyy')}
+                    </Typography>
+                    {post.wp_modified_date && post.wp_modified_date !== post.wp_published_date && (
+                      <>
+                        <Typography variant="body2" sx={{ color: '#71767B' }}>•</Typography>
+                        <Chip 
+                          size="small" 
+                          label="Modified recently" 
+                          sx={{ 
+                            backgroundColor: '#F59E0B',
+                            color: '#FFFFFF',
+                            fontSize: '0.7rem',
+                            height: 20
+                          }}
+                        />
+                      </>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+              
+              {/* Post Title */}
+              <Typography variant="h5" component="h2" sx={{ color: '#E7E9EA', fontWeight: 600, mb: 1 }}>
+                {highlightText(stripHtmlTags(post.title))}
+              </Typography>
+              
+              {/* Category Badge */}
+              {post.category_name && (
+                <Chip 
+                  size="small" 
+                  label={post.category_name} 
+                  color="primary"
+                  variant="outlined"
+                  sx={{ fontSize: '0.8rem' }}
+                />
+              )}
+            </Box>
+
+            {/* Post Content */}
+            <Box sx={{ p: 3, pt: 2 }}>
+              {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */}
+              {post.attachments && post.attachments.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <MediaGallery attachments={post.attachments} maxHeight={300} />
+                </Box>
+              )}
+              {(!post.attachments || post.attachments.length === 0) && (
+                <>
+                  {(() => {
+                    const imageUrls = extractImageUrls(post.content).slice(0, 3);
+                    if (imageUrls.length === 0) return null;
+                    return (
+                      <Box sx={{ mb: 3, display: 'flex', gap: 2, overflowX: 'auto', pb: 1 }}>
+                        {imageUrls.map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={resolveContentImageUrl(url)}
+                            alt={`Post image ${idx + 1}`}
+                            style={{ 
+                              width: 200, 
+                              height: 150, 
+                              objectFit: 'cover', 
+                              borderRadius: '12px', 
+                              flex: '0 0 auto' 
+                            }}
+                            onError={(e) => {
+                              console.log('Image failed to load, falling back to direct URL:', url);
+                              const img = e.currentTarget as HTMLImageElement;
+                              if (url.includes('cmansrms.us') || url.includes('wordpress')) {
+                                img.src = url.startsWith('http') ? url : `https://cmansrms.us${url.startsWith('/') ? url : `/${url}`}`;
+                              } else {
+                                img.style.display = 'none';
+                              }
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    );
+                  })()}
+                </>
+              )}
+              
+              {/* Post Excerpt/Content */}
+              {(() => {
+                const raw = post.excerpt && post.excerpt.trim().length > 0 
+                  ? post.excerpt 
+                  : (post.content || '');
+                const text = stripHtmlTags(raw);
+                if (!text) return null;
+                return (
+                  <Typography variant="body1" sx={{ color: '#E7E9EA', mb: 3, lineHeight: 1.6 }}>
+                    {highlightText(text.substring(0, 600))}
+                    {text.length > 600 && '...'}
+                  </Typography>
+                );
+              })()}
+
+              {/* Featured media preview */}
+              {post.featured_media_url && (
+                <Box sx={{ mb: 3 }}>
+                  <img
+                    src={resolveContentImageUrl(post.featured_media_url)}
+                    alt="Featured media"
+                    style={{ 
+                      maxWidth: '100%', 
+                      height: 'auto', 
+                      borderRadius: '12px',
+                      border: 'none'
+                    }}
+                    onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
+                  />
+                </Box>
+              )}
+            </Box>
+
+            {/* Post Footer */}
+            <Box sx={{ 
+              p: 3, 
+              pt: 2, 
+              borderTop: '1px solid #2F3336',
+              backgroundColor: '#0F1419'
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {/* Comment Count */}
+                  {post.comment_count && post.comment_count > 0 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#71767B' }}>
+                        💬 {post.comment_count} comments
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {/* Retention Date */}
+                  {post.retention_date && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#71767B' }}>
+                        📅 Retains until {format(new Date(post.retention_date), 'MMM dd, yyyy')}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Action Buttons */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <FollowButton
+                    postId={post.id}
+                    variant="icon"
+                    size="small"
+                    onFollowChange={(isFollowing) => {
+                      if (activeTab === 'following') {
+                        if (isFollowing) {
+                          loadFollowingPosts();
+                        } else {
+                          setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+                        }
+                      }
+                    }}
+                  />
+                  
+                  <DeletePostButton
+                    postId={post.id}
+                    postTitle={post.title}
+                    variant="icon"
+                    size="small"
+                    onDelete={(deletedPostId) => {
+                      console.log(`Post ${deletedPostId} deleted from dashboard`);
+                      if (activeTab === 'following') {
+                        setFollowingPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                      } else {
+                        setManualPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                      }
+                    }}
+                  />
+                  
+                  <Button
+                    startIcon={<Visibility />}
+                    size="small"
+                    variant="contained"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePostClick(post.id);
+                    }}
+                    sx={{
+                      backgroundColor: '#1D9BF0',
+                      color: '#FFFFFF',
+                      '&:hover': {
+                        backgroundColor: '#1A8CD8'
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Card>
+        ))}
+      </Box>
+    )}
   </Box>
 )}
 
