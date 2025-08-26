@@ -301,18 +301,18 @@ const IntelReportsSimple: React.FC = () => {
         backgroundColor: '#1f1f1f',
         border: '1px solid #2F3336',
         '& .MuiInputLabel-root': { 
-          color: '#ffffff',
+          color: '#E7E9EA',
           '&.Mui-focused': { color: '#1D9BF0' },
-          '&.MuiInputLabel-shrink': { color: '#ffffff' }
+          '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
         }, 
         '& .MuiOutlinedInput-root': { 
-          color: '#000000',
-          backgroundColor: '#ffffff',
+          color: '#E7E9EA',
+          backgroundColor: '#2a2a2a',
           '& .MuiInputBase-input': { 
-            color: '#000000'
+            color: '#E7E9EA'
           },
           '& .MuiOutlinedInput-notchedOutline': { 
-            borderColor: '#cccccc'
+            borderColor: '#3a3a3a'
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
             borderColor: '#1D9BF0'
@@ -321,11 +321,11 @@ const IntelReportsSimple: React.FC = () => {
             borderColor: '#1D9BF0'
           }
         },
-        '& .MuiSvgIcon-root': { color: '#000000' },
+        '& .MuiSvgIcon-root': { color: '#E7E9EA' },
         '& .MuiMenuItem-root': { 
-          color: '#000000', 
-          backgroundColor: '#ffffff',
-          '&:hover': { backgroundColor: '#f5f5f5' }
+          color: '#E7E9EA', 
+          backgroundColor: '#2a2a2a',
+          '&:hover': { backgroundColor: '#3a3a3a' }
         }
       }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
@@ -346,10 +346,10 @@ const IntelReportsSimple: React.FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status"
               >
-                <MenuItem value="all" sx={{ color: '#000000', bgcolor: '#ffffff' }}>All Status</MenuItem>
-                <MenuItem value="pending" sx={{ color: '#000000', bgcolor: '#ffffff' }}>Pending</MenuItem>
-                <MenuItem value="approved" sx={{ color: '#000000', bgcolor: '#ffffff' }}>Approved</MenuItem>
-                <MenuItem value="rejected" sx={{ color: '#000000', bgcolor: '#ffffff' }}>Rejected</MenuItem>
+                <MenuItem value="all" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>All Status</MenuItem>
+                <MenuItem value="pending" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Pending</MenuItem>
+                <MenuItem value="approved" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Approved</MenuItem>
+                <MenuItem value="rejected" sx={{ color: '#E7E9EA', bgcolor: '#2a2a2a' }}>Rejected</MenuItem>
               </Select>
             </FormControl>
           </Box>

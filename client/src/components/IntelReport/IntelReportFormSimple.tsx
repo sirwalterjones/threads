@@ -111,21 +111,21 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     '4 - Doubtful', '5 - Improbable', '6 - Truth Cannot Be Judged'
   ];
 
-  // Common styling for form fields with black text on light background
+  // Dark theme styling with readable text
   const fieldStyles = {
     mb: 2,
     '& .MuiInputLabel-root': { 
-      color: '#ffffff',
+      color: '#E7E9EA',
       '&.Mui-focused': { color: '#1D9BF0' },
-      '&.MuiInputLabel-shrink': { color: '#ffffff' }
+      '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
     },
     '& .MuiOutlinedInput-root': { 
-      backgroundColor: '#ffffff',
+      backgroundColor: '#2a2a2a',
       '& .MuiInputBase-input': { 
-        color: '#000000'
+        color: '#E7E9EA'
       },
       '& .MuiOutlinedInput-notchedOutline': { 
-        borderColor: '#cccccc'
+        borderColor: '#3a3a3a'
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: '#1D9BF0'
@@ -134,23 +134,23 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         borderColor: '#1D9BF0'
       }
     },
-    '& .MuiFormHelperText-root': { color: '#cccccc' }
+    '& .MuiFormHelperText-root': { color: '#E7E9EA' }
   };
 
   const selectStyles = {
     mb: 2,
     '& .MuiInputLabel-root': { 
-      color: '#ffffff',
+      color: '#E7E9EA',
       '&.Mui-focused': { color: '#1D9BF0' },
-      '&.MuiInputLabel-shrink': { color: '#ffffff' }
+      '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
     },
     '& .MuiOutlinedInput-root': { 
-      backgroundColor: '#ffffff',
+      backgroundColor: '#2a2a2a',
       '& .MuiSelect-select': { 
-        color: '#000000'
+        color: '#E7E9EA'
       },
       '& .MuiOutlinedInput-notchedOutline': { 
-        borderColor: '#cccccc'
+        borderColor: '#3a3a3a'
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
         borderColor: '#1D9BF0'
@@ -159,7 +159,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         borderColor: '#1D9BF0'
       }
     },
-    '& .MuiSvgIcon-root': { color: '#000000' }
+    '& .MuiSvgIcon-root': { color: '#E7E9EA' }
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -539,20 +539,20 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               sx={{ 
                 mb: 2,
                 '& .MuiInputLabel-root': { 
-                  color: '#ffffff',
+                  color: '#E7E9EA',
                   '&.Mui-focused': { color: '#1D9BF0' },
-                  '&.MuiInputLabel-shrink': { color: '#ffffff' }
+                  '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
                 },
                 '& .MuiOutlinedInput-root': { 
-                  backgroundColor: '#f0f0f0',
+                  backgroundColor: '#2a2a2a',
                   '& .MuiInputBase-input': { 
-                    color: '#000000'
+                    color: '#E7E9EA'
                   },
                   '& .MuiOutlinedInput-notchedOutline': { 
-                    borderColor: '#cccccc'
+                    borderColor: '#3a3a3a'
                   }
                 },
-                '& .MuiFormHelperText-root': { color: '#cccccc' }
+                '& .MuiFormHelperText-root': { color: '#E7E9EA' }
               }}
               helperText="Auto-generated Intel number"
             />
