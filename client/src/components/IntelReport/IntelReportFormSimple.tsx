@@ -108,53 +108,55 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     '4 - Doubtful', '5 - Improbable', '6 - Truth Cannot Be Judged'
   ];
 
-  // Common styling for form fields
+  // Common styling for form fields with black text on light background
   const fieldStyles = {
     mb: 2,
     '& .MuiInputLabel-root': { 
-      color: '#8B98A5',
-      '&.Mui-focused': { color: '#1D9BF0' }
+      color: '#ffffff',
+      '&.Mui-focused': { color: '#1D9BF0' },
+      '&.MuiInputLabel-shrink': { color: '#ffffff' }
     },
     '& .MuiOutlinedInput-root': { 
-      backgroundColor: '#1A1A1A',
+      backgroundColor: '#ffffff',
       '& .MuiInputBase-input': { 
-        color: '#E7E9EA'
+        color: '#000000'
       },
       '& .MuiOutlinedInput-notchedOutline': { 
-        borderColor: '#2F3336'
+        borderColor: '#cccccc'
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#4A4A4A'
+        borderColor: '#1D9BF0'
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
         borderColor: '#1D9BF0'
       }
     },
-    '& .MuiFormHelperText-root': { color: '#71767B' }
+    '& .MuiFormHelperText-root': { color: '#cccccc' }
   };
 
   const selectStyles = {
     mb: 2,
     '& .MuiInputLabel-root': { 
-      color: '#8B98A5',
-      '&.Mui-focused': { color: '#1D9BF0' }
+      color: '#ffffff',
+      '&.Mui-focused': { color: '#1D9BF0' },
+      '&.MuiInputLabel-shrink': { color: '#ffffff' }
     },
     '& .MuiOutlinedInput-root': { 
-      backgroundColor: '#1A1A1A',
+      backgroundColor: '#ffffff',
       '& .MuiSelect-select': { 
-        color: '#E7E9EA'
+        color: '#000000'
       },
       '& .MuiOutlinedInput-notchedOutline': { 
-        borderColor: '#2F3336'
+        borderColor: '#cccccc'
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#4A4A4A'
+        borderColor: '#1D9BF0'
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
         borderColor: '#1D9BF0'
       }
     },
-    '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+    '& .MuiSvgIcon-root': { color: '#000000' }
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -461,19 +463,20 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               sx={{ 
                 mb: 2,
                 '& .MuiInputLabel-root': { 
-                  color: '#8B98A5',
-                  '&.Mui-focused': { color: '#1D9BF0' }
+                  color: '#ffffff',
+                  '&.Mui-focused': { color: '#1D9BF0' },
+                  '&.MuiInputLabel-shrink': { color: '#ffffff' }
                 },
                 '& .MuiOutlinedInput-root': { 
-                  backgroundColor: '#2F3336',
+                  backgroundColor: '#f0f0f0',
                   '& .MuiInputBase-input': { 
-                    color: '#E7E9EA'
+                    color: '#000000'
                   },
                   '& .MuiOutlinedInput-notchedOutline': { 
-                    borderColor: '#2F3336'
+                    borderColor: '#cccccc'
                   }
                 },
-                '& .MuiFormHelperText-root': { color: '#71767B' }
+                '& .MuiFormHelperText-root': { color: '#cccccc' }
               }}
               helperText="Auto-generated Intel number"
             />
@@ -488,11 +491,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#1A1A1A',
-                      border: '1px solid #2F3336',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #cccccc',
                       '& .MuiMenuItem-root': {
-                        color: '#E7E9EA',
-                        '&:hover': { backgroundColor: '#2F3336' }
+                        color: '#000000',
+                        '&:hover': { backgroundColor: '#f5f5f5' }
                       }
                     }
                   }
@@ -669,11 +672,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#1A1A1A',
-                      border: '1px solid #2F3336',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #cccccc',
                       '& .MuiMenuItem-root': {
-                        color: '#E7E9EA',
-                        '&:hover': { backgroundColor: '#2F3336' }
+                        color: '#000000',
+                        '&:hover': { backgroundColor: '#f5f5f5' }
                       }
                     }
                   }
