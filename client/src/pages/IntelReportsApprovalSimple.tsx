@@ -58,6 +58,7 @@ interface IntelReport {
   criminalActivity: string;
   summary: string;
   status: 'pending' | 'approved' | 'rejected';
+  corrected?: boolean;
   submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
@@ -138,6 +139,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
           criminalActivity: report.criminal_activity,
           summary: report.summary,
           status: report.status,
+          corrected: !!report.corrected,
           submittedAt: report.created_at,
           reviewedAt: report.reviewed_at,
           reviewedBy: report.reviewed_by_name,
@@ -548,6 +550,9 @@ const IntelReportsApprovalSimple: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {getStatusChip(report.status)}
+                    {report.status === 'pending' && report.corrected && (
+                      <Chip label="Corrected" size="small" sx={{ ml: 1 }} color="info" />
+                    )}
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
