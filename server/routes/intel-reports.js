@@ -216,7 +216,7 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
       finalIntelNumber,
       classification,
       date,
-      req.user.userId,
+      req.user.id,
       case_number,
       subject,
       criminal_activity,
@@ -356,7 +356,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     // Check permissions:
     // - User can edit if they are the author AND report is not approved
     // - Admin can edit any report
-    const isAuthor = report.agent_id === req.user.userId;
+    const isAuthor = report.agent_id === req.user.id;
     const isAdmin = req.user.role === 'admin' || req.user.super_admin;
     const isApproved = report.status === 'approved';
     
@@ -459,7 +459,7 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervis
       RETURNING *
     `;
 
-    const result = await client.query(query, [status, review_comments, req.user.userId, id]);
+    const result = await client.query(query, [status, review_comments, req.user.id, id]);
 
     if (result.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -604,6 +604,7 @@ router.delete('/:id', authenticateToken, authorizeRole(['admin']), async (req, r
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('[intel-reports] Fetch single report', { id, userId: req.user?.userId, role: req.user?.role, super: req.user?.super_admin });
     
     const query = `
       SELECT 
@@ -647,7 +648,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
           )
         ) FILTER (WHERE irsrc.id IS NOT NULL) as sources
       FROM intel_reports ir
-      JOIN users u ON ir.agent_id = u.id
+      LEFT JOIN users u ON ir.agent_id = u.id
       LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
       LEFT JOIN intel_report_subjects irs ON ir.id = irs.report_id
       LEFT JOIN intel_report_organizations iro ON ir.id = iro.report_id
@@ -657,8 +658,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
     `;
 
     const result = await pool.query(query, [id]);
+    console.log('[intel-reports] Query result count', result.rows.length);
 
     if (result.rows.length === 0) {
+      console.warn('[intel-reports] Report not found', { id });
       return res.status(404).json({ error: 'Intel report not found' });
     }
 
@@ -669,6 +672,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const isAdmin = req.user.role === 'admin' || req.user.super_admin;
     
     if (!isAdmin && !isAuthor) {
+      console.warn('[intel-reports] Permission denied to view report', { id, requester: req.user?.userId, agentId: report.agent_id });
       return res.status(403).json({ error: 'You can only view your own reports' });
     }
 
