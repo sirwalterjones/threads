@@ -487,19 +487,22 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervis
       [id, req.user.userId, status, review_comments || null]
     );
 
-    // If rejected, create a notification for the author to edit
+    // If rejected, create a notification for the author to edit (do not fail status update if this fails)
     if (status === 'rejected') {
-      // notifications table assumed to exist
-      await client.query(`
-        INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
-        VALUES ($1, $2, $3, $4, $5, false, NOW())
-      `, [
-        report.agent_id,
-        'intel_report_rejected',
-        'Intel report rejected',
-        'Your intel report was rejected. Tap to review and edit.',
-        JSON.stringify({ kind: 'intel_report', report_id: report.id })
-      ]);
+      try {
+        await client.query(`
+          INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
+          VALUES ($1, $2, $3, $4, $5, false, NOW())
+        `, [
+          report.agent_id,
+          'intel_report_rejected',
+          'Intel report rejected',
+          'Your intel report was rejected. Tap to review and edit.',
+          JSON.stringify({ kind: 'intel_report', report_id: report.id })
+        ]);
+      } catch (notifyErr) {
+        console.error('Failed to create rejection notification:', notifyErr);
+      }
     }
 
     await client.query('COMMIT');
