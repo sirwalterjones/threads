@@ -548,6 +548,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
             'rating', irsrc.rating,
             'source', irsrc.source,
             'information_reliable', irsrc.information_reliable,
+            'unknown_caller', irsrc.unknown_caller,
+            'ci_cs', irsrc.ci_cs,
             'first_name', irsrc.first_name,
             'middle_name', irsrc.middle_name,
             'last_name', irsrc.last_name,
