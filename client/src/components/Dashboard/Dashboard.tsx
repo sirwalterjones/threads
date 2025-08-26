@@ -781,7 +781,7 @@ const Dashboard: React.FC = () => {
             }}
             onClick={() => handlePostClick(post.id)}
           >
-            {/* Main Bulletin Header */}
+            {/* Post Header */}
             <Box sx={{ p: 4, pb: 3, borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, mb: 3 }}>
                 {/* Profile Icon with Verification Badge */}
@@ -822,17 +822,17 @@ const Dashboard: React.FC = () => {
                 </Box>
                 
                 <Box sx={{ flex: 1 }}>
-                  {/* Primary Source/Entity */}
+                  {/* Report Number */}
                   <Typography variant="h5" sx={{ color: '#FFFFFF', fontWeight: 700, mb: 1, fontSize: '1.25rem' }}>
-                    {post.category_name || 'Intelligence Bulletin'}
+                    {post.id}
                   </Typography>
                   
-                  {/* Author/Agent Name */}
+                  {/* Author Name */}
                   <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600, mb: 2, fontSize: '1.1rem' }}>
                     {post.author_name}
                   </Typography>
                   
-                  {/* Main Bulletin Text */}
+                  {/* Post Content */}
                   <Typography variant="body1" sx={{ color: '#E7E9EA', lineHeight: 1.6, fontSize: '1rem' }}>
                     {(() => {
                       const raw = post.excerpt && post.excerpt.trim().length > 0 
@@ -840,104 +840,53 @@ const Dashboard: React.FC = () => {
                         : (post.content || '');
                       const text = stripHtmlTags(raw);
                       if (!text) return 'No content available';
-                      return highlightText(text.substring(0, 200));
+                      return highlightText(text.substring(0, 300));
                     })()}
                     {(() => {
                       const raw = post.excerpt && post.excerpt.trim().length > 0 
                         ? post.excerpt 
                         : (post.content || '');
                       const text = stripHtmlTags(raw);
-                      return text && text.length > 200 ? '...' : '';
+                      return text && text.length > 300 ? '...' : '';
                     })()}
                   </Typography>
                 </Box>
               </Box>
             </Box>
 
-            {/* Embedded Report Card */}
+            {/* Hero Image/Content Area */}
+            {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
+              <Box sx={{ p: 4, pt: 0 }}>
+                {post.attachments && post.attachments.length > 0 ? (
+                  <MediaGallery attachments={post.attachments} maxHeight={300} />
+                ) : (
+                  <img
+                    src={resolveContentImageUrl(post.featured_media_url!)}
+                    alt="Featured media"
+                    style={{ 
+                      width: '100%', 
+                      height: 'auto', 
+                      maxHeight: 300,
+                      objectFit: 'cover', 
+                      borderRadius: '8px',
+                      border: 'none'
+                    }}
+                    onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
+                  />
+                )}
+              </Box>
+            ) : null}
+
+            {/* Post Footer */}
             <Box sx={{ 
-              mx: 4, 
-              mb: 4, 
-              backgroundColor: '#16181C', 
-              border: '1px solid #374151',
-              borderRadius: 3,
-              overflow: 'hidden'
+              p: 4, 
+              pt: 3, 
+              borderTop: '1px solid #2F3336',
+              backgroundColor: '#15181C'
             }}>
-              {/* Report Header */}
-              <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid #374151' }}>
-                <Typography variant="h4" component="h2" sx={{ color: '#FFFFFF', fontWeight: 700, mb: 2, fontSize: '1.5rem' }}>
-                  {highlightText(stripHtmlTags(post.title))}
-                </Typography>
-                
-                {/* Report Description */}
-                {(() => {
-                  const raw = post.excerpt && post.excerpt.trim().length > 0 
-                    ? post.excerpt 
-                    : (post.content || '');
-                  const text = stripHtmlTags(raw);
-                  if (!text) return null;
-                  return (
-                    <Typography variant="body1" sx={{ color: '#D1D5DB', lineHeight: 1.6, fontSize: '1rem' }}>
-                      {highlightText(text.substring(0, 400))}
-                      {text.length > 400 && '...'}
-                    </Typography>
-                  );
-                })()}
-              </Box>
-
-              {/* Report Content with Image */}
-              <Box sx={{ p: 3, display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-                {/* Text Content */}
-                <Box sx={{ flex: 1 }}>
-                  {/* Additional content if available */}
-                  {(() => {
-                    const raw = post.content || '';
-                    const text = stripHtmlTags(raw);
-                    if (!text || text.length <= 400) return null;
-                    return (
-                      <Typography variant="body2" sx={{ color: '#9CA3AF', lineHeight: 1.5, fontSize: '0.9rem' }}>
-                        {highlightText(text.substring(400, 600))}
-                        {text.length > 600 && '...'}
-                      </Typography>
-                    );
-                  })()}
-                </Box>
-
-                {/* Right Side Image */}
-                {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
-                  <Box sx={{ flex: '0 0 200px' }}>
-                    {post.attachments && post.attachments.length > 0 ? (
-                      <MediaGallery attachments={post.attachments} maxHeight={150} />
-                    ) : (
-                      <img
-                        src={resolveContentImageUrl(post.featured_media_url!)}
-                        alt="Featured media"
-                        style={{ 
-                          width: '100%', 
-                          height: 150, 
-                          objectFit: 'cover', 
-                          borderRadius: '8px',
-                          border: 'none'
-                        }}
-                        onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
-                      />
-                    )}
-                  </Box>
-                ) : null}
-              </Box>
-
-              {/* Embedded Report Footer */}
-              <Box sx={{ 
-                p: 3, 
-                pt: 2, 
-                borderTop: '1px solid #374151',
-                backgroundColor: '#1F2937',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Left Side - Author Info */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {/* Profile Icon */}
                   <Box sx={{
                     width: 32,
                     height: 32,
@@ -958,12 +907,12 @@ const Dashboard: React.FC = () => {
                       {post.author_name}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#9CA3AF', fontSize: '0.8rem' }}>
-                      {post.category_name || 'Intelligence Source'}
+                      {post.id}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* Status/Tags */}
+                {/* Center - Status and Time */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10B981' }} />
@@ -973,10 +922,6 @@ const Dashboard: React.FC = () => {
                   </Box>
                   
                   <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.8rem' }}>
-                    {post.category_name || 'Intelligence'}
-                  </Typography>
-                  
-                  <Typography variant="caption" sx={{ color: '#9CA3AF', fontSize: '0.8rem' }}>
                     {(() => {
                       const now = new Date();
                       const postDate = new Date(post.wp_published_date);
@@ -988,94 +933,57 @@ const Dashboard: React.FC = () => {
                     })()}
                   </Typography>
                 </Box>
-              </Box>
-            </Box>
 
-            {/* Main Post Footer */}
-            <Box sx={{ 
-              p: 4, 
-              pt: 3, 
-              borderTop: '1px solid #2F3336',
-              backgroundColor: '#15181C'
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {/* Timestamp */}
-                <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.9rem' }}>
-                  {(() => {
-                    const now = new Date();
-                    const postDate = new Date(post.wp_published_date);
-                    const diffMinutes = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60));
-                    if (diffMinutes < 1) return 'Just now';
-                    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-                    const diffHours = Math.floor(diffMinutes / 60);
-                    if (diffHours < 24) return `${diffHours}h ago`;
-                    const diffDays = Math.floor(diffHours / 24);
-                    return `${diffDays}d ago`;
-                  })()}
-                </Typography>
-
-                {/* Interaction Icons */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {/* Comment Count */}
-                  {post.comment_count && post.comment_count > 0 && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" sx={{ color: '#E7E9EA', fontSize: '0.9rem' }}>
-                        💬 {post.comment_count}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  {/* Action Buttons */}
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <FollowButton
-                      postId={post.id}
-                      variant="icon"
-                      size="small"
-                      onFollowChange={(isFollowing) => {
-                        if (activeTab === 'following') {
-                          if (isFollowing) {
-                            loadFollowingPosts();
-                          } else {
-                            setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
-                          }
-                        }
-                      }}
-                    />
-                    
-                    <DeletePostButton
-                      postId={post.id}
-                      postTitle={post.title}
-                      variant="icon"
-                      size="small"
-                      onDelete={(deletedPostId) => {
-                        console.log(`Post ${deletedPostId} deleted from dashboard`);
-                        if (activeTab === 'following') {
-                          setFollowingPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                {/* Right Side - Action Buttons */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <FollowButton
+                    postId={post.id}
+                    variant="icon"
+                    size="small"
+                    onFollowChange={(isFollowing) => {
+                      if (activeTab === 'following') {
+                        if (isFollowing) {
+                          loadFollowingPosts();
                         } else {
-                          setManualPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                          setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
                         }
-                      }}
-                    />
-                    
-                    <Button
-                      startIcon={<Visibility />}
-                      size="small"
-                      variant="contained"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePostClick(post.id);
-                      }}
-                      sx={{
-                        backgroundColor: '#1D9BF0',
-                        color: '#FFFFFF',
-                        '&:hover': {
-                          backgroundColor: '#1A8CD8'
-                        }
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </Box>
+                      }
+                    }}
+                  />
+                  
+                  <DeletePostButton
+                    postId={post.id}
+                    postTitle={post.title}
+                    variant="icon"
+                    size="small"
+                    onDelete={(deletedPostId) => {
+                      console.log(`Post ${deletedPostId} deleted from dashboard`);
+                      if (activeTab === 'following') {
+                        setFollowingPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                      } else {
+                        setManualPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                      }
+                    }}
+                  />
+                  
+                  <Button
+                    startIcon={<Visibility />}
+                    size="small"
+                    variant="contained"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePostClick(post.id);
+                    }}
+                    sx={{
+                      backgroundColor: '#1D9BF0',
+                      color: '#FFFFFF',
+                      '&:hover': {
+                        backgroundColor: '#1A8CD8'
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
                 </Box>
               </Box>
             </Box>
