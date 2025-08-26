@@ -87,7 +87,9 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
   ];
 
   const sexOptions = [
-    'Male', 'Female', 'Unknown'
+    { value: 'M', label: 'Male' },
+    { value: 'F', label: 'Female' },
+    { value: 'O', label: 'Other/Unknown' }
   ];
 
   const sourceTypeOptions = [
@@ -617,15 +619,27 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             </FormControl>
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={selectStyles}>
               <InputLabel>Sex</InputLabel>
               <Select
                 value={formData.subjectSex}
                 onChange={(e) => handleInputChange('subjectSex', e.target.value)}
                 label="Sex"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#1A1A1A',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#2F3336' }
+                      }
+                    }
+                  }
+                }}
               >
-                {sexOptions.map((sex) => (
-                  <MenuItem key={sex} value={sex}>{sex}</MenuItem>
+                {sexOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                 ))}
               </Select>
             </FormControl>
