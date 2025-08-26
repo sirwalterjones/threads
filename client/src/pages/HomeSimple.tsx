@@ -47,6 +47,7 @@ import auditService from '../services/auditService';
 import { format } from 'date-fns';
 import { useLocation } from 'react-router-dom';
 import PostDetailModal from '../components/PostDetailModal';
+import IntelReportDetailModal from '../components/IntelReportDetailModal';
 import MediaGallery from '../components/MediaGallery';
 import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
@@ -72,6 +73,8 @@ const HomeSimple: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [intelModalOpen, setIntelModalOpen] = useState(false);
+  const [selectedIntelReportId, setSelectedIntelReportId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'wp_published_date'|'title'|'author_name'|'ingested_at'>('ingested_at');
   const [sortOrder, setSortOrder] = useState<'ASC'|'DESC'>('DESC');
   const [helpOpen, setHelpOpen] = useState(false);
@@ -306,6 +309,15 @@ const HomeSimple: React.FC = () => {
     await auditService.trackView('post', postId, post?.title);
   };
 
+  const handleIntelReportClick = async (reportId: number) => {
+    setSelectedIntelReportId(reportId);
+    setIntelModalOpen(true);
+    
+    // Find the report for audit logging
+    const report = posts.find(p => p.id === reportId && p.result_type === 'intel_report');
+    await auditService.trackView('intel_report', reportId, report?.title);
+  };
+
   const handleDelete = async (postId: number) => {
     if (!window.confirm('Delete this post? This action cannot be undone.')) return;
     try {
@@ -327,6 +339,11 @@ const HomeSimple: React.FC = () => {
   const handleModalClose = () => {
     setModalOpen(false);
     setSelectedPostId(null);
+  };
+
+  const handleIntelModalClose = () => {
+    setIntelModalOpen(false);
+    setSelectedIntelReportId(null);
   };
 
   // When filters change and results are shown, auto-refresh results (debounced)
@@ -1451,12 +1468,7 @@ const HomeSimple: React.FC = () => {
                       <IntelReportCard
                         key={`intel_${post.id}`}
                         report={post}
-                        onClick={(reportId) => {
-                          // Handle intel report click - could open a modal or navigate
-                          console.log('Intel report clicked:', reportId);
-                          // For now, you might want to open in a new tab or show a modal
-                          window.open(`/intel-reports/${reportId}`, '_blank');
-                        }}
+                        onClick={handleIntelReportClick}
                         highlightText={highlightText}
                       />
                     );
@@ -1908,6 +1920,13 @@ const HomeSimple: React.FC = () => {
           onClose={handleModalClose}
           postId={selectedPostId}
           highlightTerms={highlightTerms}
+        />
+
+        {/* Intel Report Detail Modal */}
+        <IntelReportDetailModal
+          open={intelModalOpen}
+          onClose={handleIntelModalClose}
+          reportId={selectedIntelReportId}
         />
 
         {/* Search Help Dialog */}
