@@ -991,7 +991,7 @@ const Dashboard: React.FC = () => {
               </Box>
             </Box>
 
-            {/* Main Bulletin Footer */}
+            {/* Main Post Footer */}
             <Box sx={{ 
               p: 4, 
               pt: 3, 
@@ -999,40 +999,20 @@ const Dashboard: React.FC = () => {
               backgroundColor: '#15181C'
             }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {/* REPOST Button */}
-                  <Button
-                    startIcon={<TrendingUp />}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      borderColor: '#374151',
-                      color: '#E7E9EA',
-                      textTransform: 'none',
-                      '&:hover': {
-                        borderColor: '#1D9BF0',
-                        backgroundColor: 'rgba(29, 155, 240, 0.1)',
-                      }
-                    }}
-                  >
-                    REPOST
-                  </Button>
-                  
-                  {/* Timestamp */}
-                  <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.9rem' }}>
-                    {(() => {
-                      const now = new Date();
-                      const postDate = new Date(post.wp_published_date);
-                      const diffMinutes = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60));
-                      if (diffMinutes < 1) return 'Just now';
-                      if (diffMinutes < 60) return `${diffMinutes}m ago`;
-                      const diffHours = Math.floor(diffMinutes / 60);
-                      if (diffHours < 24) return `${diffHours}h ago`;
-                      const diffDays = Math.floor(diffHours / 24);
-                      return `${diffDays}d ago`;
-                    })()}
-                  </Typography>
-                </Box>
+                {/* Timestamp */}
+                <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.9rem' }}>
+                  {(() => {
+                    const now = new Date();
+                    const postDate = new Date(post.wp_published_date);
+                    const diffMinutes = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60));
+                    if (diffMinutes < 1) return 'Just now';
+                    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+                    const diffHours = Math.floor(diffMinutes / 60);
+                    if (diffHours < 24) return `${diffHours}h ago`;
+                    const diffDays = Math.floor(diffHours / 24);
+                    return `${diffDays}d ago`;
+                  })()}
+                </Typography>
 
                 {/* Interaction Icons */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
