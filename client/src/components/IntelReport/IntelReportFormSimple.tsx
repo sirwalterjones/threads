@@ -283,6 +283,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       };
 
       console.log('Submitting intel report:', submissionData);
+      console.log('Authorization header:', localStorage.getItem('token') ? 'Present' : 'Missing');
       
       // Make actual API call
       const response = await fetch('/api/intel-reports', {
@@ -295,7 +296,14 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        console.error('API Error Response:', response.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { message: errorText };
+        }
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
