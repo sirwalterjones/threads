@@ -756,128 +756,149 @@ const Dashboard: React.FC = () => {
     </Box>
     )}
 
-    {/* Feed View */}
+    {/* Twitter-Style Feed View */}
     {followingViewMode === 'feed' && (
       <Box sx={{ 
-        maxWidth: '100%', 
+        maxWidth: '600px', 
         mx: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 3
+        backgroundColor: '#000000',
+        border: '1px solid #2F3336',
+        borderRadius: 2,
+        overflow: 'hidden'
       }}>
         {sortedFollowingPosts.map((post) => (
           <Box
             key={post.id}
             sx={{
-              backgroundColor: '#0F1419',
-              border: '1px solid #2F3336',
-              borderRadius: 2,
+              backgroundColor: '#000000',
+              borderBottom: '1px solid #2F3336',
+              p: 3,
               cursor: 'pointer',
-              transition: 'all 0.2s ease-in-out',
+              transition: 'background-color 0.2s ease',
               '&:hover': {
-                backgroundColor: '#15181C',
-                borderColor: '#1D9BF0',
-              },
+                backgroundColor: '#080808'
+              }
             }}
             onClick={() => handlePostClick(post.id)}
           >
-            {/* Post Header */}
-            <Box sx={{ p: 4, pb: 3, borderBottom: '1px solid #2F3336' }}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, mb: 3 }}>
-                {/* Profile Icon with Verification Badge */}
-                <Box sx={{ position: 'relative' }}>
-                  <Box sx={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    backgroundColor: '#1D4ED8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontWeight: 'bold',
-                    fontSize: '1.4rem',
-                    border: '2px solid #1E40AF'
-                  }}>
-                    {post.author_name.charAt(0).toUpperCase()}
-                  </Box>
-                  {/* Verification Badge */}
-                  <Box sx={{
-                    position: 'absolute',
-                    top: -2,
-                    right: -2,
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    backgroundColor: '#DC2626',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid #0F1419'
-                  }}>
-                    <Typography sx={{ color: '#FFFFFF', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                      ✓
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Box sx={{ flex: 1 }}>
-                  {/* Report Number */}
-                  <Typography variant="h5" sx={{ color: '#FFFFFF', fontWeight: 700, mb: 1, fontSize: '1.25rem' }}>
-                    {post.id}
-                  </Typography>
-                  
-                  {/* Author Name */}
-                  <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600, mb: 2, fontSize: '1.1rem' }}>
+            {/* Profile Section */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              <Box sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: '#1D9BF0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+                fontWeight: 'bold',
+                fontSize: '1.2rem'
+              }}>
+                {post.author_name.charAt(0).toUpperCase()}
+              </Box>
+              
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: '#E7E9EA',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                  >
                     {post.author_name}
                   </Typography>
                   
-                  {/* Post Content */}
-                  <Typography variant="body1" sx={{ color: '#E7E9EA', lineHeight: 1.6, fontSize: '1rem' }}>
-                    {(() => {
-                      const raw = post.excerpt && post.excerpt.trim().length > 0 
-                        ? post.excerpt 
-                        : (post.content || '');
-                      const text = stripHtmlTags(raw);
-                      if (!text) return 'No content available';
-                      return highlightText(text.substring(0, 300));
-                    })()}
-                    {(() => {
-                      const raw = post.excerpt && post.excerpt.trim().length > 0 
-                        ? post.excerpt 
-                        : (post.content || '');
-                      const text = stripHtmlTags(raw);
-                      return text && text.length > 300 ? '...' : '';
-                    })()}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#71767B',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    ·
+                  </Typography>
+                  
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#71767B',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    {format(new Date(post.wp_published_date), 'MMM d')}
                   </Typography>
                 </Box>
+                
+                {post.category_name && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#71767B',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    {post.category_name}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
-            {/* Hero Image/Content Area */}
+            {/* Post Content */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#E7E9EA',
+                  fontSize: '1.1rem',
+                  lineHeight: 1.5,
+                  mb: 2,
+                  wordBreak: 'break-word'
+                }}
+              >
+                {(() => {
+                  const raw = post.excerpt && post.excerpt.trim().length > 0 
+                    ? post.excerpt 
+                    : (post.content || '');
+                  const text = stripHtmlTags(raw);
+                  if (!text) return 'No content available';
+                  return highlightText(text.substring(0, 280));
+                })()}
+                {(() => {
+                  const raw = post.excerpt && post.excerpt.trim().length > 0 
+                    ? post.excerpt 
+                    : (post.content || '');
+                  const text = stripHtmlTags(raw);
+                  return text && text.length > 280 ? '...' : '';
+                })()}
+              </Typography>
+            </Box>
+
+            {/* Media Section */}
             {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
-              <Box sx={{ p: 4, pt: 0 }}>
+              <Box sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
                 {post.attachments && post.attachments.length > 0 ? (
-                  <MediaGallery attachments={post.attachments} maxHeight={300} />
-                ) : (
+                  <MediaGallery attachments={post.attachments} maxHeight={400} />
+                ) : post.featured_media_url ? (
                   <img
-                    src={resolveContentImageUrl(post.featured_media_url!)}
+                    src={resolveContentImageUrl(post.featured_media_url)}
                     alt="Featured media"
-                    style={{ 
-                      width: '100%', 
-                      height: 'auto', 
-                      maxHeight: 300,
-                      objectFit: 'cover', 
-                      borderRadius: '8px',
-                      border: 'none'
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      maxHeight: 400,
+                      objectFit: 'cover',
+                      borderRadius: '16px'
                     }}
-                    onLoad={() => console.log('Featured media loaded successfully (Dashboard):', post.featured_media_url)}
                   />
-                )}
+                ) : null}
               </Box>
             ) : null}
 
-            {/* Post Footer */}
+            {/* Engagement Bar - Only Comment and Follow */}
             <Box sx={{ 
               p: 4, 
               pt: 3, 
@@ -885,34 +906,28 @@ const Dashboard: React.FC = () => {
               backgroundColor: '#15181C'
             }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {/* Left Side - Author Info */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    backgroundColor: '#1D9BF0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem'
-                  }}>
-                    {post.author_name.charAt(0).toUpperCase()}
-                  </Box>
-                  
-                  <Box>
-                    <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600, fontSize: '0.9rem' }}>
-                      {post.author_name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#9CA3AF', fontSize: '0.8rem' }}>
-                      {post.id}
-                    </Typography>
-                  </Box>
-                </Box>
+                {/* Comment Button */}
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePostClick(post.id);
+                  }}
+                  sx={{
+                    color: '#71767B',
+                    minWidth: 'auto',
+                    px: 1,
+                    '&:hover': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                      color: '#1D9BF0'
+                    }
+                  }}
+                >
+                  💬 {post.comment_count || 0}
+                </Button>
 
-                {/* Center - Status and Time */}
+                {/* Follow Button */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10B981' }} />
@@ -934,57 +949,20 @@ const Dashboard: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {/* Right Side - Action Buttons */}
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <FollowButton
-                    postId={post.id}
-                    variant="icon"
-                    size="small"
-                    onFollowChange={(isFollowing) => {
-                      if (activeTab === 'following') {
-                        if (isFollowing) {
-                          loadFollowingPosts();
-                        } else {
-                          setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
-                        }
-                      }
-                    }}
-                  />
-                  
-                  <DeletePostButton
-                    postId={post.id}
-                    postTitle={post.title}
-                    variant="icon"
-                    size="small"
-                    onDelete={(deletedPostId) => {
-                      console.log(`Post ${deletedPostId} deleted from dashboard`);
-                      if (activeTab === 'following') {
-                        setFollowingPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                <FollowButton
+                  postId={post.id}
+                  variant="icon"
+                  size="small"
+                  onFollowChange={(isFollowing) => {
+                    if (activeTab === 'following') {
+                      if (isFollowing) {
+                        loadFollowingPosts();
                       } else {
-                        setManualPosts(prev => prev.filter(p => p.id !== deletedPostId));
+                        setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
                       }
-                    }}
-                  />
-                  
-                  <Button
-                    startIcon={<Visibility />}
-                    size="small"
-                    variant="contained"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePostClick(post.id);
-                    }}
-                    sx={{
-                      backgroundColor: '#1D9BF0',
-                      color: '#FFFFFF',
-                      '&:hover': {
-                        backgroundColor: '#1A8CD8'
-                      }
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </Box>
+                    }
+                  }}
+                />
               </Box>
             </Box>
           </Box>
