@@ -235,7 +235,7 @@ router.get('/',
 
     const postsResult = await pool.query(postsQuery, [...queryParams, parseInt(limit), parseInt(offset)]);
 
-    // If there's a search term, also get intel reports
+    // If there's a search term, also get intel reports for unified results
     let intelReports = [];
     let intelTotal = 0;
     if (search) {

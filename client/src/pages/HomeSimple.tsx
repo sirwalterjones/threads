@@ -1445,7 +1445,7 @@ const HomeSimple: React.FC = () => {
                   const contentCount = countMatches(contentText, highlightTerms);
                   const showCount = contentCount > 0;
 
-                  // Check if this is an intel report
+                  // Check if this is an intel report and render appropriate card
                   if (post.result_type === 'intel_report') {
                     return (
                       <IntelReportCard

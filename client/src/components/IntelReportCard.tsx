@@ -52,7 +52,7 @@ const IntelReportCard: React.FC<IntelReportCardProps> = ({
       sx={{
         height: '100%',
         backgroundColor: '#16181C',
-        border: '3px solid #f97316', // Orange border for intel reports
+        border: '3px solid #f97316', // Distinctive orange border for intel reports
         borderRadius: 2,
         cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
