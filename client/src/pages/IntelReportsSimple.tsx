@@ -647,12 +647,19 @@ const IntelReportsSimple: React.FC = () => {
         maxWidth="md"
         fullWidth
         fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1f1f1f',
+            color: '#E7E9EA',
+            border: '1px solid #2F3336'
+          }
+        }}
       >
         {selectedReport && (
           <>
-            <DialogTitle>
+            <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">
+                <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
                   Intel Report #{selectedReport.intelNumber}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -662,7 +669,7 @@ const IntelReportsSimple: React.FC = () => {
                 </Box>
               </Box>
             </DialogTitle>
-            <DialogContent dividers>
+            <DialogContent dividers sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
               {selectedReport.isExpired && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   This report has expired on {new Date(selectedReport.expiresAt!).toLocaleDateString()}
@@ -903,8 +910,8 @@ const IntelReportsSimple: React.FC = () => {
                 </Box>
               )}
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setSelectedReport(null)}>Close</Button>
+            <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+              <Button onClick={() => setSelectedReport(null)} sx={{ color: '#1D9BF0' }}>Close</Button>
             </DialogActions>
           </>
         )}
