@@ -96,6 +96,8 @@ const IntelReportsSimple: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<IntelReport | null>(null);
   const { user } = useAuth();
 
   const classificationColors: Record<string, string> = {
@@ -218,6 +220,29 @@ const IntelReportsSimple: React.FC = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleDeleteRequest = (report: IntelReport) => {
+    setReportToDelete(report);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!reportToDelete) return;
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`/api/intel-reports/${reportToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setReports(prev => prev.filter(r => r.id !== reportToDelete.id));
+    } catch (e) {
+      console.error('Failed to delete report', e);
+      alert('Failed to delete report');
+    } finally {
+      setDeleteDialogOpen(false);
+      setReportToDelete(null);
+    }
+  };
+
   const getClassificationChip = (classification: string) => (
     <Chip 
       label={classification}
@@ -301,6 +326,18 @@ const IntelReportsSimple: React.FC = () => {
         </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button 
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/intel-reports/new')}
+            sx={{ 
+              backgroundColor: '#1D9BF0',
+              color: '#ffffff',
+              '&:hover': { backgroundColor: '#1a8cd8' }
+            }}
+          >
+            New Report
+          </Button>
           <IconButton sx={{ color: '#1D9BF0' }} title="Refresh" onClick={handleRefreshReports}>
             <RefreshIcon />
           </IconButton>
@@ -659,14 +696,32 @@ const IntelReportsSimple: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Tooltip title="View Details">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleViewReport(report)}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Button 
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleViewReport(report)}
+                        startIcon={<VisibilityIcon />}
+                        sx={{ 
+                          borderColor: '#1D9BF0',
+                          color: '#1D9BF0',
+                          '&:hover': { 
+                            borderColor: '#1a8cd8',
+                            backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                          }
+                        }}
+                      >
+                        View
+                      </Button>
+                      {user?.role === 'admin' && (
+                        <Tooltip title="Delete">
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteRequest(report)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -970,6 +1025,30 @@ const IntelReportsSimple: React.FC = () => {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1f1f1f',
+            color: '#E7E9EA',
+            border: '1px solid #2F3336'
+          }
+        }}
+      >
+        <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+          Delete Report
+        </DialogTitle>
+        <DialogContent sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
+          <Typography>Are you sure you want to delete Intel #{reportToDelete?.intelNumber}?</Typography>
+        </DialogContent>
+        <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: '#1D9BF0' }}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleConfirmDelete}>Delete</Button>
+        </DialogActions>
       </Dialog>
 
       {/* Edit Report Modal */}
