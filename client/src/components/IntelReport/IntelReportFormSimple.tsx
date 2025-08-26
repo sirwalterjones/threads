@@ -363,12 +363,6 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
           '& .MuiFormHelperText-root': { 
             color: '#71767B !important' 
           },
-          '& .MuiInputBase-input': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiSelect-select': { 
-            color: '#E7E9EA !important' 
-          },
           '& .MuiChip-root': { 
             color: '#E7E9EA !important' 
           },
@@ -379,12 +373,6 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             color: '#E7E9EA !important' 
           },
           '& .MuiFormLabel-root': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiInputBase-root': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiSelect-root': { 
             color: '#E7E9EA !important' 
           },
           '& .MuiTextField-root': { 
