@@ -40,6 +40,7 @@ export interface Post {
   metadata?: any;
   rank?: number;
   comment_count?: number;
+  result_type?: string; // For search results to distinguish between posts and intel reports
 }
 
 export interface PostComment {
