@@ -117,7 +117,8 @@ const PostExpiration: React.FC = () => {
     setAuthorFilter('');
   };
 
-  const getDaysUntilExpiry = (retentionDate: string) => {
+  const getDaysUntilExpiry = (retentionDate?: string) => {
+    if (!retentionDate) return Infinity; // Return a high value for posts without retention dates
     return differenceInDays(parseISO(retentionDate), new Date());
   };
 
@@ -293,7 +294,7 @@ const PostExpiration: React.FC = () => {
               <WarningIcon sx={{ color: '#DC2626', fontSize: 32 }} />
               <Box>
                 <Typography variant="h6" sx={{ color: '#EF4444', fontWeight: 600 }}>
-                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) <= 7).length}
+                  {posts.filter(p => p.retention_date && getDaysUntilExpiry(p.retention_date) <= 7).length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                   Critical (&le;7 days)
@@ -309,7 +310,7 @@ const PostExpiration: React.FC = () => {
               <Box>
                 <Typography variant="h6" sx={{ color: '#F59E0B', fontWeight: 600 }}>
                   {posts.filter(p => {
-                    const days = getDaysUntilExpiry(p.retention_date);
+                    const days = p.retention_date ? getDaysUntilExpiry(p.retention_date) : Infinity;
                     return days > 7 && days <= 30;
                   }).length}
                 </Typography>
@@ -326,7 +327,7 @@ const PostExpiration: React.FC = () => {
               <CategoryIcon sx={{ color: '#16A34A', fontSize: 32 }} />
               <Box>
                 <Typography variant="h6" sx={{ color: '#10B981', fontWeight: 600 }}>
-                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) > 30).length}
+                  {posts.filter(p => p.retention_date && getDaysUntilExpiry(p.retention_date) > 30).length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                   Normal (&gt;30 days)
@@ -341,7 +342,7 @@ const PostExpiration: React.FC = () => {
               <PurgeIcon sx={{ color: '#64748B', fontSize: 32 }} />
               <Box>
                 <Typography variant="h6" sx={{ color: '#8B98A5', fontWeight: 600 }}>
-                  {posts.filter(p => getDaysUntilExpiry(p.retention_date) < 0).length}
+                  {posts.filter(p => p.retention_date && getDaysUntilExpiry(p.retention_date) < 0).length}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#8B98A5' }}>
                   Expired
@@ -562,7 +563,7 @@ const PostExpiration: React.FC = () => {
             </TableHead>
             <TableBody>
               {paginatedPosts.map((post) => {
-                const daysUntil = getDaysUntilExpiry(post.retention_date);
+                const daysUntil = post.retention_date ? getDaysUntilExpiry(post.retention_date) : Infinity;
                 const status = getExpiryStatus(daysUntil);
                 
                 return (
@@ -601,7 +602,7 @@ const PostExpiration: React.FC = () => {
                       {format(parseISO(post.wp_published_date), 'MMM dd, yyyy')}
                     </TableCell>
                     <TableCell sx={{ color: '#8B98A5' }}>
-                      {format(parseISO(post.retention_date), 'MMM dd, yyyy')}
+                      {post.retention_date ? format(parseISO(post.retention_date), 'MMM dd, yyyy') : 'N/A'}
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -744,7 +745,7 @@ const PostExpiration: React.FC = () => {
                         Expires
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
-                        {format(parseISO(post.retention_date), 'MMM dd, yyyy')}
+                        {post.retention_date ? format(parseISO(post.retention_date), 'MMM dd, yyyy') : 'N/A'}
                       </Typography>
                     </Box>
                   </Box>

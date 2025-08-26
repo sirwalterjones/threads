@@ -324,18 +324,20 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                   }}
                 />
               )}
-              <Chip
-                icon={<Schedule sx={{ color: '#F59E0B' }} />}
-                label={`Retention: ${format(new Date(post.retention_date), 'MMM dd, yyyy')}`}
-                variant="outlined"
-                size="small"
-                sx={{
-                  borderColor: '#F59E0B',
-                  color: '#F59E0B',
+              {post.retention_date && (
+                <Chip
+                  icon={<Schedule sx={{ color: '#F59E0B' }} />}
+                  label={`Retention: ${format(new Date(post.retention_date), 'MMM dd, yyyy')}`}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderColor: '#F59E0B',
+                    color: '#F59E0B',
                   backgroundColor: '#0F1115',
                   '& .MuiChip-label': { color: '#F59E0B' }
                 }}
               />
+              )}
             </Box>
 
             {/* Post Excerpt */}
