@@ -66,6 +66,7 @@ interface IntelReport {
   criminalActivity: string;
   summary: string;
   status: 'pending' | 'approved' | 'rejected';
+  corrected?: boolean;
   submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
@@ -140,7 +141,8 @@ const IntelReportsSimple: React.FC = () => {
           ...report,
           intelNumber: report.intel_number,
           agentName: report.agent_name || 'Unknown',
-          agent_id: report.agent_id
+          agent_id: report.agent_id,
+          corrected: !!report.corrected
         }));
         
         setReports(transformedReports);
@@ -544,6 +546,9 @@ const IntelReportsSimple: React.FC = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
                     {getClassificationChip(report.classification)}
                     {getStatusChip(report.status)}
+                    {report.status === 'pending' && report.corrected && (
+                      <Chip label="Corrected" size="small" sx={{ ml: 1 }} color="info" />
+                    )}
                     {getExpirationChip(report)}
                   </Box>
                 </Box>
@@ -645,6 +650,9 @@ const IntelReportsSimple: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {getStatusChip(report.status)}
+                    {report.status === 'pending' && report.corrected && (
+                      <Chip label="Corrected" size="small" sx={{ ml: 1 }} color="info" />
+                    )}
                   </TableCell>
                   <TableCell>
                     {getExpirationChip(report)}

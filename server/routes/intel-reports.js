@@ -53,6 +53,12 @@ router.get('/', authenticateToken, async (req, res) => {
         COUNT(DISTINCT irs.id) as subjects_count,
         COUNT(DISTINCT iro.id) as organizations_count,
         COUNT(DISTINCT irf.id) as files_count,
+        (
+          CASE WHEN EXISTS (
+            SELECT 1 FROM intel_report_review_notes n 
+            WHERE n.report_id = ir.id AND n.action = 'rejected'
+          ) AND ir.status = 'pending' THEN true ELSE false END
+        ) AS corrected,
         CASE 
           WHEN ir.expires_at < NOW() THEN true 
           ELSE false 
@@ -386,6 +392,20 @@ router.put('/:id', authenticateToken, async (req, res) => {
       intel_number, classification, date, case_number,
       subject, criminal_activity, summary, id
     ]);
+
+    // If author is editing a previously rejected report, reset to pending for re-review
+    if (!isAdmin && isAuthor && report.status === 'rejected') {
+      await client.query(`
+        UPDATE intel_reports 
+        SET status = 'pending', reviewed_by = NULL, reviewed_at = NULL, review_comments = NULL, updated_at = NOW()
+        WHERE id = $1
+      `, [id]);
+      // Log a review note for resubmission
+      await client.query(`
+        INSERT INTO intel_report_review_notes (report_id, reviewer_id, action, comments)
+        VALUES ($1, $2, 'comment', $3)
+      `, [id, req.user.id, 'Resubmitted with corrections']);
+    }
 
     // Delete existing related records
     await client.query('DELETE FROM intel_report_subjects WHERE report_id = $1', [id]);
