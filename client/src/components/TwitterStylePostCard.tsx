@@ -121,7 +121,7 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
 
   const hasMedia = (post.attachments && post.attachments.length > 0) || 
                   post.featured_media_url || 
-                  extractImageUrls(post.content).length > 0;
+                  (post.content && extractImageUrls(post.content).length > 0);
 
   return (
     <Box
@@ -268,7 +268,7 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
             }}
           >
             {highlightText(stripHtmlTags(post.content.substring(0, 280))}
-            {post.content.length > 280 && '...'}
+            {post.content && post.content.length > 280 && '...'}
           </Typography>
         )}
       </Box>
@@ -292,7 +292,7 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
             />
           ) : (
             <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto' }}>
-              {extractImageUrls(post.content).slice(0, 3).map((url, idx) => (
+              {post.content && extractImageUrls(post.content).slice(0, 3).map((url, idx) => (
                 <img
                   key={idx}
                   src={resolveContentImageUrl(url)}
