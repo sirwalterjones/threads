@@ -49,6 +49,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface IntelReport {
   id: string;
@@ -88,6 +89,7 @@ const IntelReportsSimple: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { user } = useAuth();
 
   const classificationColors: Record<string, string> = {
     'Sensitive': '#ff9800',
@@ -174,10 +176,14 @@ const IntelReportsSimple: React.FC = () => {
       });
 
       if (response.ok) {
-        const fullReport = await response.json();
+        const payload = await response.json();
+        const fullReport = payload.report || payload; // API returns { report }
         // Merge the full data with the existing report
         const completeReport: IntelReport = {
           ...report,
+          caseNumber: fullReport.case_number ?? report.caseNumber,
+          criminalActivity: fullReport.criminal_activity ?? report.criminalActivity,
+          summary: fullReport.summary ?? report.summary,
           subjectsData: fullReport.subjects || [],
           organizationsData: fullReport.organizations || [],
           sourcesData: fullReport.sources || []
@@ -911,6 +917,27 @@ const IntelReportsSimple: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+              {/* Edit button - only for authors and admins, and only if not approved */}
+              {((user?.id === selectedReport.agent_id || user?.role === 'admin' || user?.super_admin) && 
+                 selectedReport.status !== 'approved') && (
+                <Button 
+                  variant="outlined"
+                  onClick={() => {
+                    // TODO: Implement edit functionality
+                    console.log('Edit report:', selectedReport.id);
+                  }}
+                  sx={{ 
+                    borderColor: '#1D9BF0',
+                    color: '#1D9BF0',
+                    '&:hover': { 
+                      borderColor: '#1a8cd8',
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                    }
+                  }}
+                >
+                  Edit Report
+                </Button>
+              )}
               <Button onClick={() => setSelectedReport(null)} sx={{ color: '#1D9BF0' }}>Close</Button>
             </DialogActions>
           </>
