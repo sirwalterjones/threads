@@ -104,6 +104,55 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
     '4 - Doubtful', '5 - Improbable', '6 - Truth Cannot Be Judged'
   ];
 
+  // Common styling for form fields
+  const fieldStyles = {
+    mb: 2,
+    '& .MuiInputLabel-root': { 
+      color: '#8B98A5',
+      '&.Mui-focused': { color: '#1D9BF0' }
+    },
+    '& .MuiOutlinedInput-root': { 
+      backgroundColor: '#1A1A1A',
+      '& .MuiInputBase-input': { 
+        color: '#E7E9EA'
+      },
+      '& .MuiOutlinedInput-notchedOutline': { 
+        borderColor: '#2F3336'
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#4A4A4A'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#1D9BF0'
+      }
+    },
+    '& .MuiFormHelperText-root': { color: '#71767B' }
+  };
+
+  const selectStyles = {
+    mb: 2,
+    '& .MuiInputLabel-root': { 
+      color: '#8B98A5',
+      '&.Mui-focused': { color: '#1D9BF0' }
+    },
+    '& .MuiOutlinedInput-root': { 
+      backgroundColor: '#1A1A1A',
+      '& .MuiSelect-select': { 
+        color: '#E7E9EA'
+      },
+      '& .MuiOutlinedInput-notchedOutline': { 
+        borderColor: '#2F3336'
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#4A4A4A'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#1D9BF0'
+      }
+    },
+    '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+  };
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -335,67 +384,11 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       minHeight: isModal ? 'auto' : '100vh',
       color: '#E7E9EA'
     }}>
-              <Paper sx={{ 
-          p: { xs: 2, md: 4 }, 
-          backgroundColor: '#1f1f1f',
-          border: '1px solid #2F3336',
-          '& .MuiInputLabel-root': { 
-            color: '#E7E9EA !important',
-            '&.Mui-focused': { color: '#1D9BF0 !important' }
-          }, 
-          '& .MuiOutlinedInput-root': { 
-            color: '#E7E9EA !important',
-            backgroundColor: '#1A1A1A',
-            '& .MuiOutlinedInput-notchedOutline': { 
-              borderColor: '#2F3336',
-              '&:hover': { borderColor: '#4A4A4A' }
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#1D9BF0'
-            }
-          },
-          '& .MuiSvgIcon-root': { color: '#E7E9EA !important' },
-          '& .MuiMenuItem-root': { 
-            color: '#E7E9EA !important', 
-            backgroundColor: '#1A1A1A',
-            '&:hover': { backgroundColor: '#2F3336' }
-          },
-          '& .MuiFormHelperText-root': { 
-            color: '#71767B !important' 
-          },
-          '& .MuiChip-root': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiDivider-root': { 
-            borderColor: '#2F3336' 
-          },
-          '& .MuiTypography-root': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiFormLabel-root': { 
-            color: '#E7E9EA !important' 
-          },
-          '& .MuiTextField-root': { 
-            '& .MuiInputBase-input': { color: '#E7E9EA !important' },
-            '& .MuiInputLabel-root': { color: '#E7E9EA !important' }
-          },
-          '& .MuiFormControl-root': {
-            '& .MuiInputLabel-root': { color: '#E7E9EA !important' },
-            '& .MuiInputBase-input': { color: '#E7E9EA !important' }
-          },
-          '& .MuiSelect-root': {
-            '& .MuiSelect-select': { color: '#E7E9EA !important' }
-          },
-          '& .MuiInputLabel-shrink': {
-            color: '#E7E9EA !important'
-          },
-          '& .MuiInputLabel-formControl': {
-            color: '#E7E9EA !important'
-          },
-          '& .MuiInputLabel-outlined': {
-            color: '#E7E9EA !important'
-          }
-        }}>
+      <Paper sx={{ 
+        p: { xs: 2, md: 4 }, 
+        backgroundColor: '#1f1f1f',
+        border: '1px solid #2F3336'
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
           <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
@@ -420,29 +413,47 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               type="text"
               value={formData.intelNumber}
               InputProps={{
-                readOnly: true,
-                sx: { 
-                  backgroundColor: '#2F3336',
-                  color: '#E7E9EA',
-                  '& .MuiInputBase-input': { color: '#E7E9EA' }
-                }
+                readOnly: true
               }}
               sx={{ 
                 mb: 2,
-                '& .MuiInputLabel-root': { color: '#E7E9EA !important' },
-                '& .MuiFormHelperText-root': { color: '#71767B !important' },
-                '& .MuiInputBase-input': { color: '#E7E9EA !important' }
+                '& .MuiInputLabel-root': { 
+                  color: '#8B98A5',
+                  '&.Mui-focused': { color: '#1D9BF0' }
+                },
+                '& .MuiOutlinedInput-root': { 
+                  backgroundColor: '#2F3336',
+                  '& .MuiInputBase-input': { 
+                    color: '#E7E9EA'
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': { 
+                    borderColor: '#2F3336'
+                  }
+                },
+                '& .MuiFormHelperText-root': { color: '#71767B' }
               }}
               helperText="Auto-generated Intel number"
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
-            <FormControl fullWidth required sx={{ mb: 2 }}>
+            <FormControl fullWidth required sx={selectStyles}>
               <InputLabel>Classification</InputLabel>
               <Select
                 value={formData.classification}
                 onChange={(e) => handleInputChange('classification', e.target.value)}
                 label="Classification"
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: '#1A1A1A',
+                      border: '1px solid #2F3336',
+                      '& .MuiMenuItem-root': {
+                        color: '#E7E9EA',
+                        '&:hover': { backgroundColor: '#2F3336' }
+                      }
+                    }
+                  }
+                }}
               >
                 {classificationOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -474,7 +485,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               onChange={(e) => handleInputChange('date', e.target.value)}
               required
               InputLabelProps={{ shrink: true }}
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
           <Box sx={{ flex: '1 1 300px', minWidth: '250px' }}>
@@ -484,7 +495,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
               value={formData.agentName}
               onChange={(e) => handleInputChange('agentName', e.target.value)}
               required
-              sx={{ mb: 2 }}
+              sx={fieldStyles}
             />
           </Box>
         </Box>
@@ -496,7 +507,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             value={formData.caseNumber}
             onChange={(e) => handleInputChange('caseNumber', e.target.value)}
             helperText="Put the associated case # if applicable"
-            sx={{ mb: 2 }}
+            sx={fieldStyles}
           />
         </Box>
 
@@ -507,7 +518,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             value={formData.subject}
             onChange={(e) => handleInputChange('subject', e.target.value)}
             required
-            sx={{ mb: 2 }}
+            sx={fieldStyles}
           />
         </Box>
 
@@ -519,7 +530,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             rows={4}
             value={formData.criminalActivity}
             onChange={(e) => handleInputChange('criminalActivity', e.target.value)}
-            sx={{ mb: 2 }}
+            sx={fieldStyles}
           />
         </Box>
 
@@ -531,7 +542,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             rows={6}
             value={formData.summary}
             onChange={(e) => handleInputChange('summary', e.target.value)}
-            sx={{ mb: 2 }}
+            sx={fieldStyles}
           />
         </Box>
 
