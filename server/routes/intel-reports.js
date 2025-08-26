@@ -62,7 +62,7 @@ router.get('/', authenticateToken, async (req, res) => {
           ELSE 0
         END as days_until_expiration
       FROM intel_reports ir
-      JOIN users u ON ir.agent_id = u.id
+      LEFT JOIN users u ON ir.agent_id = u.id
       LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
       LEFT JOIN intel_report_subjects irs ON ir.id = irs.report_id
       LEFT JOIN intel_report_organizations iro ON ir.id = iro.report_id
@@ -119,6 +119,7 @@ router.get('/', authenticateToken, async (req, res) => {
     let countQuery = `
       SELECT COUNT(DISTINCT ir.id) as total
       FROM intel_reports ir
+      LEFT JOIN users u ON ir.agent_id = u.id
       WHERE 1=1
     `;
     
