@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, Stack, Chip, Alert, Divider, Paper, Typography, LinearProgress, IconButton } from '@mui/material';
 import { CloudUpload, Delete, CheckCircle, Error, Close } from '@mui/icons-material';
 import DOMPurify from 'dompurify';
-import { Editor } from '@tinymce/tinymce-react';
+// TinyMCE removed - using simple textarea instead
 import apiService from '../services/api';
 import auditService from '../services/auditService';
 import { Category } from '../types';
@@ -25,7 +25,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
 
   useEffect(() => {
     if (!open) {
-      setEditorRef(null);
       return;
     }
     if (post) {
@@ -197,7 +196,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     setUploadingFiles(prev => prev.filter(f => f.status !== 'error'));
   };
 
-  const [editorRef, setEditorRef] = useState<any>(null);
+  // editorRef removed - no longer using TinyMCE
 
   const generateExcerpt = (html: string) => {
     const div = document.createElement('div');
@@ -270,7 +269,6 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         setTitle(''); 
         setContent('');
         setUploads([]);
-        setEditorRef(null);
         setShowSuccess(false);
         setError(''); // Clear any previous errors
         
@@ -413,7 +411,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" sx={{ 
             mb: 1, 
-            color: '#374151', 
+            color: '#E7E9EA', 
             fontWeight: 600 
           }}>
             Thread Title
@@ -456,68 +454,45 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" sx={{ 
             mb: 1, 
-            color: '#374151', 
+            color: '#E7E9EA', 
             fontWeight: 600 
           }}>
             Content
           </Typography>
           
-          <Paper 
-            elevation={0}
-            sx={{ 
-              border: '1px solid #2F3336',
-              borderRadius: 2,
-              backgroundColor: '#1C1F23',
-              overflow: 'hidden',
-              '& .tox-tinymce': {
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#1C1F23'
+          <TextField
+            label="Write your thread content here..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            fullWidth
+            required
+            multiline
+            rows={12}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#1C1F23',
+                color: '#E7E9EA',
+                '& fieldset': {
+                  borderColor: '#2F3336'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#3F4144'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1DA1F2'
+                }
               },
-              '& .tox-editor-header': {
-                borderBottom: '1px solid #2F3336',
-                backgroundColor: '#16181C'
+              '& .MuiInputLabel-root': {
+                color: '#71767B',
+                '&.Mui-focused': {
+                  color: '#1DA1F2'
+                }
+              },
+              '& .MuiInputBase-input': {
+                color: '#E7E9EA'
               }
             }}
-          >
-            <Editor
-              tinymceScriptSrc="/tinymce/tinymce.min.js"
-              value={content}
-              onEditorChange={(value) => setContent(value)}
-              onInit={(evt, editor) => setEditorRef(editor)}
-              init={{
-                license_key: 'gpl',
-                height: 400,
-                menubar: false,
-                plugins: [
-                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                ],
-                toolbar: 'undo redo | blocks | ' +
-                  'bold italic forecolor | alignleft aligncenter ' +
-                  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; background-color: #1C1F23; color: #E7E9EA; } p { color: #E7E9EA; } h1, h2, h3, h4, h5, h6 { color: #E7E9EA; } a { color: #1DA1F2; }',
-                // Use local skins to avoid remote fetches
-                skin_url: '/tinymce/skins/ui/oxide',
-                content_css: '/tinymce/skins/content/default/content.min.css',
-                branding: false,
-                promotion: false,
-                resize: false,
-                statusbar: false,
-                placeholder: 'Write your thread content here...',
-                setup: (editor) => {
-                  editor.on('init', () => {
-                    editor.getContainer().style.transition = 'border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out';
-                    // Force dark mode styling
-                    editor.getBody().style.backgroundColor = '#1C1F23';
-                    editor.getBody().style.color = '#E7E9EA';
-                  });
-                }
-              }}
-            />
-          </Paper>
+          />
         </Box>
 
         {/* Media Upload Section */}
