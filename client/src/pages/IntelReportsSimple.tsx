@@ -85,7 +85,7 @@ const IntelReportsSimple: React.FC = () => {
   const [reports, setReports] = useState<IntelReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<IntelReport | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('approved');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -114,7 +114,8 @@ const IntelReportsSimple: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`/api/intel-reports?status=${statusFilter}`, {
+        // Always fetch all reports so stats are accurate; filter client-side for view
+        const response = await fetch(`/api/intel-reports?status=all`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -143,7 +144,7 @@ const IntelReportsSimple: React.FC = () => {
     };
 
     fetchReports();
-  }, [statusFilter, refreshTrigger]);
+  }, [refreshTrigger]);
 
   const filteredReports = reports.filter(report => {
     if (statusFilter !== 'all' && report.status !== statusFilter) return false;
