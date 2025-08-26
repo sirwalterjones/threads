@@ -80,6 +80,21 @@ router.get('/', authenticateToken, async (req, res) => {
     const values = [];
     let valueIndex = 1;
 
+    // Apply classification-based visibility rules
+    if (req.user.role !== 'admin') {
+      // Non-admins can only see:
+      // 1. Reports they created (regardless of status)
+      // 2. Non-classified reports that are pending or rejected
+      // 3. Non-classified reports that are approved (but not classified)
+      query += ` AND (
+        ir.agent_id = $${valueIndex} OR 
+        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected')) OR
+        (ir.classification != 'Classified' AND ir.status = 'approved')
+      )`;
+      values.push(req.user.id);
+      valueIndex++;
+    }
+
     // Apply filters
     if (status !== 'all') {
       query += ` AND ir.status = $${valueIndex}`;
@@ -133,6 +148,17 @@ router.get('/', authenticateToken, async (req, res) => {
     const countValues = [];
     let countIndex = 1;
     
+    // Apply classification-based visibility rules to count query
+    if (req.user.role !== 'admin') {
+      countQuery += ` AND (
+        ir.agent_id = $${countIndex} OR 
+        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected')) OR
+        (ir.classification != 'Classified' AND ir.status = 'approved')
+      )`;
+      countValues.push(req.user.id);
+      countIndex++;
+    }
+
     if (status !== 'all') {
       countQuery += ` AND ir.status = $${countIndex}`;
       countValues.push(status);
@@ -364,9 +390,25 @@ router.put('/:id', authenticateToken, async (req, res) => {
     // Check permissions:
     // - User can edit if they are the author AND report is not approved
     // - Admin can edit any report
+    // - Non-admins cannot edit classified reports after approval
     const isAuthor = report.agent_id === req.user.id;
     const isAdmin = req.user.role === 'admin' || req.user.super_admin;
     const isApproved = report.status === 'approved';
+    
+    // Get the current classification to check access
+    const currentReportQuery = await client.query(
+      'SELECT classification FROM intel_reports WHERE id = $1',
+      [id]
+    );
+    const currentClassification = currentReportQuery.rows[0]?.classification;
+    
+    // Check if non-admin is trying to edit a classified report after approval
+    if (!isAdmin && currentClassification === 'Classified' && isApproved) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ 
+        error: 'Access denied. Classified reports cannot be edited by non-admin users after approval.' 
+      });
+    }
     
     if (!isAdmin && (!isAuthor || isApproved)) {
       await client.query('ROLLBACK');
@@ -703,7 +745,30 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     const report = result.rows[0];
     
-    // Allow all authenticated users to view full intel report details
+    // Apply classification-based access control
+    if (req.user.role !== 'admin') {
+      // Non-admins can only view:
+      // 1. Reports they created (regardless of status)
+      // 2. Non-classified reports that are pending or rejected
+      // 3. Non-classified reports that are approved
+      const canView = 
+        report.agent_id === req.user.id || 
+        (report.classification !== 'Classified' && report.status === 'pending') ||
+        (report.classification !== 'Classified' && report.status === 'rejected') ||
+        (report.classification !== 'Classified' && report.status === 'approved');
+      
+      if (!canView) {
+        console.warn('[intel-reports] Access denied to classified report', { 
+          reportId: id, 
+          userId: req.user.id, 
+          classification: report.classification, 
+          status: report.status 
+        });
+        return res.status(403).json({ 
+          error: 'Access denied. This report is classified and requires admin privileges to view.' 
+        });
+      }
+    }
 
     res.json({ report });
   } catch (error) {
