@@ -874,9 +874,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
               )}
             </DialogContent>
             <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
-              {/* Edit button - only for authors and admins, and only if not approved */}
-              {((user?.id === selectedReport.agent_id || user?.role === 'admin' || user?.super_admin) && 
-                 selectedReport.status !== 'approved') && (
+              {/* Edit button - authors can edit until approved; admins can always edit */}
+              {(((user?.id === selectedReport.agent_id) && selectedReport.status !== 'approved') || (user?.role === 'admin' || user?.super_admin)) && (
                 <Button 
                   variant="outlined"
                   onClick={() => {
@@ -897,7 +896,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 </Button>
               )}
               <Button onClick={() => setSelectedReport(null)} sx={{ color: '#1D9BF0' }}>Close</Button>
-              {selectedReport.status === 'pending' && (
+              {/* Admins can change status anytime; authors only when pending via approval flow */}
+              {((user?.role === 'admin' || user?.super_admin) || selectedReport.status === 'pending') && (
                 <>
                   <Button 
                     color="error" 

@@ -703,14 +703,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     const report = result.rows[0];
     
-    // Check if user can view this report
-    const isAuthor = report.agent_id === req.user.id;
-    const isAdmin = req.user.role === 'admin' || req.user.super_admin;
-    
-    if (!isAdmin && !isAuthor) {
-      console.warn('[intel-reports] Permission denied to view report', { id, requester: req.user?.id, agentId: report.agent_id });
-      return res.status(403).json({ error: 'You can only view your own reports' });
-    }
+    // Allow all authenticated users to view full intel report details
 
     res.json({ report });
   } catch (error) {

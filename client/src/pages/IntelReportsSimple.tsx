@@ -81,6 +81,7 @@ interface IntelReport {
   subjectsData?: any[];
   organizationsData?: any[];
   sourcesData?: any[];
+  reviews?: Array<{ id: number; reviewer_name: string; action: string; comments: string; created_at: string }>;
 }
 
 const IntelReportsSimple: React.FC = () => {
@@ -96,8 +97,6 @@ const IntelReportsSimple: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [reportToDelete, setReportToDelete] = useState<IntelReport | null>(null);
   const { user } = useAuth();
 
   const classificationColors: Record<string, string> = {
@@ -189,6 +188,18 @@ const IntelReportsSimple: React.FC = () => {
       if (response.ok) {
         const payload = await response.json();
         const fullReport = payload.report || payload; // API returns { report }
+        // Load review notes (corrections trail)
+        let reviews: IntelReport['reviews'] = [];
+        try {
+          const notesResp = await fetch(`/api/intel-reports/${report.id}/reviews`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (notesResp.ok) {
+            const notesData = await notesResp.json();
+            reviews = notesData.reviews || [];
+          }
+        } catch (_) { /* ignore */ }
+
         // Merge the full data with the existing report
         const completeReport: IntelReport = {
           ...report,
@@ -197,7 +208,8 @@ const IntelReportsSimple: React.FC = () => {
           summary: fullReport.summary ?? report.summary,
           subjectsData: fullReport.subjects || [],
           organizationsData: fullReport.organizations || [],
-          sourcesData: fullReport.sources || []
+          sourcesData: fullReport.sources || [],
+          reviews
         };
         setSelectedReport(completeReport);
       } else {
@@ -220,28 +232,7 @@ const IntelReportsSimple: React.FC = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleDeleteRequest = (report: IntelReport) => {
-    setReportToDelete(report);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!reportToDelete) return;
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(`/api/intel-reports/${reportToDelete.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setReports(prev => prev.filter(r => r.id !== reportToDelete.id));
-    } catch (e) {
-      console.error('Failed to delete report', e);
-      alert('Failed to delete report');
-    } finally {
-      setDeleteDialogOpen(false);
-      setReportToDelete(null);
-    }
-  };
+  // Delete is only available in approval page
 
   const getClassificationChip = (classification: string) => (
     <Chip 
@@ -696,32 +687,15 @@ const IntelReportsSimple: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleViewReport(report)}
-                        startIcon={<VisibilityIcon />}
-                        sx={{ 
-                          borderColor: '#1D9BF0',
-                          color: '#1D9BF0',
-                          '&:hover': { 
-                            borderColor: '#1a8cd8',
-                            backgroundColor: 'rgba(29, 155, 240, 0.1)'
-                          }
-                        }}
-                      >
-                        View
-                      </Button>
-                      {user?.role === 'admin' && (
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleDeleteRequest(report)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      <Tooltip title="View Details">
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleViewReport(report)}
+                          sx={{ color: '#1D9BF0' }}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -796,6 +770,35 @@ const IntelReportsSimple: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">Summary:</Typography>
                 <Typography variant="body1">{selectedReport.summary}</Typography>
               </Box>
+
+              {/* Corrections Trail for all users */}
+              {selectedReport.reviews && selectedReport.reviews.length > 0 && (
+                <Box sx={{ mb: 3, mt: 1 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, textAlign: 'center' }}>
+                    Corrections Trail
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#71767B', mb: 2, textAlign: 'left' }}>
+                    Reviewer notes and actions are listed below. Address the latest rejection comments.
+                  </Typography>
+                  {selectedReport.reviews.map((note: any) => (
+                    <Box key={note.id} sx={{ p: 2, mb: 2, borderRadius: 2, backgroundColor: '#121416', border: '1px solid #2F3336' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle1" sx={{ color: note.action === 'rejected' ? '#f44336' : note.action === 'approved' ? '#4caf50' : '#1D9BF0', fontWeight: 700 }}>
+                          {note.action?.charAt(0).toUpperCase() + note.action?.slice(1)}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#A1A7AD' }}>
+                          {(note.reviewer_name || 'Reviewer')} • {new Date(note.created_at).toLocaleString()}
+                        </Typography>
+                      </Box>
+                      {note.comments && (
+                        <Typography variant="body2" sx={{ color: '#E7E9EA', whiteSpace: 'pre-wrap' }}>
+                          {note.comments}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              )}
 
               {/* Case Number */}
               {selectedReport.caseNumber && (
