@@ -48,7 +48,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import IntelReportFormSimple from '../components/IntelReport/IntelReportFormSimple';
+import { useNavigate } from 'react-router-dom';
 
 interface IntelReport {
   id: string;
@@ -76,15 +76,13 @@ interface IntelReport {
 const IntelReportsSimple: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   
   const [reports, setReports] = useState<IntelReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<IntelReport | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('approved');
   const [searchTerm, setSearchTerm] = useState('');
-  const [createReportModalOpen, setCreateReportModalOpen] = useState(false);
-  const [editReportModalOpen, setEditReportModalOpen] = useState(false);
-  const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const classificationColors: Record<string, string> = {
@@ -152,12 +150,6 @@ const IntelReportsSimple: React.FC = () => {
 
   const handleRefreshReports = () => {
     setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleModalClose = () => {
-    setCreateReportModalOpen(false);
-    // Refresh the reports list after modal closes
-    handleRefreshReports();
   };
 
   const getClassificationChip = (classification: string) => (
@@ -386,7 +378,7 @@ const IntelReportsSimple: React.FC = () => {
           <Button 
             variant="contained" 
             startIcon={<AddIcon />}
-            onClick={() => setCreateReportModalOpen(true)}
+            onClick={() => navigate('/intel-reports/new')}
             sx={{ 
               backgroundColor: '#1D9BF0',
               color: '#ffffff',
@@ -510,28 +502,6 @@ const IntelReportsSimple: React.FC = () => {
         </TableContainer>
       )}
 
-      {/* Create Report Modal */}
-      <Dialog
-        open={createReportModalOpen}
-        onClose={handleModalClose}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: '#1f1f1f',
-            border: '1px solid #2F3336',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            '& .MuiDialogTitle-root': { color: '#E7E9EA' },
-            '& .MuiDialogContent-root': { color: '#E7E9EA' }
-          }
-        }}
-      >
-        <IntelReportFormSimple 
-          isModal={true}
-          onClose={handleModalClose}
-        />
-      </Dialog>
 
       {/* Report Details Dialog */}
       <Dialog 

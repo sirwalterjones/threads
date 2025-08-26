@@ -14,7 +14,8 @@ import {
   CircularProgress,
   Divider
 } from '@mui/material';
-import { Security as SecurityIcon } from '@mui/icons-material';
+import { Security as SecurityIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface IntelReportFormProps {
   isModal?: boolean;
@@ -22,6 +23,7 @@ interface IntelReportFormProps {
 }
 
 const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -237,6 +239,9 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       if (isModal && onClose) {
         // Close modal after showing success
         onClose();
+      } else {
+        // If not in modal, we're on a standalone page, so the success screen will show
+        // The user can click "Create New Report" or navigate away
       }
       
       // Reset form for next use
@@ -323,55 +328,72 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
           <Typography variant="body1" sx={{ mb: 3, color: '#E7E9EA' }}>
             Your intelligence report has been submitted and is now under review.
           </Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => {
-              setSuccess(false);
-              // Reset form data
-              setFormData({
-                intelNumber: generateIntelNumber(),
-                classification: '',
-                date: new Date().toISOString().split('T')[0],
-                agentName: '',
-                caseNumber: '',
-                subject: '',
-                criminalActivity: '',
-                summary: '',
-                // Subject Information
-                subjectFirstName: '',
-                subjectMiddleName: '',
-                subjectLastName: '',
-                subjectAddress: '',
-                subjectDateOfBirth: '',
-                subjectRace: '',
-                subjectSex: '',
-                subjectPhone: '',
-                subjectSSN: '',
-                subjectLicense: '',
-                // Organization/Business
-                businessName: '',
-                businessPhone: '',
-                businessAddress: '',
-                // Source Information
-                sourceId: '',
-                sourceRating: '',
-                sourceType: '',
-                sourceReliability: '',
-                sourceFirstName: '',
-                sourceMiddleName: '',
-                sourceLastName: '',
-                sourcePhone: '',
-                sourceAddress: ''
-              });
-            }}
-            sx={{ 
-              backgroundColor: '#1D9BF0',
-              color: '#ffffff',
-              '&:hover': { backgroundColor: '#1a8cd8' }
-            }}
-          >
-            Create New Report
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button 
+              variant="outlined"
+              startIcon={<BackIcon />}
+              onClick={() => navigate('/intel-reports')}
+              sx={{ 
+                borderColor: '#1D9BF0',
+                color: '#1D9BF0',
+                '&:hover': { 
+                  borderColor: '#1a8cd8',
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                }
+              }}
+            >
+              Back to Reports
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={() => {
+                setSuccess(false);
+                // Reset form data
+                setFormData({
+                  intelNumber: generateIntelNumber(),
+                  classification: '',
+                  date: new Date().toISOString().split('T')[0],
+                  agentName: '',
+                  caseNumber: '',
+                  subject: '',
+                  criminalActivity: '',
+                  summary: '',
+                  // Subject Information
+                  subjectFirstName: '',
+                  subjectMiddleName: '',
+                  subjectLastName: '',
+                  subjectAddress: '',
+                  subjectDateOfBirth: '',
+                  subjectRace: '',
+                  subjectSex: '',
+                  subjectPhone: '',
+                  subjectSSN: '',
+                  subjectLicense: '',
+                  // Organization/Business
+                  businessName: '',
+                  businessPhone: '',
+                  businessAddress: '',
+                  // Source Information
+                  sourceId: '',
+                  sourceRating: '',
+                  sourceType: '',
+                  sourceReliability: '',
+                  sourceFirstName: '',
+                  sourceMiddleName: '',
+                  sourceLastName: '',
+                  sourcePhone: '',
+                  sourceAddress: ''
+                });
+              }}
+              sx={{ 
+                backgroundColor: '#1D9BF0',
+                color: '#ffffff',
+                '&:hover': { backgroundColor: '#1a8cd8' }
+              }}
+            >
+              Create New Report
+            </Button>
+          </Box>
         </Paper>
       </Box>
     );
@@ -391,11 +413,30 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
         backgroundColor: '#1f1f1f',
         border: '1px solid #2F3336'
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-          <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
-          <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
-            Intelligence Report
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <SecurityIcon sx={{ fontSize: 40, color: '#1D9BF0' }} />
+            <Typography variant="h4" component="h1" sx={{ color: '#E7E9EA' }}>
+              Intelligence Report
+            </Typography>
+          </Box>
+          {!isModal && (
+            <Button
+              variant="outlined"
+              startIcon={<BackIcon />}
+              onClick={() => navigate('/intel-reports')}
+              sx={{ 
+                borderColor: '#1D9BF0',
+                color: '#1D9BF0',
+                '&:hover': { 
+                  borderColor: '#1a8cd8',
+                  backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                }
+              }}
+            >
+              Back to Reports
+            </Button>
+          )}
         </Box>
 
         {error && (
