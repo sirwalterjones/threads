@@ -20,11 +20,14 @@ const auditService = {
     }
   },
   
-  async trackView(type: 'post'|'category'|'user', id: number, title?: string) {
+  async trackView(type: 'post'|'category'|'user'|'intel_report', id: number, title?: string) {
     try {
+      // Map intel_report to the correct table name
+      const tableName = type === 'intel_report' ? 'intel_reports' : `${type}s`;
+      
       await axios.post(`${API_BASE_URL}/audit/log`, {
         action: 'VIEW',
-        table_name: `${type}s`,
+        table_name: tableName,
         record_id: id,
         meta: { type, id, title, timestamp: new Date().toISOString() }
       }, { headers: getAuthHeaders() });
