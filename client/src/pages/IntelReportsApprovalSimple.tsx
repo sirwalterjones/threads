@@ -888,7 +888,10 @@ const IntelReportsApprovalSimple: React.FC = () => {
       {/* Review Action Dialog */}
       <Dialog 
         open={reviewDialogOpen} 
-        onClose={() => setReviewDialogOpen(false)}
+        onClose={() => {
+          setReviewDialogOpen(false);
+          setSelectedReport(null); // return to table; prevent details dialog from reopening
+        }}
         PaperProps={{
           sx: {
             backgroundColor: '#1f1f1f',
@@ -947,7 +950,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
           />
         </DialogContent>
         <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
-          <Button onClick={() => setReviewDialogOpen(false)} sx={{ color: '#1D9BF0' }}>Cancel</Button>
+          <Button onClick={() => { setReviewDialogOpen(false); setSelectedReport(null); }} sx={{ color: '#1D9BF0' }}>Cancel</Button>
           <Button 
             color={reviewAction === 'approve' ? 'success' : 'error'}
             variant="contained"
