@@ -36,10 +36,14 @@ import {
   Security as SecurityIcon,
   AccessTime as PendingIcon,
   Error as RejectedIcon,
-  Verified as ApprovedIcon
+  Verified as ApprovedIcon,
+  Edit as EditIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useAuth } from '../contexts/AuthContext';
+import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
 
 interface IntelReport {
   id: string;
@@ -47,6 +51,7 @@ interface IntelReport {
   classification: string;
   date: string;
   agentName: string;
+  agent_id?: number;
   caseNumber?: string;
   subject: string;
   criminalActivity: string;
@@ -59,11 +64,16 @@ interface IntelReport {
   subjects: number;
   organizations: number;
   filesCount: number;
+  // Full data for details view
+  subjectsData?: any[];
+  organizationsData?: any[];
+  sourcesData?: any[];
 }
 
 const IntelReportsApprovalSimple: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user } = useAuth();
   
   const [reports, setReports] = useState<IntelReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +82,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
   const [reviewComments, setReviewComments] = useState('');
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
 
   const classificationColors: Record<string, string> = {
     'Sensitive': '#ff9800',
@@ -118,6 +130,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
           classification: report.classification,
           date: report.date,
           agentName: report.agent_name || 'Unknown',
+          agent_id: report.agent_id,
           caseNumber: report.case_number,
           subject: report.subject,
           criminalActivity: report.criminal_activity,
@@ -151,8 +164,50 @@ const IntelReportsApprovalSimple: React.FC = () => {
 
   const pendingCount = reports.filter(r => r.status === 'pending').length;
 
-  const handleViewReport = (report: IntelReport) => {
-    setSelectedReport(report);
+  const handleViewReport = async (report: IntelReport) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        setSelectedReport(report);
+        return;
+      }
+
+      // Fetch the complete report data including subjects, organizations, and sources
+      const response = await fetch(`/api/intel-reports/${report.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const payload = await response.json();
+        const fullReport = payload.report || payload; // API returns { report }
+        // Merge the full data with the existing report
+        const completeReport: IntelReport = {
+          ...report,
+          caseNumber: fullReport.case_number ?? report.caseNumber,
+          criminalActivity: fullReport.criminal_activity ?? report.criminalActivity,
+          summary: fullReport.summary ?? report.summary,
+          subjectsData: fullReport.subjects || [],
+          organizationsData: fullReport.organizations || [],
+          sourcesData: fullReport.sources || []
+        };
+        setSelectedReport(completeReport);
+      } else {
+        // If we can't fetch full data, just show the basic report
+        setSelectedReport(report);
+      }
+    } catch (error) {
+      console.error('Error fetching full report data:', error);
+      setSelectedReport(report);
+    }
+  };
+
+  const handleEditReport = (report: IntelReport) => {
+    setEditingReport(report);
+    setEditModalOpen(true);
+    setSelectedReport(null); // Close the view modal
   };
 
   const handleReviewAction = (action: 'approve' | 'reject') => {
@@ -231,6 +286,16 @@ const IntelReportsApprovalSimple: React.FC = () => {
       label={status.charAt(0).toUpperCase() + status.slice(1)}
       variant="outlined"
       size="small"
+      sx={{
+        color: '#E7E9EA',
+        borderColor: status === 'pending' ? '#ff9800' : status === 'approved' ? '#4caf50' : '#f44336',
+        '& .MuiChip-label': {
+          color: '#E7E9EA !important'
+        },
+        '& .MuiChip-icon': {
+          color: status === 'pending' ? '#ff9800' : status === 'approved' ? '#4caf50' : '#f44336'
+        }
+      }}
     />
   );
 
@@ -523,12 +588,19 @@ const IntelReportsApprovalSimple: React.FC = () => {
         maxWidth="md"
         fullWidth
         fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1f1f1f',
+            color: '#E7E9EA',
+            border: '1px solid #2F3336'
+          }
+        }}
       >
         {selectedReport && (
           <>
-            <DialogTitle>
+            <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">
+                <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
                   Intel Report #{selectedReport.intelNumber}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -537,65 +609,249 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 </Box>
               </Box>
             </DialogTitle>
-            <DialogContent dividers>
+            <DialogContent dividers sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Agent:</Typography>
-                <Typography variant="body1">{selectedReport.agentName}</Typography>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Agent:</Typography>
+                <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.agentName}</Typography>
               </Box>
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Date:</Typography>
-                <Typography variant="body1">
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Date:</Typography>
+                <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
                   {new Date(selectedReport.date).toLocaleDateString()}
                 </Typography>
               </Box>
 
               {selectedReport.caseNumber && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary">Case #:</Typography>
-                  <Typography variant="body1">{selectedReport.caseNumber}</Typography>
+                  <Typography variant="body2" sx={{ color: '#71767B' }}>Case #:</Typography>
+                  <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.caseNumber}</Typography>
                 </Box>
               )}
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Subject:</Typography>
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Subject:</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#E7E9EA' }}>
                   {selectedReport.subject}
                 </Typography>
               </Box>
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Criminal Activity:</Typography>
-                <Typography variant="body1">{selectedReport.criminalActivity}</Typography>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Criminal Activity:</Typography>
+                <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.criminalActivity}</Typography>
               </Box>
               
               <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Summary:</Typography>
-                <Typography variant="body1">{selectedReport.summary}</Typography>
+                <Typography variant="body2" sx={{ color: '#71767B' }}>Summary:</Typography>
+                <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.summary}</Typography>
               </Box>
+
+              {/* Subjects Section */}
+              {selectedReport.subjectsData && selectedReport.subjectsData.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Subjects ({selectedReport.subjectsData.length})
+                  </Typography>
+                  {selectedReport.subjectsData.map((subject: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
+                        Subject {index + 1}
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.first_name} {subject.middle_name} {subject.last_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Date of Birth:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.date_of_birth}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Race/Sex:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.race} / {subject.sex}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.address}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>License:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.license_number}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>SSN:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {subject.social_security_number}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Organizations Section */}
+              {selectedReport.organizationsData && selectedReport.organizationsData.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Organizations ({selectedReport.organizationsData.length})
+                  </Typography>
+                  {selectedReport.organizationsData.map((org: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
+                        Organization {index + 1}
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Business Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.business_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {org.address}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+
+              {/* Source Information Section */}
+              {selectedReport.sourcesData && selectedReport.sourcesData.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
+                    Source Information
+                  </Typography>
+                  {selectedReport.sourcesData.map((source: any, index: number) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Source ID:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.source_id}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Source Type:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.source}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Rating:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.rating}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Reliability:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.information_reliable}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Contact Name:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.first_name} {source.middle_name} {source.last_name}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Phone:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.phone}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Address:</Typography>
+                          <Typography variant="body1" sx={{ color: '#E7E9EA' }}>
+                            {source.address}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#71767B' }}>Flags:</Typography>
+                          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                            {source.unknown_caller && (
+                              <Chip label="Unknown Caller" size="small" color="warning" />
+                            )}
+                            {source.ci_cs && (
+                              <Chip label="CI/CS" size="small" color="info" />
+                            )}
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
 
               {selectedReport.reviewComments && (
                 <>
-                  <Divider sx={{ my: 2 }} />
+                  <Divider sx={{ my: 2, borderColor: '#2F3336' }} />
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">Review Comments:</Typography>
-                    <Typography variant="body1">{selectedReport.reviewComments}</Typography>
+                    <Typography variant="body2" sx={{ color: '#71767B' }}>Review Comments:</Typography>
+                    <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.reviewComments}</Typography>
                   </Box>
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">Reviewed By:</Typography>
-                    <Typography variant="body1">{selectedReport.reviewedBy}</Typography>
+                    <Typography variant="body2" sx={{ color: '#71767B' }}>Reviewed By:</Typography>
+                    <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.reviewedBy}</Typography>
                   </Box>
                 </>
               )}
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setSelectedReport(null)}>Close</Button>
+            <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+              {/* Edit button - only for authors and admins, and only if not approved */}
+              {((user?.id === selectedReport.agent_id || user?.role === 'admin' || user?.super_admin) && 
+                 selectedReport.status !== 'approved') && (
+                <Button 
+                  variant="outlined"
+                  onClick={() => handleEditReport(selectedReport)}
+                  startIcon={<EditIcon />}
+                  sx={{ 
+                    borderColor: '#1D9BF0',
+                    color: '#1D9BF0',
+                    '&:hover': { 
+                      borderColor: '#1a8cd8',
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                    }
+                  }}
+                >
+                  Edit Report
+                </Button>
+              )}
+              <Button onClick={() => setSelectedReport(null)} sx={{ color: '#1D9BF0' }}>Close</Button>
               {selectedReport.status === 'pending' && (
                 <>
                   <Button 
                     color="error" 
                     onClick={() => handleReviewAction('reject')}
                     startIcon={<RejectIcon />}
+                    sx={{ color: '#f44336' }}
                   >
                     Reject
                   </Button>
@@ -604,6 +860,11 @@ const IntelReportsApprovalSimple: React.FC = () => {
                     variant="contained"
                     onClick={() => handleReviewAction('approve')}
                     startIcon={<ApproveIcon />}
+                    sx={{ 
+                      backgroundColor: '#4caf50',
+                      color: '#ffffff',
+                      '&:hover': { backgroundColor: '#45a049' }
+                    }}
                   >
                     Approve
                   </Button>
@@ -614,12 +875,47 @@ const IntelReportsApprovalSimple: React.FC = () => {
         )}
       </Dialog>
 
+      {/* Edit Report Modal */}
+      {editModalOpen && editingReport && (
+        <IntelReportEditForm
+          report={editingReport}
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onSave={(updatedReport) => {
+            // Update the local state with the edited report
+            setReports(prev => prev.map(report => 
+              report.id === updatedReport.id ? {
+                ...report,
+                ...updatedReport,
+                // Ensure required fields are preserved
+                submittedAt: report.submittedAt,
+                subjects: report.subjects,
+                organizations: report.organizations,
+                filesCount: report.filesCount
+              } : report
+            ));
+            setEditModalOpen(false);
+            setEditingReport(null);
+          }}
+        />
+      )}
+
       {/* Review Action Dialog */}
-      <Dialog open={reviewDialogOpen} onClose={() => setReviewDialogOpen(false)}>
-        <DialogTitle>
+      <Dialog 
+        open={reviewDialogOpen} 
+        onClose={() => setReviewDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1f1f1f',
+            color: '#E7E9EA',
+            border: '1px solid #2F3336'
+          }
+        }}
+      >
+        <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
           {reviewAction === 'approve' ? 'Approve Report' : 'Reject Report'}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
           <Alert 
             severity={reviewAction === 'approve' ? 'success' : 'error'} 
             sx={{ mb: 2 }}
@@ -641,15 +937,44 @@ const IntelReportsApprovalSimple: React.FC = () => {
               : 'Required: Explain why this report is being rejected...'
             }
             required={reviewAction === 'reject'}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#2a2a2a',
+                '& .MuiInputBase-input': {
+                  color: '#E7E9EA'
+                },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#3a3a3a'
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#1D9BF0'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#E7E9EA',
+                '&.Mui-focused': { color: '#1D9BF0' },
+                '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
+              }
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReviewDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+          <Button onClick={() => setReviewDialogOpen(false)} sx={{ color: '#1D9BF0' }}>Cancel</Button>
           <Button 
             color={reviewAction === 'approve' ? 'success' : 'error'}
             variant="contained"
             onClick={handleSubmitReview}
             disabled={reviewAction === 'reject' && !reviewComments.trim()}
+            sx={{ 
+              backgroundColor: reviewAction === 'approve' ? '#4caf50' : '#f44336',
+              color: '#ffffff',
+              '&:hover': { 
+                backgroundColor: reviewAction === 'approve' ? '#45a049' : '#da190b' 
+              }
+            }}
           >
             {reviewAction === 'approve' ? 'Approve' : 'Reject'} Report
           </Button>

@@ -23,7 +23,7 @@ interface IntelReportFormProps {
   onReportSubmitted?: () => void; // Callback to refresh reports list
 }
 
-const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose }) => {
+const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false, onClose, onReportSubmitted }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

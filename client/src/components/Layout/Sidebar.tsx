@@ -42,6 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [hotListAlertCount, setHotListAlertCount] = useState<number>(0);
+  const [pendingIntelCount, setPendingIntelCount] = useState<number>(0);
 
   // Load hot list alert count
   useEffect(() => {
@@ -59,6 +60,34 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     
     // Poll for updates every 30 seconds
     const interval = setInterval(loadHotListAlertCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Load pending Intel reports count for admin users
+  useEffect(() => {
+    const loadPendingIntelCount = async () => {
+      if (!user || (user.role !== 'admin' && !user.super_admin)) return;
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch('/api/intel-reports?status=pending', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setPendingIntelCount(data.reports?.length || 0);
+        }
+      } catch (error) {
+        console.error('Failed to load pending Intel count:', error);
+      }
+    };
+
+    loadPendingIntelCount();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(loadPendingIntelCount, 30000);
     return () => clearInterval(interval);
   }, [user]);
 

@@ -312,7 +312,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       summary,
       subjects = '[]',
       organizations = '[]',
-      source_info = '{}'
+      sources = '[]'
     } = req.body;
 
     // Check if user can edit this report
@@ -387,8 +387,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     // Insert updated source information
-    const sourceData = JSON.parse(source_info);
-    if (Object.keys(sourceData).length > 0) {
+    const sourcesData = JSON.parse(sources);
+    for (const sourceData of sourcesData) {
       await client.query(`
         INSERT INTO intel_report_sources (
           report_id, source_id, rating, source, information_reliable,
