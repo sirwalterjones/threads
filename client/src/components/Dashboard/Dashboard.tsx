@@ -629,9 +629,14 @@ const Dashboard: React.FC = () => {
                   size="small"
                   onFollowChange={(isFollowing) => {
                     // Refresh the appropriate list when follow status changes
-                    if (activeTab === 'following' && !isFollowing) {
-                      // Remove from following list if unfollowed
-                      setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+                    if (activeTab === 'following') {
+                      if (isFollowing) {
+                        // Post was followed, refresh the following list to include it
+                        loadFollowingPosts();
+                      } else {
+                        // Remove from following list if unfollowed
+                        setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+                      }
                     }
                   }}
                 />
