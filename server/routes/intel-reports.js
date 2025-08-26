@@ -182,6 +182,12 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
   try {
     await client.query('BEGIN');
 
+    // Validate status
+    if (!['approved', 'rejected'].includes(status)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
     const {
       intel_number,
       classification,
@@ -459,7 +465,7 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervis
       RETURNING *
     `;
 
-    const result = await client.query(query, [status, review_comments, req.user.id, id]);
+    const result = await client.query(query, [status, review_comments || null, req.user.id, id]);
 
     if (result.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -484,7 +490,7 @@ router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervis
     await client.query(
       `INSERT INTO intel_report_review_notes (report_id, reviewer_id, action, comments)
        VALUES ($1, $2, $3, $4)`,
-      [id, req.user.userId, status, review_comments || null]
+      [id, req.user.id, status, review_comments || null]
     );
 
     // If rejected, create a notification for the author to edit (do not fail status update if this fails)
