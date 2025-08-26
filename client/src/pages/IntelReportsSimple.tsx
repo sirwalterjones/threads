@@ -336,6 +336,28 @@ const IntelReportsSimple: React.FC = () => {
               label="Search reports..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#2a2a2a',
+                  '& .MuiInputBase-input': {
+                    color: '#E7E9EA'
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#3a3a3a'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1D9BF0'
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1D9BF0'
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#E7E9EA',
+                  '&.Mui-focused': { color: '#1D9BF0' },
+                  '&.MuiInputLabel-shrink': { color: '#E7E9EA' }
+                }
+              }}
             />
           </Box>
           <Box sx={{ flex: '1 1 150px', minWidth: '150px' }}>

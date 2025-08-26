@@ -1047,32 +1047,32 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
         {/* Review Section */}
         <Divider sx={{ my: 3 }} />
-        <Typography variant="h6" sx={{ mb: 2 }}>Review Report</Typography>
+        <Typography variant="h6" sx={{ mb: 2, color: '#E7E9EA' }}>Review Report</Typography>
         
         {formData.classification && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="textSecondary">Classification:</Typography>
+            <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Classification:</Typography>
             {getClassificationChip(formData.classification)}
           </Box>
         )}
 
-        <Paper sx={{ p: 2, backgroundColor: 'action.hover', mb: 3 }}>
+        <Paper sx={{ p: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', mb: 3 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ flex: '1 1 200px' }}>
-              <Typography variant="body2" color="textSecondary">Intel #:</Typography>
-              <Typography variant="body1">{formData.intelNumber || 'Not specified'}</Typography>
+              <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Intel #:</Typography>
+              <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{formData.intelNumber || 'Not specified'}</Typography>
             </Box>
             <Box sx={{ flex: '1 1 200px' }}>
-              <Typography variant="body2" color="textSecondary">Agent:</Typography>
-              <Typography variant="body1">{formData.agentName || 'Not specified'}</Typography>
+              <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Agent:</Typography>
+              <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{formData.agentName || 'Not specified'}</Typography>
             </Box>
             <Box sx={{ flex: '1 1 200px' }}>
-              <Typography variant="body2" color="textSecondary">Date:</Typography>
-              <Typography variant="body1">{formData.date || 'Not specified'}</Typography>
+              <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Date:</Typography>
+              <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{formData.date || 'Not specified'}</Typography>
             </Box>
             <Box sx={{ flex: '1 1 100%' }}>
-              <Typography variant="body2" color="textSecondary">Subject:</Typography>
-              <Typography variant="body1">{formData.subject || 'Not specified'}</Typography>
+              <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Subject:</Typography>
+              <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{formData.subject || 'Not specified'}</Typography>
             </Box>
           </Box>
         </Paper>
