@@ -1030,29 +1030,7 @@ const IntelReportsSimple: React.FC = () => {
         )}
       </Dialog>
 
-      {/* Delete Confirm Dialog */}
-      <Dialog 
-        open={deleteDialogOpen} 
-        onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: '#1f1f1f',
-            color: '#E7E9EA',
-            border: '1px solid #2F3336'
-          }
-        }}
-      >
-        <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
-          Delete Report
-        </DialogTitle>
-        <DialogContent sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
-          <Typography>Are you sure you want to delete Intel #{reportToDelete?.intelNumber}?</Typography>
-        </DialogContent>
-        <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
-          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: '#1D9BF0' }}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleConfirmDelete}>Delete</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete dialog removed on this page; deletions happen on Approval page */}
 
       {/* Edit Report Modal */}
       {editModalOpen && editingReport && (
