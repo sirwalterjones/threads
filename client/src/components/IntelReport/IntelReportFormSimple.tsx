@@ -32,6 +32,7 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [reviews, setReviews] = useState<Array<{ id: number; reviewer_name: string; action: string; comments: string; created_at: string }>>([]);
 
   // Generate auto-incrementing Intel number
   const generateIntelNumber = () => {
@@ -153,6 +154,26 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
       }
     };
     loadReport();
+  }, [id]);
+
+  // Load corrections trail in edit mode
+  useEffect(() => {
+    const loadReviews = async () => {
+      if (!id) return;
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await fetch(`/api/intel-reports/${id}/reviews`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setReviews(data.reviews || []);
+        }
+      } catch (_) {
+        // ignore
+      }
+    };
+    loadReviews();
   }, [id]);
 
   const classificationOptions = [
@@ -1169,6 +1190,33 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
             </Box>
           </Box>
         </Paper>
+
+        {/* Corrections Trail */}
+        {isEditMode && reviews.length > 0 && (
+          <Paper sx={{ p: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', mb: 3 }}>
+            <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 1 }}>Corrections Trail</Typography>
+            <Typography variant="body2" sx={{ color: '#71767B', mb: 2 }}>
+              Reviewer notes and actions are listed below. Address the latest rejection comments.
+            </Typography>
+            {reviews.map((note) => (
+              <Box key={note.id} sx={{ mb: 2, p: 1.5, border: '1px solid #3a3a3a', borderRadius: 1, backgroundColor: '#1f1f1f' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ color: note.action === 'rejected' ? '#f44336' : note.action === 'approved' ? '#4caf50' : '#1D9BF0' }}>
+                    {note.action.charAt(0).toUpperCase() + note.action.slice(1)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#71767B' }}>
+                    {(note.reviewer_name || 'Reviewer')} • {new Date(note.created_at).toLocaleString()}
+                  </Typography>
+                </Box>
+                {note.comments && (
+                  <Typography variant="body2" sx={{ color: '#E7E9EA', whiteSpace: 'pre-wrap' }}>
+                    {note.comments}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Paper>
+        )}
 
         {/* Submit Button */}
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
