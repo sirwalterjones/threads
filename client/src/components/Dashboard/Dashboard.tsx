@@ -759,30 +759,33 @@ const Dashboard: React.FC = () => {
     {/* Feed View */}
     {followingViewMode === 'feed' && (
       <Box sx={{ 
-        maxWidth: '800px', 
+        maxWidth: '100%', 
         mx: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: 3
+        gap: 2
       }}>
         {sortedFollowingPosts.map((post) => (
-          <Card
+          <Box
             key={post.id}
             sx={{
               backgroundColor: '#16181C',
               border: '1px solid #2F3336',
-              borderRadius: 3,
+              borderRadius: 1,
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                backgroundColor: '#1A1D21',
+                borderColor: '#1D9BF0',
+              },
+              '&:nth-of-type(even)': {
+                backgroundColor: '#15181C',
               },
             }}
             onClick={() => handlePostClick(post.id)}
           >
             {/* Post Header */}
-            <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid #2F3336' }}>
+            <Box sx={{ p: 4, pb: 3, borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 {/* Author Avatar Placeholder */}
                 <Box sx={{
@@ -845,7 +848,7 @@ const Dashboard: React.FC = () => {
             </Box>
 
             {/* Post Content */}
-            <Box sx={{ p: 3, pt: 2 }}>
+            <Box sx={{ p: 4, pt: 3 }}>
               {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */}
               {post.attachments && post.attachments.length > 0 && (
                 <Box sx={{ mb: 3 }}>
@@ -923,8 +926,8 @@ const Dashboard: React.FC = () => {
 
             {/* Post Footer */}
             <Box sx={{ 
-              p: 3, 
-              pt: 2, 
+              p: 4, 
+              pt: 3, 
               borderTop: '1px solid #2F3336',
               backgroundColor: '#0F1419'
             }}>
@@ -1002,7 +1005,7 @@ const Dashboard: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-          </Card>
+          </Box>
         ))}
       </Box>
     )}
