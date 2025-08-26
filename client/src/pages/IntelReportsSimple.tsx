@@ -44,7 +44,8 @@ import {
   Warning as WarningIcon,
   Add as AddIcon,
   FileDownload as ExportIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -90,6 +91,8 @@ const IntelReportsSimple: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
   const { user } = useAuth();
 
   const classificationColors: Record<string, string> = {
@@ -199,6 +202,12 @@ const IntelReportsSimple: React.FC = () => {
       console.error('Error fetching full report data:', error);
       setSelectedReport(report);
     }
+  };
+
+  const handleEditReport = (report: IntelReport) => {
+    setEditingReport(report);
+    setEditModalOpen(true);
+    setSelectedReport(null); // Close the view modal
   };
 
   const handleRefreshReports = () => {
@@ -924,10 +933,7 @@ const IntelReportsSimple: React.FC = () => {
                  selectedReport.status !== 'approved') && (
                 <Button 
                   variant="outlined"
-                  onClick={() => {
-                    // TODO: Implement edit functionality
-                    console.log('Edit report:', selectedReport.id);
-                  }}
+                  onClick={() => handleEditReport(selectedReport)}
                   sx={{ 
                     borderColor: '#1D9BF0',
                     color: '#1D9BF0',
@@ -945,6 +951,54 @@ const IntelReportsSimple: React.FC = () => {
           </>
         )}
       </Dialog>
+
+      {/* Edit Report Modal */}
+      {editModalOpen && editingReport && (
+        <Dialog 
+          open={editModalOpen} 
+          onClose={() => setEditModalOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          fullScreen={isMobile}
+          PaperProps={{
+            sx: {
+              backgroundColor: '#1f1f1f',
+              color: '#E7E9EA',
+              border: '1px solid #2F3336'
+            }
+          }}
+        >
+          <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
+                Edit Intel Report #{editingReport.intelNumber}
+              </Typography>
+              <IconButton onClick={() => setEditModalOpen(false)} sx={{ color: '#E7E9EA' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', p: 3 }}>
+            <Typography variant="body1" sx={{ color: '#E7E9EA', mb: 2 }}>
+              Edit functionality coming soon! This will include:
+            </Typography>
+            <Box component="ul" sx={{ color: '#E7E9EA', pl: 2 }}>
+              <li>Basic Information (Subject, Criminal Activity, Summary)</li>
+              <li>Subjects (add/remove/edit personal details)</li>
+              <li>Organizations (add/remove/edit business details)</li>
+              <li>Source Information (update source details and reliability)</li>
+            </Box>
+            <Typography variant="body2" sx={{ color: '#71767B', mt: 2, fontStyle: 'italic' }}>
+              For now, you can view the full report details above.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+            <Button onClick={() => setEditModalOpen(false)} sx={{ color: '#1D9BF0' }}>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };
