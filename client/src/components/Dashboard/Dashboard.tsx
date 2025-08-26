@@ -197,9 +197,16 @@ const Dashboard: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const dashboardStats = await apiService.getDashboardStats();
-      setStats(dashboardStats);
-      // Load following posts instead of manual posts
+      // Only try to load admin stats if we're an admin user
+      try {
+        const dashboardStats = await apiService.getDashboardStats();
+        setStats(dashboardStats);
+      } catch (adminError) {
+        // Non-admin users will get 403, that's expected - just continue without stats
+        console.log('User is not admin, skipping dashboard stats');
+        setStats(null);
+      }
+      // Load following posts for all users
       await loadFollowingPosts();
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
