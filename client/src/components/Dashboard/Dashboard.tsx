@@ -757,7 +757,8 @@ const Dashboard: React.FC = () => {
       <Box sx={{ 
           maxWidth: { xs: '100%', sm: '100%', md: '900px' }, 
           mx: 'auto',
-          px: { xs: 1, sm: 2, md: 0 }
+          px: { xs: 1, sm: 2, md: 0 },
+          overflow: 'hidden' // Prevent horizontal scrolling
         }}>
           {sortedFollowingPosts.map((post) => (
             <TwitterStylePostCard

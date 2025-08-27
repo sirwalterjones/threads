@@ -276,7 +276,12 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
               }}
             />
           ) : (
-            <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              overflow: 'hidden',
+              flexWrap: 'nowrap'
+            }}>
               {post.content && extractImageUrls(post.content).slice(0, 3).map((url, idx) => (
                 <img
                   key={idx}
