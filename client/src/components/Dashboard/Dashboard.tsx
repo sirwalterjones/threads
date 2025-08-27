@@ -547,8 +547,8 @@ const Dashboard: React.FC = () => {
       </Box>
     </Box>
 
-    {/* Cards View */}
-    {followingViewMode === 'cards' && (
+    {/* Cards View - DISABLED FOR DEBUGGING */}
+    {false && followingViewMode === 'cards' && (
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
