@@ -762,15 +762,28 @@ const Dashboard: React.FC = () => {
     )}
 
     {/* Twitter-Style Feed View */}
-    {followingViewMode === 'feed' && (
-      <Box sx={{ 
-        maxWidth: '800px', 
-        mx: 'auto',
-        backgroundColor: '#000000',
-        border: '1px solid #2F3336',
-        borderRadius: 2,
-        overflow: 'hidden'
-      }}>
+    {true && ( // Force feed view to always show for debugging
+      <>
+        {/* Debug indicator */}
+        <Box sx={{ 
+          backgroundColor: '#FF0000', 
+          color: '#FFFFFF', 
+          p: 2, 
+          mb: 2, 
+          textAlign: 'center',
+          fontWeight: 'bold'
+        }}>
+          🚨 FEED VIEW IS ACTIVE - followingViewMode: {followingViewMode} 🚨
+        </Box>
+        
+        <Box sx={{ 
+          maxWidth: '800px', 
+          mx: 'auto',
+          backgroundColor: '#000000',
+          border: '1px solid #2F3336',
+          borderRadius: 2,
+          overflow: 'hidden'
+        }}>
         {sortedFollowingPosts.map((post) => (
           <Box
             key={post.id}
@@ -1082,6 +1095,7 @@ const Dashboard: React.FC = () => {
           </Box>
         ))}
       </Box>
+    </>
     )}
   </Box>
 )}
