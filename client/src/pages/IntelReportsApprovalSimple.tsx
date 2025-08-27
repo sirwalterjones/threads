@@ -152,10 +152,10 @@ const IntelReportsApprovalSimple: React.FC = () => {
           subjects: parseInt(report.subjects_count) || 0,
           organizations: parseInt(report.organizations_count) || 0,
           filesCount: parseInt(report.files_count) || 0,
-          // Expiration fields
-          expiresAt: report.expiration_date,
-          isExpired: report.is_expired,
-          daysUntilExpiration: report.days_until_expiration
+          // Expiration fields (API now returns camelCase aliases)
+          expiresAt: report.expiresAt || report.expiration_date,
+          isExpired: report.isExpired ?? report.is_expired,
+          daysUntilExpiration: report.daysUntilExpiration ?? report.days_until_expiration
         }));
         
         setReports(transformedReports);
