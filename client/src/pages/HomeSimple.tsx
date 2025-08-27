@@ -39,7 +39,8 @@ import {
   ViewModule,
   ViewList,
   Person,
-  HelpOutline
+  HelpOutline,
+  Feed
 } from '@mui/icons-material';
 import { Post, Category, SearchFilters } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
@@ -52,6 +53,7 @@ import MediaGallery from '../components/MediaGallery';
 import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
 import IntelReportCard from '../components/IntelReportCard';
+import TwitterStylePostCard from '../components/TwitterStylePostCard';
 
 
 
@@ -66,7 +68,7 @@ const HomeSimple: React.FC = () => {
   const [authorFilter, setAuthorFilter] = useState('');
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'feed'>('grid');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [origin, setOrigin] = useState<'all'|'wordpress'|'manual'>('all');
   const [mineOnly, setMineOnly] = useState(false);
@@ -1411,6 +1413,9 @@ const HomeSimple: React.FC = () => {
                 <ToggleButton value="table">
                   <ViewList />
                 </ToggleButton>
+                <ToggleButton value="feed">
+                  <Feed />
+                </ToggleButton>
               </ToggleButtonGroup>
             </Box>
           </CardContent>
@@ -1779,6 +1784,40 @@ const HomeSimple: React.FC = () => {
                     </CardContent>
                   </Card>
                 );})}
+              </Box>
+            ) : viewMode === 'feed' ? (
+              <Box sx={{ 
+                maxWidth: '900px', 
+                mx: 'auto'
+              }}>
+                {posts.map((post) => {
+                  // Check if this is an intel report and render appropriate card
+                  if (post.result_type === 'intel_report') {
+                    return (
+                      <IntelReportCard
+                        key={`intel_${post.id}`}
+                        report={post}
+                        onClick={handleIntelReportClick}
+                        highlightText={highlightText}
+                      />
+                    );
+                  }
+
+                  // Regular post using Twitter-style layout
+                  return (
+                    <TwitterStylePostCard
+                      key={post.id}
+                      post={post}
+                      onClick={handlePostClick}
+                      highlightText={highlightText}
+                      onFollowChange={(postId, isFollowing) => {
+                        console.log(`Post ${postId} ${isFollowing ? 'followed' : 'unfollowed'} from search`);
+                        // Refresh the current search results
+                        loadData(currentPage);
+                      }}
+                    />
+                  );
+                })}
               </Box>
             ) : (
               <Box sx={{ 

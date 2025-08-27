@@ -93,6 +93,15 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick(post.id); // Open the post modal which will show comments
+    
+    // Wait for modal to open, then scroll to comment box
+    setTimeout(() => {
+      const commentBox = document.querySelector('textarea[placeholder*="Share your thoughts"]') as HTMLTextAreaElement;
+      if (commentBox) {
+        commentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        commentBox.focus();
+      }
+    }, 500);
   };
 
   const hasMedia = (post.attachments && post.attachments.length > 0) || 
