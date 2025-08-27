@@ -765,7 +765,7 @@ const Dashboard: React.FC = () => {
     {/* Twitter-Style Feed View */}
     {followingViewMode === 'feed' && (
       <Box sx={{ 
-          maxWidth: '600px', 
+          maxWidth: '900px', 
           mx: 'auto'
         }}>
           {sortedFollowingPosts.map((post) => (
@@ -774,6 +774,16 @@ const Dashboard: React.FC = () => {
               post={post}
               onClick={handlePostClick}
               highlightText={(text) => text}
+              onFollowChange={(postId, isFollowing) => {
+                console.log(`Post ${postId} ${isFollowing ? 'followed' : 'unfollowed'}`);
+                if (activeTab === 'following') {
+                  if (isFollowing) {
+                    loadFollowingPosts();
+                  } else {
+                    setFollowingPosts(prev => prev.filter(p => p.id !== postId));
+                  }
+                }
+              }}
             />
           ))}
         </Box>

@@ -19,29 +19,20 @@ import {
 import { Post } from '../types';
 import { format } from 'date-fns';
 import MediaGallery from './MediaGallery';
+import FollowButton from './FollowButton';
 
 interface TwitterStylePostCardProps {
   post: Post;
   onClick: (postId: number) => void;
   highlightText: (text: string) => string | ReactElement[];
-  isLiked?: boolean;
-  isBookmarked?: boolean;
-  onLike?: (postId: number) => void;
-  onBookmark?: (postId: number) => void;
-  onRepost?: (postId: number) => void;
-  onComment?: (postId: number) => void;
+  onFollowChange?: (postId: number, isFollowing: boolean) => void;
 }
 
 const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
   post,
   onClick,
   highlightText,
-  isLiked = false,
-  isBookmarked = false,
-  onLike,
-  onBookmark,
-  onRepost,
-  onComment
+  onFollowChange
 }) => {
   const stripHtmlTags = (html: string) => {
     const div = document.createElement('div');
@@ -99,24 +90,9 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
     onClick(post.id);
   };
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onLike) onLike(post.id);
-  };
-
-  const handleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onBookmark) onBookmark(post.id);
-  };
-
-  const handleRepost = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onRepost) onRepost(post.id);
-  };
-
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onComment) onComment(post.id);
+    onClick(post.id); // Open the post modal which will show comments
   };
 
   const hasMedia = (post.attachments && post.attachments.length > 0) || 
@@ -311,9 +287,9 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
         </Box>
       )}
 
-      {/* Engagement Bar */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {/* Comment */}
+      {/* Engagement Bar - Right side only */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+        {/* Comment Button */}
         <IconButton
           size="small"
           onClick={handleComment}
@@ -326,60 +302,24 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
           }}
         >
           <ChatBubbleOutline sx={{ fontSize: '1.2rem' }} />
-        </IconButton>
-        
-        {/* Repost */}
-        <IconButton
-          size="small"
-          onClick={handleRepost}
-          sx={{
-            color: '#71767B',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 186, 124, 0.1)',
-              color: '#00BA7C'
-            }
-          }}
-        >
-          <Repeat sx={{ fontSize: '1.2rem' }} />
-        </IconButton>
-        
-        {/* Like */}
-        <IconButton
-          size="small"
-          onClick={handleLike}
-          sx={{
-            color: isLiked ? '#F91880' : '#71767B',
-            '&:hover': {
-              backgroundColor: 'rgba(249, 24, 128, 0.1)',
-              color: '#F91880'
-            }
-          }}
-        >
-          {isLiked ? (
-            <Favorite sx={{ fontSize: '1.2rem' }} />
-          ) : (
-            <FavoriteBorder sx={{ fontSize: '1.2rem' }} />
+          {(post.comment_count || 0) > 0 && (
+            <Box component="span" sx={{ ml: 0.5, fontSize: '0.8rem' }}>
+              {post.comment_count || 0}
+            </Box>
           )}
         </IconButton>
         
-        {/* Bookmark */}
-        <IconButton
+        {/* Follow Button */}
+        <FollowButton
+          postId={post.id}
+          variant="chip"
           size="small"
-          onClick={handleBookmark}
-          sx={{
-            color: isBookmarked ? '#1D9BF0' : '#71767B',
-            '&:hover': {
-              backgroundColor: 'rgba(29, 155, 240, 0.1)',
-              color: '#1D9BF0'
+          onFollowChange={(isFollowing) => {
+            if (onFollowChange) {
+              onFollowChange(post.id, isFollowing);
             }
           }}
-        >
-          {isBookmarked ? (
-            <Bookmark sx={{ fontSize: '1.2rem' }} />
-          ) : (
-            <BookmarkBorder sx={{ fontSize: '1.2rem' }} />
-          )}
-        </IconButton>
+        />
       </Box>
     </Box>
   );
