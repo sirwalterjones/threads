@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   TextField,
@@ -15,6 +15,7 @@ import TwoFactorVerification from '../components/TwoFactor/TwoFactorVerification
 import apiService from '../services/api';
 
 const Login: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,6 +39,155 @@ const Login: React.FC = () => {
       setShowSetup2FA(false);
       setShowVerify2FA(false);
     }
+  }, []);
+
+  // Particle background behind the login card
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let DPR = Math.max(1, window.devicePixelRatio || 1);
+    let animationFrame = 0;
+
+    type Particle = { x: number; y: number; vx: number; vy: number; r: number };
+    let particles: Particle[] = [];
+    const mouse: { x: number | null; y: number | null; active: boolean } = { x: null, y: null, active: false };
+
+    const config = {
+      particleColor: '255,255,255',
+      maxParticles: 120,
+      baseSpeed: 0.3,
+      linkDistance: 140,
+      particleRadius: { min: 1.6, max: 3.8 }
+    };
+
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+    const setupParticles = () => {
+      particles = [];
+      const area = window.innerWidth * window.innerHeight;
+      const target = Math.min(config.maxParticles, Math.max(30, Math.floor(area / 12000)));
+      for (let i = 0; i < target; i++) {
+        particles.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: rand(-config.baseSpeed, config.baseSpeed),
+          vy: rand(-config.baseSpeed, config.baseSpeed),
+          r: rand(config.particleRadius.min, config.particleRadius.max)
+        });
+      }
+    };
+
+    const resize = () => {
+      DPR = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(window.innerWidth * DPR);
+      canvas.height = Math.floor(window.innerHeight * DPR);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      setupParticles();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    };
+    const onMouseLeave = () => {
+      mouse.x = null;
+      mouse.y = null;
+      mouse.active = false;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = t.clientX - rect.left;
+      mouse.y = t.clientY - rect.top;
+      mouse.active = true;
+    };
+    const onTouchEnd = () => {
+      mouse.x = null;
+      mouse.y = null;
+      mouse.active = false;
+    };
+
+    const updateParticles = (delta: number) => {
+      for (const p of particles) {
+        p.x += p.vx * delta;
+        p.y += p.vy * delta;
+        if (p.x < -10) p.x = window.innerWidth + 10;
+        if (p.x > window.innerWidth + 10) p.x = -10;
+        if (p.y < -10) p.y = window.innerHeight + 10;
+        if (p.y > window.innerHeight + 10) p.y = -10;
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = `rgba(${config.particleColor},0.95)`;
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      let nodes: Array<{ x: number; y: number; r: number }> = particles as any;
+      if (mouse.active && mouse.x != null && mouse.y != null) {
+        nodes = particles.concat([{ x: mouse.x, y: mouse.y, r: 0 }] as any);
+      }
+
+      const thresh = config.linkDistance;
+      const threshSq = thresh * thresh;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 <= threshSq) {
+            const alpha = Math.max(0, (thresh - Math.sqrt(d2)) / thresh) * 0.7;
+            ctx.strokeStyle = `rgba(${config.particleColor},${alpha.toFixed(3)})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(40, now - last);
+      last = now;
+      updateParticles(dt * 0.06);
+      draw();
+      animationFrame = requestAnimationFrame(loop);
+    };
+
+    // Init
+    resize();
+    animationFrame = requestAnimationFrame(loop);
+    window.addEventListener('resize', resize, { passive: true });
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
+    canvas.addEventListener('touchmove', onTouchMove, { passive: true });
+    canvas.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', resize as any);
+      canvas.removeEventListener('mousemove', onMouseMove as any);
+      canvas.removeEventListener('mouseleave', onMouseLeave as any);
+      canvas.removeEventListener('touchmove', onTouchMove as any);
+      canvas.removeEventListener('touchend', onTouchEnd as any);
+    };
   }, []);
 
   // Sync state with sessionStorage changes
@@ -180,9 +330,16 @@ const Login: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#000000',
-        px: 2
+        px: 2,
+        position: 'relative'
       }}
     >
+      {/* Background canvas */}
+      <canvas
+        ref={canvasRef}
+        id="bg"
+        style={{ position: 'fixed', inset: 0, display: 'block', zIndex: 0 }}
+      />
       <Container component="main" maxWidth="xs">
         <Box
           sx={{
@@ -193,7 +350,9 @@ const Login: React.FC = () => {
             backgroundColor: '#1f1f1f',
             borderRadius: 3,
             border: '2px solid #444444',
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)'
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)',
+            position: 'relative',
+            zIndex: 10
           }}
         >
           <Typography 
@@ -387,6 +546,31 @@ const Login: React.FC = () => {
             >
               {authLoading ? <CircularProgress size={24} sx={{ color: '#000000' }} /> : 'Sign In'}
             </Button>
+          </Box>
+
+          {/* Brand definition */}
+          <Box sx={{ mt: 4, width: '100%', textAlign: 'center' }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                letterSpacing: '0.08em',
+                color: '#E7E9EA',
+                mb: 1
+              }}
+            >
+              <span style={{ color: '#1D9BF0' }}>V</span>ECTOR
+            </Typography>
+            <Typography variant="subtitle2" sx={{ color: '#9CA3AF', fontStyle: 'italic', mb: 1 }}>
+              *\ˈvek-tər*
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#A1A7AD', letterSpacing: '0.02em' }}>
+              noun (intel)
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#C7CDD3', mt: 1, lineHeight: 1.6 }}>
+              a directional pattern linking motive, capability, and access — the axis along which
+              events unfold and decisions are made.
+            </Typography>
           </Box>
         </Box>
       </Container>
