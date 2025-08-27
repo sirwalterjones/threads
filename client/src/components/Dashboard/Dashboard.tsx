@@ -784,169 +784,136 @@ const Dashboard: React.FC = () => {
           borderRadius: 2,
           overflow: 'hidden'
         }}>
-        {sortedFollowingPosts.map((post) => (
-          <Box
-            key={post.id}
-            sx={{
-              backgroundColor: '#000000',
-              borderBottom: '1px solid #2F3336',
-              p: 3,
-              cursor: 'pointer',
-              transition: 'background-color 0.2s ease',
-              '&:hover': {
-                backgroundColor: '#080808'
-              }
-            }}
-            onClick={() => handlePostClick(post.id)}
-          >
-            {/* Profile Section with Media Gallery */}
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <Box sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                backgroundColor: '#1D9BF0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#FFFFFF',
-                fontWeight: 'bold',
-                fontSize: '1.2rem'
-              }}>
-                {post.author_name.charAt(0).toUpperCase()}
-              </Box>
-              
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: '#E7E9EA',
-                      fontWeight: 700,
-                      fontSize: '1rem',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                  >
-                    {post.author_name}
-                  </Typography>
-                  
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: '#71767B',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    ·
-                  </Typography>
-                  
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#71767B',
-                      fontSize: '0.8rem'
-                    }}
-                  >
-                    {format(new Date(post.wp_published_date), 'MMM d, yyyy')}
-                  </Typography>
+          {sortedFollowingPosts.map((post) => (
+            <Box
+              key={`feed-post-${post.id}`}
+              sx={{
+                backgroundColor: '#000000',
+                borderBottom: '1px solid #2F3336',
+                p: 3,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+                '&:hover': {
+                  backgroundColor: '#080808'
+                }
+              }}
+              onClick={() => handlePostClick(post.id)}
+            >
+              {/* Profile Section */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Box sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  backgroundColor: '#1D9BF0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem'
+                }}>
+                  {post.author_name.charAt(0).toUpperCase()}
                 </Box>
                 
-                {post.category_name && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: '#71767B',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    {post.category_name}
-                  </Typography>
-                )}
-                
-                {/* Sliding Media Gallery in Header */}
-                {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
-                  <Box sx={{ mt: 2, borderRadius: 2, overflow: 'hidden' }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#E7E9EA',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      {post.author_name}
+                    </Typography>
+                    
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#71767B',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      ·
+                    </Typography>
+                    
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#71767B',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {format(new Date(post.wp_published_date), 'MMM d, yyyy')}
+                    </Typography>
+                  </Box>
+                  
+                  {post.category_name && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#71767B',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      {post.category_name}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Media Gallery in Header */}
+              {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    gap: 1,
+                    overflowX: 'auto',
+                    pb: 1,
+                    '&::-webkit-scrollbar': {
+                      height: '4px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: '#2F3336',
+                      borderRadius: '2px'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: '#71767B',
+                      borderRadius: '2px',
+                      '&:hover': {
+                        backgroundColor: '#1D9BF0'
+                      }
+                    }
+                  }}>
                     {post.attachments && post.attachments.length > 0 ? (
-                      <Box sx={{ 
-                        display: 'flex', 
-                        gap: 1, 
-                        overflowX: 'auto',
-                        pb: 1,
-                        '&::-webkit-scrollbar': {
-                          height: '4px'
-                        },
-                        '&::-webkit-scrollbar-track': {
-                          backgroundColor: '#2F3336',
-                          borderRadius: '2px'
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                          backgroundColor: '#71767B',
-                          borderRadius: '2px',
-                          '&:hover': {
-                            backgroundColor: '#9CA3AF'
-                          }
-                        }
-                      }}>
-                        {post.attachments.map((attachment, idx) => (
+                      post.attachments.map((attachment, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            flex: '0 0 auto',
+                            width: 120,
+                            height: 80,
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                            border: '1px solid #2F3336'
+                          }}
+                        >
                           <img
-                            key={idx}
-                            src={`/api/files/${attachment.filename}`}
+                            src={`/api/files/${attachment.id}/${encodeURIComponent(attachment.filename)}`}
                             alt={`Media ${idx + 1}`}
                             style={{
-                              width: 120,
-                              height: 90,
-                              objectFit: 'cover',
-                              borderRadius: '8px',
-                              flex: '0 0 auto'
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
                             }}
                           />
-                        ))}
-                      </Box>
+                        </Box>
+                      ))
                     ) : post.featured_media_url ? (
-                      <img
-                        src={resolveContentImageUrl(post.featured_media_url)}
-                        alt="Featured media"
-                        style={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: 200,
-                          objectFit: 'cover',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    ) : null}
-                  </Box>
-                ) : null}
-              </Box>
-            </Box>
-
-            {/* Media Gallery in Header */}
-            {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
-              <Box sx={{ mb: 3 }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 1, 
-                  overflowX: 'auto', 
-                  pb: 1,
-                  '&::-webkit-scrollbar': {
-                    height: '4px'
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: '#2F3336',
-                    borderRadius: '2px'
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: '#71767B',
-                    borderRadius: '2px',
-                    '&:hover': {
-                      backgroundColor: '#1D9BF0'
-                    }
-                  }
-                }}>
-                  {post.attachments && post.attachments.length > 0 ? (
-                    post.attachments.map((attachment, idx) => (
                       <Box
-                        key={idx}
                         sx={{
                           flex: '0 0 auto',
                           width: 120,
@@ -957,8 +924,8 @@ const Dashboard: React.FC = () => {
                         }}
                       >
                         <img
-                          src={`/api/files/${attachment.id}/${encodeURIComponent(attachment.filename)}`}
-                          alt={`Media ${idx + 1}`}
+                          src={resolveContentImageUrl(post.featured_media_url)}
+                          alt="Featured media"
                           style={{
                             width: '100%',
                             height: '100%',
@@ -966,136 +933,91 @@ const Dashboard: React.FC = () => {
                           }}
                         />
                       </Box>
-                    ))
-                  ) : post.featured_media_url ? (
-                    <Box
-                      sx={{
-                        flex: '0 0 auto',
-                        width: 120,
-                        height: 80,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        border: '1px solid #2F3336'
-                      }}
-                    >
-                      <img
-                        src={resolveContentImageUrl(post.featured_media_url)}
-                        alt="Featured media"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                  ) : null}
+                    ) : null}
+                  </Box>
                 </Box>
-              </Box>
-            ) : null}
+              ) : null}
 
-            {/* Post Content */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#E7E9EA',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.5,
-                  mb: 2,
-                  wordBreak: 'break-word'
-                }}
-              >
-                {(() => {
-                  const raw = post.excerpt && post.excerpt.trim().length > 0 
-                    ? post.excerpt 
-                    : (post.content || '');
-                  const text = stripHtmlTags(raw);
-                  if (!text) return 'No content available';
-                  return highlightText(text.substring(0, 280));
-                })()}
-                {(() => {
-                  const raw = post.excerpt && post.excerpt.trim().length > 0 
-                    ? post.excerpt 
-                    : (post.content || '');
-                  const text = stripHtmlTags(raw);
-                  return text && text.length > 280 ? '...' : '';
-                })()}
-              </Typography>
-            </Box>
-
-
-
-            {/* Engagement Bar - Only Comment and Follow */}
-            <Box sx={{ 
-              p: 4, 
-              pt: 3, 
-              borderTop: '1px solid #2F3336',
-              backgroundColor: '#15181C'
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {/* Comment Button */}
-                <Button
-                  size="small"
-                  variant="text"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePostClick(post.id);
-                  }}
+              {/* Post Content */}
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="body1"
                   sx={{
-                    color: '#71767B',
-                    minWidth: 'auto',
-                    px: 1,
-                    '&:hover': {
-                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
-                      color: '#1D9BF0'
-                    }
+                    color: '#E7E9EA',
+                    fontSize: '1.1rem',
+                    lineHeight: 1.5,
+                    mb: 2,
+                    wordBreak: 'break-word'
                   }}
                 >
-                  💬 {post.comment_count || 0}
-                </Button>
+                  {(() => {
+                    const raw = post.excerpt && post.excerpt.trim().length > 0 
+                      ? post.excerpt 
+                      : (post.content || '');
+                    const text = stripHtmlTags(raw);
+                    if (!text) return 'No content available';
+                    return highlightText(text.substring(0, 280));
+                  })()}
+                  {(() => {
+                    const raw = post.excerpt && post.excerpt.trim().length > 0 
+                      ? post.excerpt 
+                      : (post.content || '');
+                    const text = stripHtmlTags(raw);
+                    return text && text.length > 280 ? '...' : '';
+                  })()}
+                </Typography>
+              </Box>
 
-                {/* Follow Button */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10B981' }} />
-                    <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.8rem' }}>
-                      Active
-                    </Typography>
-                  </Box>
-                  
-                  <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.8rem' }}>
-                    {(() => {
-                      const now = new Date();
-                      const postDate = new Date(post.wp_published_date);
-                      const diffHours = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60));
-                      if (diffHours < 1) return 'Just now';
-                      if (diffHours < 24) return `${diffHours}h ago`;
-                      const diffDays = Math.floor(diffHours / 24);
-                      return `${diffDays}d ago`;
-                    })()}
-                  </Typography>
-                </Box>
-
-                <FollowButton
-                  postId={post.id}
-                  variant="icon"
-                  size="small"
-                  onFollowChange={(isFollowing) => {
-                    if (activeTab === 'following') {
-                      if (isFollowing) {
-                        loadFollowingPosts();
-                      } else {
-                        setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+              {/* Engagement Bar - Only Comment and Follow */}
+              <Box sx={{ 
+                p: 4, 
+                pt: 3, 
+                borderTop: '1px solid #2F3336',
+                backgroundColor: '#15181C'
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {/* Comment Button */}
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePostClick(post.id);
+                    }}
+                    sx={{
+                      color: '#71767B',
+                      minWidth: 'auto',
+                      px: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                        color: '#1D9BF0'
                       }
-                    }
-                  }}
-                />
+                    }}
+                  >
+                    💬 {post.comment_count || 0}
+                  </Button>
+
+                  {/* Follow Button */}
+                  <FollowButton
+                    postId={post.id}
+                    variant="icon"
+                    size="small"
+                    onFollowChange={(isFollowing) => {
+                      if (activeTab === 'following') {
+                        if (isFollowing) {
+                          loadFollowingPosts();
+                        } else {
+                          setFollowingPosts(prev => prev.filter(p => p.id !== post.id));
+                        }
+                      }
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ))}
-      </Box>
-    </>
+          ))}
+        </Box>
+      </>
     )}
   </Box>
 )}
