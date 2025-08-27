@@ -199,14 +199,13 @@ const Dashboard: React.FC = () => {
 
   const loadFollowingPosts = async () => {
     try {
-      console.log('Loading Intel Reports instead of followed posts...'); // Debug
+      console.log('Loading following posts...');
       setFollowingLoading(true);
-      // Load Intel Reports instead of followed posts since they have media
-      const response = await apiService.getIntelReports();
-      console.log('Intel Reports response:', response); // Debug
-      setFollowingPosts(response.reports || []);
+      const response = await apiService.getFollowedPosts(1, 12);
+      console.log('Following posts response:', response);
+      setFollowingPosts(response.posts);
     } catch (error) {
-      console.error('Failed to load Intel Reports:', error);
+      console.error('Failed to load following posts:', error);
     } finally {
       setFollowingLoading(false);
     }
@@ -548,8 +547,8 @@ const Dashboard: React.FC = () => {
       </Box>
     </Box>
 
-    {/* Cards View - DISABLED FOR DEBUGGING */}
-    {false && followingViewMode === 'cards' && (
+    {/* Cards View */}
+    {followingViewMode === 'cards' && (
       <Box sx={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -763,21 +762,8 @@ const Dashboard: React.FC = () => {
     )}
 
     {/* Twitter-Style Feed View */}
-    {true && ( // Force feed view to always show for debugging
-      <>
-        {/* Debug indicator */}
-        <Box sx={{ 
-          backgroundColor: '#FF0000', 
-          color: '#FFFFFF', 
-          p: 2, 
-          mb: 2, 
-          textAlign: 'center',
-          fontWeight: 'bold'
-        }}>
-          🚨 FEED VIEW IS ACTIVE - followingViewMode: {followingViewMode} 🚨
-        </Box>
-        
-        <Box sx={{ 
+    {followingViewMode === 'feed' && (
+      <Box sx={{ 
           maxWidth: '800px', 
           mx: 'auto',
           backgroundColor: '#000000',
@@ -785,18 +771,6 @@ const Dashboard: React.FC = () => {
           borderRadius: 2,
           overflow: 'hidden'
         }}>
-          {/* Test post to verify feed view is working */}
-          <Box sx={{
-            backgroundColor: '#000000',
-            borderBottom: '1px solid #2F3336',
-            p: 3,
-            textAlign: 'center'
-          }}>
-            <Typography sx={{ color: '#00FF00', fontSize: '1.5rem', fontWeight: 'bold' }}>
-              🎯 TEST POST - This should show if feed view is working! 🎯
-            </Typography>
-          </Box>
-          
           {sortedFollowingPosts.map((post) => (
             <Box
               key={`feed-post-${post.id}`}
@@ -826,7 +800,7 @@ const Dashboard: React.FC = () => {
                   fontWeight: 'bold',
                   fontSize: '1.2rem'
                 }}>
-                  {post.author_name.charAt(0).toUpperCase()}
+                  {(post.author_name || '?').charAt(0).toUpperCase()}
                 </Box>
                 
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -840,7 +814,7 @@ const Dashboard: React.FC = () => {
                         '&:hover': { textDecoration: 'underline' }
                       }}
                     >
-                      {post.author_name}
+                      {post.author_name || 'Unknown'}
                     </Typography>
                     
                     <Typography
@@ -860,7 +834,7 @@ const Dashboard: React.FC = () => {
                         fontSize: '0.8rem'
                       }}
                     >
-                      {format(new Date(post.wp_published_date), 'MMM d, yyyy')}
+                      {post.wp_published_date ? format(new Date(post.wp_published_date), 'MMM d, yyyy') : ''}
                     </Typography>
                   </Box>
                   
@@ -878,23 +852,13 @@ const Dashboard: React.FC = () => {
                 </Box>
               </Box>
 
-              {/* Media Gallery in Header */}
-              {/* Debug: Show attachment info */}
-              <Box sx={{ 
-                backgroundColor: '#FF6600', 
-                color: '#FFFFFF', 
-                p: 1, 
-                mb: 2, 
-                fontSize: '0.8rem'
-              }}>
-                🔍 DEBUG: post.attachments = {JSON.stringify(post.attachments)}
-                <br />
-                🔍 DEBUG: post.featured_media_url = {post.featured_media_url || 'None'}
-                <br />
-                🔍 DEBUG: Has attachments: {post.attachments && post.attachments.length > 0 ? 'YES' : 'NO'}
-              </Box>
-              
-              {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
+              {/* Media Gallery in Header - with fallbacks */}
+              {(() => {
+                const hasAttachments = Array.isArray(post.attachments) && post.attachments.length > 0;
+                const imageUrls = extractImageUrls(post.content || '').slice(0, 5);
+                const hasFeatured = Boolean(post.featured_media_url);
+                if (!hasAttachments && !hasFeatured && imageUrls.length === 0) return null;
+                return (
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{
                     display: 'flex',
@@ -916,8 +880,8 @@ const Dashboard: React.FC = () => {
                       }
                     }
                   }}>
-                    {post.attachments && post.attachments.length > 0 ? (
-                      post.attachments.map((attachment, idx) => (
+                    {hasAttachments ? (
+                      post.attachments.map((attachment: any, idx: number) => (
                         <Box
                           key={idx}
                           sx={{
@@ -940,7 +904,7 @@ const Dashboard: React.FC = () => {
                           />
                         </Box>
                       ))
-                    ) : post.featured_media_url ? (
+                    ) : hasFeatured ? (
                       <Box
                         sx={{
                           flex: '0 0 auto',
@@ -961,10 +925,35 @@ const Dashboard: React.FC = () => {
                           }}
                         />
                       </Box>
-                    ) : null}
+                    ) : (
+                      imageUrls.map((url: string, idx: number) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            flex: '0 0 auto',
+                            width: 120,
+                            height: 80,
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                            border: '1px solid #2F3336'
+                          }}
+                        >
+                          <img
+                            src={resolveContentImageUrl(url)}
+                            alt={`Content image ${idx + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </Box>
+                      ))
+                    )}
                   </Box>
                 </Box>
-              ) : null}
+                );
+              })()}
 
               {/* Post Content */}
               <Box sx={{ mb: 3 }}>
@@ -1045,7 +1034,7 @@ const Dashboard: React.FC = () => {
             </Box>
           ))}
         </Box>
-      </>
+      </Box>
     )}
   </Box>
 )}
