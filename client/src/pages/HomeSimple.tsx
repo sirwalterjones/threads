@@ -54,16 +54,20 @@ import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
 import IntelReportCard from '../components/IntelReportCard';
 import TwitterStylePostCard from '../components/TwitterStylePostCard';
+import { useAuth } from '../contexts/AuthContext';
 
 
 
 const HomeSimple: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Array<{ name: string; totalPosts: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  const isAdmin = user?.role === 'admin' || user?.super_admin;
   const [searchTerm, setSearchTerm] = useState('');
   const [authorFilter, setAuthorFilter] = useState('');
   const [dateFromFilter, setDateFromFilter] = useState('');
@@ -413,6 +417,51 @@ const HomeSimple: React.FC = () => {
     setSelectedCategory(categoryId);
     setCurrentPage(1);
     // Don't call loadData here - let the useEffect handle it
+  };
+
+  // Admin Intel Report Handlers
+  const handleIntelEdit = (reportId: number) => {
+    // Navigate to intel report edit page
+    window.location.href = `/intel-reports?edit=${reportId}`;
+  };
+
+  const handleIntelDelete = async (reportId: number) => {
+    if (!isAdmin) return;
+    
+    if (window.confirm('Are you sure you want to delete this intel report? This action cannot be undone.')) {
+      try {
+        await apiService.deleteIntelReport(reportId.toString());
+        setIntelModalOpen(false);
+        // Refresh the current search/list
+        loadData(currentPage);
+      } catch (error) {
+        console.error('Failed to delete intel report:', error);
+        alert('Failed to delete intel report. Please try again.');
+      }
+    }
+  };
+
+  const handleIntelStatusChange = async (reportId: number) => {
+    if (!isAdmin) return;
+    
+    const status = prompt('Enter new status (pending, approved, rejected):');
+    if (!status || !['pending', 'approved', 'rejected'].includes(status.toLowerCase())) {
+      if (status) alert('Invalid status. Please enter: pending, approved, or rejected');
+      return;
+    }
+
+    const comments = prompt('Review comments (optional):') || '';
+    
+    try {
+      const validStatus = status.toLowerCase() as 'pending' | 'approved' | 'rejected';
+      await apiService.updateIntelReportStatus(reportId.toString(), validStatus, comments);
+      setIntelModalOpen(false);
+      // Refresh the current search/list
+      loadData(currentPage);
+    } catch (error) {
+      console.error('Failed to update intel report status:', error);
+      alert('Failed to update status. Please try again.');
+    }
   };
 
   const stripHtmlTags = (html: string) => {
@@ -2022,6 +2071,9 @@ const HomeSimple: React.FC = () => {
           open={intelModalOpen}
           onClose={handleIntelModalClose}
           reportId={selectedIntelReportId}
+          onEdit={handleIntelEdit}
+          onDelete={handleIntelDelete}
+          onStatusChange={handleIntelStatusChange}
         />
 
         {/* Search Help Dialog */}

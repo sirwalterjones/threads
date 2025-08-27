@@ -407,6 +407,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
       });
     }
     
+    // Admins can edit any report at any time
+    // Non-admins can only edit their own reports before approval
     if (!isAdmin && (!isAuthor || isApproved)) {
       await client.query('ROLLBACK');
       return res.status(403).json({ 

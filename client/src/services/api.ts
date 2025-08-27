@@ -556,7 +556,7 @@ class ApiService {
 
   async updateIntelReportStatus(
     id: string, 
-    status: 'approved' | 'rejected', 
+    status: 'pending' | 'approved' | 'rejected', 
     reviewComments?: string
   ): Promise<{ message: string; report: any }> {
     const response = await axios.patch(

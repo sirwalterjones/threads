@@ -127,17 +127,46 @@ router.get('/',
       let queryParams = [];
       let paramIndex = 1;
 
-      // Build search conditions - use fast full-text search with fallback to ILIKE
+      // Advanced search with relevance ranking
+      let searchCondition = '';
+      let searchRankSelect = '';
+      let searchOrderBy = '';
+      
       if (search) {
-        // Use PostgreSQL full-text search for much better performance
-        // This maintains full functionality while dramatically improving speed
-        whereConditions.push(`(
-          p.search_vector @@ plainto_tsquery('english', $${paramIndex}) OR
-          p.title ILIKE $${paramIndex} OR 
-          p.author_name ILIKE $${paramIndex}
-        )`);
-        queryParams.push(search);
-        paramIndex++;
+        const searchTerm = search.trim();
+        
+        // Determine if this is a phrase search (quoted) or word search
+        const isPhrase = searchTerm.startsWith('"') && searchTerm.endsWith('"');
+        const cleanSearch = isPhrase ? searchTerm.slice(1, -1) : searchTerm;
+        
+        // Create appropriate tsquery based on search type
+        const tsqueryFunc = isPhrase ? 'phraseto_tsquery' : 'plainto_tsquery';
+        
+        // Build search condition with multiple fields and fallback
+        searchCondition = `(
+          p.search_vector @@ ${tsqueryFunc}('english', $${paramIndex}) OR
+          p.title ILIKE $${paramIndex + 1} OR 
+          p.content ILIKE $${paramIndex + 1} OR
+          p.excerpt ILIKE $${paramIndex + 1} OR
+          p.author_name ILIKE $${paramIndex + 1}
+        )`;
+        
+        // Add relevance scoring - weighted by field importance
+        searchRankSelect = `, (
+          COALESCE(ts_rank_cd(p.search_vector, ${tsqueryFunc}('english', $${paramIndex}), 32), 0) * 3.0 +
+          CASE WHEN p.title ILIKE $${paramIndex + 1} THEN 2.5 ELSE 0 END +
+          CASE WHEN p.excerpt ILIKE $${paramIndex + 1} THEN 2.0 ELSE 0 END +
+          CASE WHEN p.content ILIKE $${paramIndex + 1} THEN 1.0 ELSE 0 END +
+          CASE WHEN p.author_name ILIKE $${paramIndex + 1} THEN 1.5 ELSE 0 END
+        ) as search_rank`;
+        
+        whereConditions.push(searchCondition);
+        queryParams.push(cleanSearch); // For tsquery
+        queryParams.push(`%${cleanSearch}%`); // For ILIKE fallback
+        paramIndex += 2;
+        
+        // Override sort order when searching - most relevant first
+        searchOrderBy = 'search_rank DESC, ';
       }
 
       if (category) {
@@ -200,7 +229,7 @@ router.get('/',
       const countResult = await pool.query(countQuery, queryParams);
       const postsTotal = parseInt(countResult.rows[0].total);
 
-      // Build the posts query with proper filtering
+      // Build the posts query with proper filtering and relevance ranking
       const postsQuery = `
         SELECT 
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
@@ -222,16 +251,17 @@ router.get('/',
              WHERE pa.post_id = p.id), 
             '[]'::json
           ) as attachments,
-        COALESCE(
-          (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
-          0
-        ) as comment_count
-      FROM posts p
-      LEFT JOIN categories c ON p.category_id = c.id
-      ${whereClause}
-      ORDER BY p.wp_published_date DESC, p.id DESC
-      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-    `;
+          COALESCE(
+            (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
+            0
+          ) as comment_count
+          ${searchRankSelect}
+        FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        ${whereClause}
+        ORDER BY ${searchOrderBy}p.${sortField} ${sortDirection}, p.id DESC
+        LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+      `;
 
     const postsResult = await pool.query(postsQuery, [...queryParams, parseInt(limit), parseInt(offset)]);
 
@@ -240,7 +270,10 @@ router.get('/',
     let intelTotal = 0;
     if (search) {
       try {
-        const intelSearchTerm = `%${search}%`;
+        const searchTerm = search.trim();
+        const isPhrase = searchTerm.startsWith('"') && searchTerm.endsWith('"');
+        const cleanSearch = isPhrase ? searchTerm.slice(1, -1) : searchTerm;
+        const intelSearchTerm = `%${cleanSearch}%`;
         
         let intelQuery = `
           SELECT 
@@ -250,7 +283,13 @@ router.get('/',
             ir.classification, ir.status, 'intel_report' as result_type,
             '[]'::json as attachments, 0 as comment_count,
             NULL as wp_post_id, NULL as retention_date, NULL as metadata,
-            NULL as category_id, NULL as category_name, NULL as category_slug
+            NULL as category_id, NULL as category_name, NULL as category_slug,
+            (
+              CASE WHEN ir.subject ILIKE $1 THEN 3.0 ELSE 0 END +
+              CASE WHEN ir.intel_number ILIKE $1 THEN 2.5 ELSE 0 END +
+              CASE WHEN ir.summary ILIKE $1 THEN 2.0 ELSE 0 END +
+              CASE WHEN ir.criminal_activity ILIKE $1 THEN 1.5 ELSE 0 END
+            ) as search_rank
           FROM intel_reports ir
           LEFT JOIN users u ON ir.agent_id = u.id
           WHERE ir.status = 'approved' AND (
@@ -266,7 +305,7 @@ router.get('/',
           intelQuery += ` AND ir.classification != 'Classified'`;
         }
 
-        intelQuery += ` ORDER BY ir.created_at DESC LIMIT 5`;
+        intelQuery += ` ORDER BY search_rank DESC, ir.created_at DESC LIMIT 5`;
 
         const intelResult = await pool.query(intelQuery, [intelSearchTerm]);
         intelReports = intelResult.rows;

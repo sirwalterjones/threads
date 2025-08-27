@@ -30,10 +30,14 @@ import {
   DateRange,
   Badge,
   Business,
-  Person
+  Person,
+  Edit,
+  Delete,
+  MoreVert
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import apiService from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface IntelReport {
   id: number;
@@ -90,12 +94,18 @@ interface IntelReportDetailModalProps {
   open: boolean;
   onClose: () => void;
   reportId: number | null;
+  onEdit?: (reportId: number) => void;
+  onDelete?: (reportId: number) => void;
+  onStatusChange?: (reportId: number) => void;
 }
 
-const IntelReportDetailModal: React.FC<IntelReportDetailModalProps> = ({ open, onClose, reportId }) => {
+const IntelReportDetailModal: React.FC<IntelReportDetailModalProps> = ({ open, onClose, reportId, onEdit, onDelete, onStatusChange }) => {
+  const { user } = useAuth();
   const [report, setReport] = useState<IntelReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const isAdmin = user?.role === 'admin' || user?.super_admin;
 
   const fetchReport = async (id: number) => {
     setLoading(true);
@@ -187,9 +197,58 @@ const IntelReportDetailModal: React.FC<IntelReportDetailModalProps> = ({ open, o
             )}
           </Box>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: '#71767B' }}>
-          <CloseIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Admin Controls */}
+          {isAdmin && report && (
+            <>
+              <IconButton 
+                onClick={() => onEdit?.(report.id)}
+                sx={{ 
+                  color: '#71767B',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                    color: '#1D9BF0' 
+                  }
+                }}
+                title="Edit Report"
+              >
+                <Edit />
+              </IconButton>
+              
+              <IconButton 
+                onClick={() => onStatusChange?.(report.id)}
+                sx={{ 
+                  color: '#71767B',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    color: '#f97316' 
+                  }
+                }}
+                title="Change Status"
+              >
+                <MoreVert />
+              </IconButton>
+              
+              <IconButton 
+                onClick={() => onDelete?.(report.id)}
+                sx={{ 
+                  color: '#71767B',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    color: '#ef4444' 
+                  }
+                }}
+                title="Delete Report"
+              >
+                <Delete />
+              </IconButton>
+            </>
+          )}
+          
+          <IconButton onClick={handleClose} sx={{ color: '#71767B' }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent sx={{ backgroundColor: '#16181C', p: 3 }}>
