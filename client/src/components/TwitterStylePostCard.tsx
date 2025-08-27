@@ -24,7 +24,7 @@ import FollowButton from './FollowButton';
 interface TwitterStylePostCardProps {
   post: Post;
   onClick: (postId: number) => void;
-  highlightText: (text: string) => string | ReactElement[];
+  highlightText: (text: string) => React.ReactNode;
   onFollowChange?: (postId: number, isFollowing: boolean) => void;
 }
 

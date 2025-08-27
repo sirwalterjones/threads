@@ -187,43 +187,79 @@ const HomeSimple: React.FC = () => {
   };
 
   const highlightTerms = useMemo(() => {
-    // derive terms from current searchTerm (remaining free-text only)
+    // Parse search terms preserving quoted phrases
     const tokens = (searchTerm.match(/\"[^\"]+\"|\S+/g) || [])
-      .map(t => t.replace(/^\"|\"$/g, ''))
+      .map(token => {
+        // Remove quotes but preserve the phrase structure for highlighting
+        if (token.startsWith('"') && token.endsWith('"')) {
+          return token.slice(1, -1); // Keep as phrase (with spaces)
+        }
+        return token;
+      })
       .filter(t => t && !t.includes(':'));
     return tokens;
   }, [searchTerm]);
 
   const highlightText = (input: string) => {
-    if (!highlightTerms.length) return input;
+    if (!highlightTerms.length || !input) return input;
     
-    // Create a single pattern for all terms with word variations
-    const patterns = highlightTerms.map(term => {
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Match the exact term or words containing the term
-      return `\\b\\w*${escaped}\\w*\\b`;
+    // Parse search terms to handle phrases and individual words correctly
+    const parseSearchTerms = (terms: string[]): { phrases: string[], words: string[] } => {
+      const phrases: string[] = [];
+      const words: string[] = [];
+      
+      terms.forEach(term => {
+        const trimmed = term.trim();
+        if (trimmed.includes(' ')) {
+          // Multi-word terms are treated as phrases
+          phrases.push(trimmed);
+        } else {
+          // Single words
+          words.push(trimmed);
+        }
+      });
+      
+      return { phrases, words };
+    };
+    
+    const { phrases, words } = parseSearchTerms(highlightTerms);
+    let result = input;
+    
+    // First, highlight exact phrases (more specific)
+    phrases.forEach(phrase => {
+      const phraseRegex = new RegExp(`(${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      result = result.replace(phraseRegex, '<<<PHRASE_MATCH:$1>>>');
     });
     
-    const regex = new RegExp(`(${patterns.join('|')})`, 'gi');
-    const parts = input.split(regex);
+    // Then highlight individual words with word boundaries (prevents partial matches)
+    words.forEach(word => {
+      const wordRegex = new RegExp(`\\b(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'gi');
+      result = result.replace(wordRegex, '<<<WORD_MATCH:$1>>>');
+    });
     
-    return parts.map((part, i) => {
-      if (!part) return <React.Fragment key={i}></React.Fragment>;
-      
-      // Check if this part matches our regex (was captured)
-      const isMatch = regex.test(part);
-      regex.lastIndex = 0; // Reset regex state
-      
-      // Also check manually for term matching
-      const shouldHighlight = isMatch || highlightTerms.some(term => 
-        part.toLowerCase().includes(term.toLowerCase())
-      );
-      
-      return shouldHighlight ? (
-        <mark key={i} style={{ backgroundColor: '#FFEB3B', padding: '0 2px', borderRadius: '2px' }}>{part}</mark>
-      ) : (
-        <React.Fragment key={i}>{part}</React.Fragment>
-      );
+    // Convert placeholder markers to React components
+    const parts = result.split(/(<<<(?:PHRASE|WORD)_MATCH:[^>]+>>>)/);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('<<<') && part.endsWith('>>>')) {
+        // Extract the matched text from the placeholder
+        const matchText = part.replace(/<<<(?:PHRASE|WORD)_MATCH:([^>]+)>>>/, '$1');
+        return (
+          <mark 
+            key={index} 
+            style={{ 
+              backgroundColor: '#fbbf24', 
+              color: '#000', 
+              padding: '1px 3px', 
+              borderRadius: '3px',
+              fontWeight: 'bold'
+            }}
+          >
+            {matchText}
+          </mark>
+        );
+      }
+      return part;
     });
   };
 
