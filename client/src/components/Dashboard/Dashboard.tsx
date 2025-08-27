@@ -881,7 +881,7 @@ const Dashboard: React.FC = () => {
                     }
                   }}>
                     {hasAttachments ? (
-                      post.attachments.map((attachment: any, idx: number) => (
+                      (post.attachments || []).map((attachment: any, idx: number) => (
                         <Box
                           key={idx}
                           sx={{
@@ -916,7 +916,7 @@ const Dashboard: React.FC = () => {
                         }}
                       >
                         <img
-                          src={resolveContentImageUrl(post.featured_media_url)}
+                          src={resolveContentImageUrl(post.featured_media_url || '')}
                           alt="Featured media"
                           style={{
                             width: '100%',
