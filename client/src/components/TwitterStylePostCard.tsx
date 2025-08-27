@@ -262,7 +262,7 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
       {hasMedia && (
         <Box sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
           {post.attachments && post.attachments.length > 0 ? (
-            <MediaGallery attachments={post.attachments} maxHeight={400} />
+            <MediaGallery attachments={post.attachments} maxHeight={window.innerWidth < 600 ? 300 : 400} />
           ) : post.featured_media_url ? (
             <img
               src={resolveContentImageUrl(post.featured_media_url)}
@@ -270,9 +270,9 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
               style={{
                 width: '100%',
                 height: 'auto',
-                maxHeight: 400,
+                maxHeight: window.innerWidth < 600 ? 300 : 400,
                 objectFit: 'cover',
-                borderRadius: '16px'
+                borderRadius: window.innerWidth < 600 ? '12px' : '16px'
               }}
             />
           ) : (
@@ -283,10 +283,10 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
                   src={resolveContentImageUrl(url)}
                   alt={`Post image ${idx + 1}`}
                   style={{
-                    width: 200,
-                    height: 150,
+                    width: window.innerWidth < 600 ? 150 : 200,
+                    height: window.innerWidth < 600 ? 112 : 150,
                     objectFit: 'cover',
-                    borderRadius: '16px',
+                    borderRadius: window.innerWidth < 600 ? '12px' : '16px',
                     flex: '0 0 auto'
                   }}
                 />

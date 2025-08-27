@@ -755,8 +755,9 @@ const Dashboard: React.FC = () => {
     {/* Twitter-Style Feed View */}
     {followingViewMode === 'feed' && (
       <Box sx={{ 
-          maxWidth: '900px', 
-          mx: 'auto'
+          maxWidth: { xs: '100%', sm: '100%', md: '900px' }, 
+          mx: 'auto',
+          px: { xs: 1, sm: 2, md: 0 }
         }}>
           {sortedFollowingPosts.map((post) => (
             <TwitterStylePostCard
