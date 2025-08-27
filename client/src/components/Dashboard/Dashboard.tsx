@@ -1034,9 +1034,8 @@ const Dashboard: React.FC = () => {
             </Box>
           ))}
         </Box>
-      </Box>
-    )}
-  </Box>
+      )}
+    </Box>
 )}
 
 {/* Loading State for Following Posts */}
