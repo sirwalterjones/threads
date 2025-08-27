@@ -38,7 +38,8 @@ import {
   Error as RejectedIcon,
   Verified as ApprovedIcon,
   Edit as EditIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -629,6 +630,33 @@ const IntelReportsApprovalSimple: React.FC = () => {
                           </Tooltip>
                         </>
                       )}
+                      {(user?.role === 'admin' || user?.super_admin) && (
+                        <>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => handleEditReport(report)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={async () => {
+                                if (window.confirm('Delete this intel report? This cannot be undone.')) {
+                                  try {
+                                    await apiService.deleteIntelReport((report.id as unknown as string) || String(report.id));
+                                    setReports(prev => prev.filter(r => r.id !== report.id));
+                                  } catch (e) {
+                                    console.error('Failed to delete report', e);
+                                  }
+                                }
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -896,19 +924,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 </Box>
               )}
 
-              {selectedReport.reviewComments && (
-                <>
-                  <Divider sx={{ my: 2, borderColor: '#2F3336' }} />
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ color: '#71767B' }}>Review Comments:</Typography>
-                    <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.reviewComments}</Typography>
-                  </Box>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" sx={{ color: '#71767B' }}>Reviewed By:</Typography>
-                    <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.reviewedBy}</Typography>
-                  </Box>
-                </>
-              )}
+              {/* Removed Review Comments/Reviewed By section per request */}
             </DialogContent>
             <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
               {/* Edit button - authors can edit until approved; admins can always edit */}
