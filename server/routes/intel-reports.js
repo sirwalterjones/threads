@@ -83,11 +83,11 @@ router.get('/', authenticateToken, async (req, res) => {
     // Apply classification-based visibility rules
     if (req.user.role !== 'admin') {
       // Non-admins can only see:
-      // 1. Reports they created (regardless of status)
-      // 2. Non-classified reports that are pending, rejected, or approved
-      query += ` AND (
+      // 1. Non-classified reports they created (any status)
+      // 2. Non-classified reports that are pending, rejected, or approved (created by others)
+      query += ` AND ir.classification != 'Classified' AND (
         ir.agent_id = $${valueIndex} OR 
-        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected', 'approved'))
+        ir.status IN ('pending', 'rejected', 'approved')
       )`;
       values.push(req.user.id);
       valueIndex++;
@@ -148,9 +148,9 @@ router.get('/', authenticateToken, async (req, res) => {
     
     // Apply classification-based visibility rules to count query
     if (req.user.role !== 'admin') {
-      countQuery += ` AND (
+      countQuery += ` AND ir.classification != 'Classified' AND (
         ir.agent_id = $${countIndex} OR 
-        (ir.classification != 'Classified' AND ir.status IN ('pending', 'rejected', 'approved'))
+        ir.status IN ('pending', 'rejected', 'approved')
       )`;
       countValues.push(req.user.id);
       countIndex++;
@@ -399,11 +399,11 @@ router.put('/:id', authenticateToken, async (req, res) => {
     );
     const currentClassification = currentReportQuery.rows[0]?.classification;
     
-    // Check if non-admin is trying to edit a classified report after approval
-    if (!isAdmin && currentClassification === 'Classified' && isApproved) {
+    // Check if non-admin is trying to edit a classified report
+    if (!isAdmin && currentClassification === 'Classified') {
       await client.query('ROLLBACK');
       return res.status(403).json({ 
-        error: 'Access denied. Classified reports cannot be edited by non-admin users after approval.' 
+        error: 'Access denied. Classified reports cannot be edited by non-admin users.' 
       });
     }
     
@@ -744,19 +744,14 @@ router.get('/:id', authenticateToken, async (req, res) => {
     
     // Apply classification-based access control
     if (req.user.role !== 'admin') {
-      // Non-admins can only view:
-      // 1. Reports they created (regardless of status)
-      // 2. Non-classified reports that are pending, rejected, or approved
-      const canView = 
-        report.agent_id === req.user.id || 
-        (report.classification !== 'Classified' && (report.status === 'pending' || report.status === 'rejected' || report.status === 'approved'));
-      
-      if (!canView) {
+      // Non-admins can only view non-classified reports
+      if (report.classification === 'Classified') {
         console.warn('[intel-reports] Access denied to classified report', { 
           reportId: id, 
           userId: req.user.id, 
           classification: report.classification, 
-          status: report.status 
+          status: report.status,
+          isAuthor: report.agent_id === req.user.id 
         });
         return res.status(403).json({ 
           error: 'Access denied. This report is classified and requires admin privileges to view.' 

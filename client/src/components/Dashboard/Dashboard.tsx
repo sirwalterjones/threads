@@ -784,6 +784,18 @@ const Dashboard: React.FC = () => {
           borderRadius: 2,
           overflow: 'hidden'
         }}>
+          {/* Test post to verify feed view is working */}
+          <Box sx={{
+            backgroundColor: '#000000',
+            borderBottom: '1px solid #2F3336',
+            p: 3,
+            textAlign: 'center'
+          }}>
+            <Typography sx={{ color: '#00FF00', fontSize: '1.5rem', fontWeight: 'bold' }}>
+              🎯 TEST POST - This should show if feed view is working! 🎯
+            </Typography>
+          </Box>
+          
           {sortedFollowingPosts.map((post) => (
             <Box
               key={`feed-post-${post.id}`}
