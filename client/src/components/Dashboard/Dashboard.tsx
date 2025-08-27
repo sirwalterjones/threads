@@ -878,6 +878,21 @@ const Dashboard: React.FC = () => {
               </Box>
 
               {/* Media Gallery in Header */}
+              {/* Debug: Show attachment info */}
+              <Box sx={{ 
+                backgroundColor: '#FF6600', 
+                color: '#FFFFFF', 
+                p: 1, 
+                mb: 2, 
+                fontSize: '0.8rem'
+              }}>
+                🔍 DEBUG: post.attachments = {JSON.stringify(post.attachments)}
+                <br />
+                🔍 DEBUG: post.featured_media_url = {post.featured_media_url || 'None'}
+                <br />
+                🔍 DEBUG: Has attachments: {post.attachments && post.attachments.length > 0 ? 'YES' : 'NO'}
+              </Box>
+              
               {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
                 <Box sx={{ mb: 3 }}>
                   <Box sx={{
