@@ -244,8 +244,10 @@ const IntelReportEditForm: React.FC<IntelReportEditFormProps> = ({
     }
   };
 
-  const canEdit = (user?.id === report.agent_id || user?.role === 'admin' || user?.super_admin) && 
-                  report.status !== 'approved';
+  // Admins and super admins can edit any report at any time.
+  // Authors can edit their own reports until approved.
+  const canEdit = (user?.role === 'admin' || user?.super_admin) ||
+                  (user?.id === report.agent_id && report.status !== 'approved');
 
   if (!canEdit) {
     return (

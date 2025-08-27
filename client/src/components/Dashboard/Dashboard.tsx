@@ -489,6 +489,43 @@ const Dashboard: React.FC = () => {
           value="following" 
           sx={{ minWidth: 120 }}
         />
+        {/* Compact view toggles aligned to the right when Following tab is active */}
+        {activeTab === 'following' && (
+          <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+            <Button
+              variant={followingViewMode === 'cards' ? 'contained' : 'outlined'}
+              size="small"
+              startIcon={<ViewModule />}
+              onClick={() => setFollowingViewMode('cards')}
+              sx={{
+                backgroundColor: followingViewMode === 'cards' ? '#1D9BF0' : 'transparent',
+                color: followingViewMode === 'cards' ? '#FFFFFF' : '#1D9BF0',
+                borderColor: '#1D9BF0',
+                '&:hover': {
+                  backgroundColor: followingViewMode === 'cards' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)'
+                }
+              }}
+            >
+              Cards
+            </Button>
+            <Button
+              variant={followingViewMode === 'feed' ? 'contained' : 'outlined'}
+              size="small"
+              startIcon={<ViewList />}
+              onClick={() => setFollowingViewMode('feed')}
+              sx={{
+                backgroundColor: followingViewMode === 'feed' ? '#1D9BF0' : 'transparent',
+                color: followingViewMode === 'feed' ? '#FFFFFF' : '#1D9BF0',
+                borderColor: '#1D9BF0',
+                '&:hover': {
+                  backgroundColor: followingViewMode === 'feed' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)'
+                }
+              }}
+            >
+              Feed
+            </Button>
+          </Box>
+        )}
       </Tabs>
     </Card>
   </Box>
@@ -497,56 +534,9 @@ const Dashboard: React.FC = () => {
 {/* Following Posts Section - Show when no search results */}
 {searchResults.length === 0 && followingPosts.length > 0 && (
   <Box sx={{ mb: 4, px: { xs: 2, sm: 3, md: 3 } }}>
-    {/* View Toggle Header */}
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      mb: 3,
-      backgroundColor: '#16181C',
-      border: '1px solid #2F3336',
-      borderRadius: 2,
-      p: 2
-    }}>
-      <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600 }}>
-        Following Posts ({sortedFollowingPosts.length})
-      </Typography>
-      
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Button
-          variant={followingViewMode === 'cards' ? 'contained' : 'outlined'}
-          size="small"
-          startIcon={<ViewModule />}
-          onClick={() => setFollowingViewMode('cards')}
-          sx={{
-            backgroundColor: followingViewMode === 'cards' ? '#1D9BF0' : 'transparent',
-            color: followingViewMode === 'cards' ? '#FFFFFF' : '#1D9BF0',
-            borderColor: '#1D9BF0',
-            '&:hover': {
-              backgroundColor: followingViewMode === 'cards' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)',
-            }
-          }}
-        >
-          Cards
-        </Button>
-        <Button
-          variant={followingViewMode === 'feed' ? 'contained' : 'outlined'}
-          size="small"
-          startIcon={<ViewList />}
-          onClick={() => setFollowingViewMode('feed')}
-          sx={{
-            backgroundColor: followingViewMode === 'feed' ? '#1D9BF0' : 'transparent',
-            color: followingViewMode === 'feed' ? '#FFFFFF' : '#1D9BF0',
-            borderColor: '#1D9BF0',
-            '&:hover': {
-              backgroundColor: followingViewMode === 'feed' ? '#1A8CD8' : 'rgba(29, 155, 240, 0.1)',
-            }
-          }}
-        >
-          Feed
-        </Button>
-      </Box>
-    </Box>
+    <Typography variant="h6" sx={{ color: '#E7E9EA', fontWeight: 600, mb: 2 }}>
+      Following Posts ({sortedFollowingPosts.length})
+    </Typography>
 
     {/* Cards View */}
     {followingViewMode === 'cards' && (

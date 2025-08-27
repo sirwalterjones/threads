@@ -324,7 +324,24 @@ const UsersManage: React.FC = () => {
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } } }}
+            sx={{ 
+              mt: 1,
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' },
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor:'#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' },
+                '& input': {
+                  color:'#E7E9EA',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #1A1A1A inset',
+                    WebkitTextFillColor: '#E7E9EA'
+                  }
+                }
+              }
+            }}
             value={newUser.username}
             onChange={(e)=> setNewUser((s)=> ({ ...s, username: e.target.value }))}
           />
@@ -332,7 +349,26 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ 
+              mt: 2,
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' },
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor:'#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' },
+                '& input': {
+                  color:'#E7E9EA',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #1A1A1A inset',
+                    WebkitTextFillColor: '#E7E9EA'
+                  }
+                }
+              },
+              '& .MuiFormHelperText-root': { color: '#8B98A5' },
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+            }}
             value={newUser.email}
             onChange={(e)=> setNewUser((s)=> ({ ...s, email: e.target.value }))}
           />
@@ -340,7 +376,26 @@ const UsersManage: React.FC = () => {
             type="password"
             label="Password"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ 
+              mt: 2,
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' },
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor:'#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' },
+                '& input': {
+                  color:'#E7E9EA',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #1A1A1A inset',
+                    WebkitTextFillColor: '#E7E9EA'
+                  }
+                }
+              },
+              '& .MuiFormHelperText-root': { color: '#8B98A5' },
+              '& .MuiSvgIcon-root': { color: '#E7E9EA' }
+            }}
             value={newUser.password}
             onChange={(e)=> setNewUser((s)=> ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters"

@@ -118,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
               }}
               onClick={() => navigate('/')}
             >
-              VECTOR
+              <span style={{ color: '#1D9BF0' }}>V</span>ECTOR
             </Typography>
           )}
         </Box>
@@ -143,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
               }}
               onClick={() => navigate('/')}
             >
-              VECTOR
+              <span style={{ color: '#1D9BF0' }}>V</span>ECTOR
             </Typography>
           </Box>
         )}
