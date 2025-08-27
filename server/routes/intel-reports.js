@@ -1,4 +1,4 @@
-const express = require('express');
+                  WindowW W WW  WWWŴWW  WWWWWWŴSSssssSSSconst express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
@@ -62,12 +62,12 @@ router.get('/', authenticateToken, async (req, res) => {
         CASE 
           WHEN ir.expires_at < NOW() THEN true 
           ELSE false 
-        END as is_expired,
+        END as "isExpired",
         CASE 
           WHEN ir.expires_at > NOW() THEN CEIL(EXTRACT(EPOCH FROM (ir.expires_at - NOW())) / 86400)
           ELSE 0
-        END as days_until_expiration,
-        ir.expires_at as expiration_date
+        END as "daysUntilExpiration",
+        ir.expires_at as "expiresAt"
       FROM intel_reports ir
       LEFT JOIN users u ON ir.agent_id = u.id
       LEFT JOIN users reviewer ON ir.reviewed_by = reviewer.id
@@ -407,8 +407,6 @@ router.put('/:id', authenticateToken, async (req, res) => {
       });
     }
     
-    // Admins can edit any report at any time
-    // Non-admins can only edit their own reports before approval
     if (!isAdmin && (!isAuthor || isApproved)) {
       await client.query('ROLLBACK');
       return res.status(403).json({ 
