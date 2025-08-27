@@ -1824,7 +1824,26 @@ const HomeSimple: React.FC = () => {
                 display: { xs: 'none', md: 'block' },
                 overflowX: 'auto'
               }}>
-                <TableContainer component={Paper}>
+                <TableContainer 
+                  component={Paper}
+                  sx={{
+                    backgroundColor: '#16181C',
+                    '& .MuiTableCell-root': {
+                      backgroundColor: '#16181C',
+                      color: '#E7E9EA',
+                      borderBottom: '1px solid #2F3336'
+                    },
+                    '& .MuiTableHead-root .MuiTableCell-root': {
+                      backgroundColor: '#1E293B',
+                      color: '#E7E9EA',
+                      fontWeight: 600,
+                      borderBottom: '2px solid #2F3336'
+                    },
+                    '& .MuiTableRow-root:hover': {
+                      backgroundColor: '#1C1F23'
+                    }
+                  }}
+                >
                   <Table>
                     <TableHead>
                       <TableRow>
