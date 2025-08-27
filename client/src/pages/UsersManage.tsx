@@ -35,6 +35,7 @@ const UsersManage: React.FC = () => {
   const [savingId, setSavingId] = useState<number | null>(null);
   const [openNew, setOpenNew] = useState(false);
   const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: 'view' });
+  const [require2FA, setRequire2FA] = useState<boolean>(false);
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
   const [editDialog, setEditDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
@@ -60,9 +61,16 @@ const UsersManage: React.FC = () => {
         role: newUser.role
       };
       const res = await apiService.register(payload as any);
+      // If admin opted to require 2FA at setup, toggle it on the new user
+      try {
+        if (require2FA && res?.user?.id) {
+          await apiService.adminToggle2FARequirement(String(res.user.id), true);
+        }
+      } catch (_) { /* non-blocking */ }
       setUsers((prev) => [res.user as any, ...prev]);
       setOpenNew(false);
       setNewUser({ username: '', email: '', password: '', role: 'view' });
+      setRequire2FA(false);
       setSuccess('User created');
     } catch (e:any) {
       setError(e?.response?.data?.error || 'Failed to create user');
@@ -316,7 +324,7 @@ const UsersManage: React.FC = () => {
           <TextField
             label="Username"
             fullWidth
-            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } } }}
+            sx={{ mt: 1, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } } }}
             value={newUser.username}
             onChange={(e)=> setNewUser((s)=> ({ ...s, username: e.target.value }))}
           />
@@ -324,7 +332,7 @@ const UsersManage: React.FC = () => {
             type="email"
             label="Email"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.email}
             onChange={(e)=> setNewUser((s)=> ({ ...s, email: e.target.value }))}
           />
@@ -332,7 +340,7 @@ const UsersManage: React.FC = () => {
             type="password"
             label="Password"
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.password}
             onChange={(e)=> setNewUser((s)=> ({ ...s, password: e.target.value }))}
             helperText="Minimum 8 characters"
@@ -341,7 +349,7 @@ const UsersManage: React.FC = () => {
             label="Role"
             select
             fullWidth
-            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
+            sx={{ mt: 2, '& .MuiInputLabel-root': { color: '#8B98A5' }, '& .MuiOutlinedInput-root': { color: '#E7E9EA', backgroundColor:'#1A1A1A', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' }, '&:hover .MuiOutlinedInput-notchedOutline':{ borderColor:'#4A4A4A' } }, '& .MuiFormHelperText-root': { color: '#8B98A5' }, '& .MuiSvgIcon-root': { color: '#E7E9EA' } }}
             value={newUser.role}
             onChange={(e)=> setNewUser((s)=> ({ ...s, role: e.target.value }))}
           >
@@ -349,6 +357,12 @@ const UsersManage: React.FC = () => {
             <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
             <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
           </TextField>
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={<Switch checked={require2FA} onChange={(e)=> setRequire2FA(e.target.checked)} />}
+              label={<span style={{ color: '#E7E9EA' }}>Require 2FA on first login</span>}
+            />
+          </Box>
         </DialogContent>
         <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
           <Button onClick={()=> setOpenNew(false)} disabled={creating} sx={{ color: '#E7E9EA' }}>Cancel</Button>
