@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
   const [followingLoading, setFollowingLoading] = useState(false);
   
   // View toggle state for Following posts
-  const [followingViewMode, setFollowingViewMode] = useState<'cards' | 'feed'>('cards');
+  const [followingViewMode, setFollowingViewMode] = useState<'cards' | 'feed'>('feed');
   
   // Sort posts by modification date (newest first)
   const sortedFollowingPosts = [...followingPosts].sort((a, b) => {
@@ -759,7 +759,7 @@ const Dashboard: React.FC = () => {
     {/* Twitter-Style Feed View */}
     {followingViewMode === 'feed' && (
       <Box sx={{ 
-        maxWidth: '600px', 
+        maxWidth: '800px', 
         mx: 'auto',
         backgroundColor: '#000000',
         border: '1px solid #2F3336',
@@ -829,7 +829,7 @@ const Dashboard: React.FC = () => {
                       fontSize: '0.8rem'
                     }}
                   >
-                    {format(new Date(post.wp_published_date), 'MMM d')}
+                    {format(new Date(post.wp_published_date), 'MMM d, yyyy')}
                   </Typography>
                 </Box>
                 

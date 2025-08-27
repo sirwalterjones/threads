@@ -187,6 +187,24 @@ router.get('/alerts', authenticateToken, async (req, res) => {
     const { page = 1, limit = 20, unreadOnly = false } = req.query;
     const offset = (page - 1) * limit;
 
+    // First check if user has any hot lists
+    const hotListsCheck = await pool.query(
+      'SELECT COUNT(*) as count FROM hot_lists WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (parseInt(hotListsCheck.rows[0].count) === 0) {
+      // User has no hot lists, return empty result
+      return res.json({
+        alerts: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0
+        }
+      });
+    }
+
     let whereClause = 'WHERE hl.user_id = $1';
     let params = [req.user.id];
     
