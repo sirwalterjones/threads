@@ -781,7 +781,7 @@ const Dashboard: React.FC = () => {
             }}
             onClick={() => handlePostClick(post.id)}
           >
-            {/* Profile Section */}
+            {/* Profile Section with Media Gallery */}
             <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
               <Box sx={{
                 width: 48,
@@ -844,8 +844,136 @@ const Dashboard: React.FC = () => {
                     {post.category_name}
                   </Typography>
                 )}
+                
+                {/* Sliding Media Gallery in Header */}
+                {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
+                  <Box sx={{ mt: 2, borderRadius: 2, overflow: 'hidden' }}>
+                    {post.attachments && post.attachments.length > 0 ? (
+                      <Box sx={{ 
+                        display: 'flex', 
+                        gap: 1, 
+                        overflowX: 'auto',
+                        pb: 1,
+                        '&::-webkit-scrollbar': {
+                          height: '4px'
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          backgroundColor: '#2F3336',
+                          borderRadius: '2px'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: '#71767B',
+                          borderRadius: '2px',
+                          '&:hover': {
+                            backgroundColor: '#9CA3AF'
+                          }
+                        }
+                      }}>
+                        {post.attachments.map((attachment, idx) => (
+                          <img
+                            key={idx}
+                            src={`/api/files/${attachment.filename}`}
+                            alt={`Media ${idx + 1}`}
+                            style={{
+                              width: 120,
+                              height: 90,
+                              objectFit: 'cover',
+                              borderRadius: '8px',
+                              flex: '0 0 auto'
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    ) : post.featured_media_url ? (
+                      <img
+                        src={resolveContentImageUrl(post.featured_media_url)}
+                        alt="Featured media"
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: 200,
+                          objectFit: 'cover',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    ) : null}
+                  </Box>
+                ) : null}
               </Box>
             </Box>
+
+            {/* Media Gallery in Header */}
+            {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1, 
+                  overflowX: 'auto', 
+                  pb: 1,
+                  '&::-webkit-scrollbar': {
+                    height: '4px'
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: '#2F3336',
+                    borderRadius: '2px'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#71767B',
+                    borderRadius: '2px',
+                    '&:hover': {
+                      backgroundColor: '#1D9BF0'
+                    }
+                  }
+                }}>
+                  {post.attachments && post.attachments.length > 0 ? (
+                    post.attachments.map((attachment, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          flex: '0 0 auto',
+                          width: 120,
+                          height: 80,
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          border: '1px solid #2F3336'
+                        }}
+                      >
+                        <img
+                          src={`/api/files/${attachment.id}/${encodeURIComponent(attachment.filename)}`}
+                          alt={`Media ${idx + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </Box>
+                    ))
+                  ) : post.featured_media_url ? (
+                    <Box
+                      sx={{
+                        flex: '0 0 auto',
+                        width: 120,
+                        height: 80,
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        border: '1px solid #2F3336'
+                      }}
+                    >
+                      <img
+                        src={resolveContentImageUrl(post.featured_media_url)}
+                        alt="Featured media"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                  ) : null}
+                </Box>
+              </Box>
+            ) : null}
 
             {/* Post Content */}
             <Box sx={{ mb: 3 }}>
@@ -877,26 +1005,7 @@ const Dashboard: React.FC = () => {
               </Typography>
             </Box>
 
-            {/* Media Section */}
-            {(post.attachments && post.attachments.length > 0) || post.featured_media_url ? (
-              <Box sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
-                {post.attachments && post.attachments.length > 0 ? (
-                  <MediaGallery attachments={post.attachments} maxHeight={400} />
-                ) : post.featured_media_url ? (
-                  <img
-                    src={resolveContentImageUrl(post.featured_media_url)}
-                    alt="Featured media"
-                    style={{
-                      width: '100%',
-                      height: 'auto',
-                      maxHeight: 400,
-                      objectFit: 'cover',
-                      borderRadius: '16px'
-                    }}
-                  />
-                ) : null}
-              </Box>
-            ) : null}
+
 
             {/* Engagement Bar - Only Comment and Follow */}
             <Box sx={{ 
