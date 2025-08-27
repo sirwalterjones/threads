@@ -199,13 +199,14 @@ const Dashboard: React.FC = () => {
 
   const loadFollowingPosts = async () => {
     try {
-      console.log('Loading following posts...'); // Debug
+      console.log('Loading Intel Reports instead of followed posts...'); // Debug
       setFollowingLoading(true);
-      const response = await apiService.getFollowedPosts(1, 12);
-      console.log('Following posts response:', response); // Debug
-      setFollowingPosts(response.posts);
+      // Load Intel Reports instead of followed posts since they have media
+      const response = await apiService.getIntelReports();
+      console.log('Intel Reports response:', response); // Debug
+      setFollowingPosts(response.reports || []);
     } catch (error) {
-      console.error('Failed to load following posts:', error);
+      console.error('Failed to load Intel Reports:', error);
     } finally {
       setFollowingLoading(false);
     }
