@@ -188,12 +188,15 @@ router.get('/alerts', authenticateToken, async (req, res) => {
     const offset = (page - 1) * limit;
 
     // First check if user has any hot lists
+    console.log('Checking hot lists for user:', req.user.id);
     const hotListsCheck = await pool.query(
       'SELECT COUNT(*) as count FROM hot_lists WHERE user_id = $1',
       [req.user.id]
     );
+    console.log('Hot lists check result:', hotListsCheck.rows[0]);
 
     if (parseInt(hotListsCheck.rows[0].count) === 0) {
+      console.log('User has no hot lists, returning empty result');
       // User has no hot lists, return empty result
       return res.json({
         alerts: [],
@@ -205,6 +208,8 @@ router.get('/alerts', authenticateToken, async (req, res) => {
       });
     }
 
+    console.log('User has hot lists, proceeding with alerts query');
+
     let whereClause = 'WHERE hl.user_id = $1';
     let params = [req.user.id];
     
@@ -212,6 +217,9 @@ router.get('/alerts', authenticateToken, async (req, res) => {
       whereClause += ' AND hla.is_read = false';
     }
 
+    console.log('Executing alerts query with params:', params);
+    console.log('Where clause:', whereClause);
+    
     const result = await pool.query(
       `SELECT 
         hla.id,
@@ -261,7 +269,18 @@ router.get('/alerts', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching hot list alerts:', error);
-    res.status(500).json({ error: 'Failed to fetch hot list alerts' });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      error: 'Failed to fetch hot list alerts',
+      details: error.message,
+      code: error.code
+    });
   }
 });
 
