@@ -116,6 +116,19 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
         p: 3,
         cursor: 'pointer',
         transition: 'background-color 0.2s ease',
+        overflow: 'hidden', // Prevent horizontal overflow
+        maxWidth: '100%', // Ensure container doesn't exceed parent width
+        boxSizing: 'border-box', // Include padding in width calculation
+        '& mark': {
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
+          maxWidth: '100%',
+          display: 'inline-block'
+        },
+        '& *': {
+          maxWidth: '100%',
+          boxSizing: 'border-box'
+        },
         '&:hover': {
           backgroundColor: '#080808'
         }
