@@ -123,14 +123,16 @@ const HotListAlertCard: React.FC<{
     <Card
       sx={{
         height: '100%',
-        backgroundColor: alert.is_read ? '#16181C' : 'rgba(29, 155, 240, 0.05)',
-        border: `1px solid ${alert.is_read ? '#2F3336' : '#1D9BF0'}`,
+        backgroundColor: '#16181C',
+        border: '1px solid #2F3336',
+        borderLeft: alert.is_read ? '4px solid #2F3336' : '4px solid #1D9BF0',
         borderRadius: 2,
         cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.25)',
+          borderColor: alert.is_read ? '#3A3F44' : '#1A91DA'
         },
       }}
       onClick={() => {
@@ -140,9 +142,9 @@ const HotListAlertCard: React.FC<{
         }
       }}
     >
-      <CardContent>
+      <CardContent sx={{ p: 2.0 }}>
         {/* Hot List Alert Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
           <AlertIcon sx={{ color: alert.is_read ? '#71767B' : '#1D9BF0', fontSize: '16px' }} />
           <Chip
             label={`Hot List Alert: "${alert.search_term}"`}
@@ -168,12 +170,9 @@ const HotListAlertCard: React.FC<{
               }}
             />
           )}
-          <Typography variant="caption" sx={{ color: '#71767B', ml: 'auto' }}>
+          <Typography variant="caption" sx={{ color: '#9CA3AF', ml: 'auto' }}>
             {formatDate(alert.created_at)}
           </Typography>
-          {!alert.is_read && (
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1D9BF0' }} />
-          )}
         </Box>
 
         {/* Media Gallery - same as HomeSimple */}
@@ -223,7 +222,7 @@ const HotListAlertCard: React.FC<{
         )}
         
         {/* Title with highlighting */}
-        <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
+        <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 0.75, lineHeight: 1.35 }}>
           {highlightText(titleText)}
         </Typography>
         
@@ -235,47 +234,32 @@ const HotListAlertCard: React.FC<{
           const text = stripHtmlTags(raw);
           if (!text) return null;
           return (
-            <Typography variant="body2" sx={{ color: '#6B7280', mb: 1, fontSize: '0.875rem' }}>
+            <Typography variant="body2" sx={{ color: '#A1A7AD', mb: 1, fontSize: '0.9rem', lineHeight: 1.5 }}>
               {highlightText(text.substring(0, 450))}...
             </Typography>
           );
         })()}
 
-        {/* Category and metadata */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap', 
-          gap: { xs: 0.25, sm: 0.5 }, 
-          mb: 1 
-        }}>
-          {post.category_name && (
+        {/* Footer metadata */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+            {post.category_name && (
+              <Chip 
+                size="small"
+                label={post.category_name}
+                sx={{ backgroundColor: '#2F3336', color: '#E7E9EA', fontSize: '0.7rem', height: '18px' }}
+              />
+            )}
             <Chip 
               size="small"
-              label={post.category_name} 
-              sx={{ 
-                backgroundColor: '#1D9BF0', 
-                color: 'white', 
-                fontSize: '0.75rem',
-                height: '20px'
-              }}
+              label={`by ${post.author_name}`}
+              sx={{ backgroundColor: '#2F3336', color: '#9CA3AF', fontSize: '0.7rem', height: '18px' }}
             />
-          )}
-          <Chip 
-            size="small"
-            label={`by ${post.author_name}`}
-            sx={{ 
-              backgroundColor: '#2F3336', 
-              color: '#71767B', 
-              fontSize: '0.75rem',
-              height: '20px'
-            }}
-          />
+          </Box>
+          <Typography variant="caption" sx={{ color: '#9CA3AF' }}>
+            {formatDate(post.wp_published_date)}
+          </Typography>
         </Box>
-
-        {/* Date */}
-        <Typography variant="body2" sx={{ color: '#71767B', fontSize: '0.75rem' }}>
-          {formatDate(post.wp_published_date)}
-        </Typography>
       </CardContent>
     </Card>
   );
