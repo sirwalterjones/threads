@@ -123,15 +123,16 @@ const HotListAlertCard: React.FC<{
     <Card
       sx={{
         height: '100%',
-        backgroundColor: '#16181C',
-        border: '1px solid #2F3336',
-        borderLeft: alert.is_read ? '4px solid #2F3336' : '4px solid #1D9BF0',
-        borderRadius: 2,
+        backgroundColor: '#0F1114',
+        border: '1px solid #2A2F35',
+        borderLeft: alert.is_read ? '6px solid #2F3336' : '6px solid #1D9BF0',
+        borderRadius: 3,
         cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02), 0 6px 12px rgba(0,0,0,0.35)',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 20px rgba(0,0,0,0.45)',
           borderColor: alert.is_read ? '#3A3F44' : '#1A91DA'
         },
       }}
@@ -142,18 +143,19 @@ const HotListAlertCard: React.FC<{
         }
       }}
     >
-      <CardContent sx={{ p: 2.0 }}>
+      <CardContent sx={{ p: 2.25 }}>
         {/* Hot List Alert Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-          <AlertIcon sx={{ color: alert.is_read ? '#71767B' : '#1D9BF0', fontSize: '16px' }} />
+          <AlertIcon sx={{ color: alert.is_read ? '#7A7F85' : '#1D9BF0', fontSize: '18px' }} />
           <Chip
-            label={`Hot List Alert: "${alert.search_term}"`}
+            label={`Hot List: ${alert.search_term}`}
             size="small"
             sx={{ 
               backgroundColor: alert.is_read ? '#2F3336' : '#1D9BF0', 
               color: 'white',
               fontSize: '11px',
-              height: '20px'
+              height: '22px',
+              borderRadius: '6px'
             }}
           />
           {/* Exact Match Indicator */}
@@ -222,7 +224,7 @@ const HotListAlertCard: React.FC<{
         )}
         
         {/* Title with highlighting */}
-        <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 0.75, lineHeight: 1.35 }}>
+        <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#F2F3F4', fontSize: '1.05rem', mb: 0.75, lineHeight: 1.35 }}>
           {highlightText(titleText)}
         </Typography>
         
@@ -234,7 +236,7 @@ const HotListAlertCard: React.FC<{
           const text = stripHtmlTags(raw);
           if (!text) return null;
           return (
-            <Typography variant="body2" sx={{ color: '#A1A7AD', mb: 1, fontSize: '0.9rem', lineHeight: 1.5 }}>
+            <Typography variant="body2" sx={{ color: '#B8BDC3', mb: 1, fontSize: '0.92rem', lineHeight: 1.55 }}>
               {highlightText(text.substring(0, 450))}...
             </Typography>
           );
@@ -256,7 +258,7 @@ const HotListAlertCard: React.FC<{
               sx={{ backgroundColor: '#2F3336', color: '#9CA3AF', fontSize: '0.7rem', height: '18px' }}
             />
           </Box>
-          <Typography variant="caption" sx={{ color: '#9CA3AF' }}>
+          <Typography variant="caption" sx={{ color: '#AEB4BA' }}>
             {formatDate(post.wp_published_date)}
           </Typography>
         </Box>
