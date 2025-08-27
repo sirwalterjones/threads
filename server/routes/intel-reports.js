@@ -1,4 +1,4 @@
-                  WindowW W WW  WWWŴWW  WWWWWWŴSSssssSSSconst express = require('express');
+const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
