@@ -64,6 +64,11 @@ const Dashboard: React.FC = () => {
   // View toggle state for Following posts
   const [followingViewMode, setFollowingViewMode] = useState<'cards' | 'feed'>('feed');
   
+  // Debug logging for view mode changes
+  useEffect(() => {
+    console.log('Dashboard: followingViewMode changed to:', followingViewMode);
+  }, [followingViewMode]);
+  
   // Sort posts by modification date (newest first)
   const sortedFollowingPosts = [...followingPosts].sort((a, b) => {
     const dateA = new Date(a.wp_modified_date || a.wp_published_date);
