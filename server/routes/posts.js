@@ -808,6 +808,9 @@ router.post('/',
         tags = []
       } = req.body;
 
+      console.log('🏷️ Create post request - Tags received:', tags);
+      console.log('🏷️ Tags type:', typeof tags, 'Is array?:', Array.isArray(tags));
+
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
       }
@@ -846,6 +849,7 @@ router.post('/',
         let processedTags = [];
         if (tags && tags.length > 0) {
           processedTags = TagService.processTags(tags);
+          console.log('🏷️ Processed tags:', processedTags);
         }
 
         // Create the post with tags
@@ -859,6 +863,7 @@ router.post('/',
         `, [title, content, excerpt, finalCategoryId, req.user.username, retentionDate, processedTags]);
 
         const post = postResult.rows[0];
+        console.log('🏷️ Post created with tags:', post.tags);
 
         // Also save to normalized tags tables for better querying
         if (processedTags.length > 0) {
