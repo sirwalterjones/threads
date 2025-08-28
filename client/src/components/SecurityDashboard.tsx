@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -36,6 +35,7 @@ import {
   ReportProblem,
   VerifiedUser
 } from '@mui/icons-material';
+import Grid from '@mui/material/GridLegacy';
 import axios from 'axios';
 import { API_BASE_URL } from '../services/api';
 
@@ -130,7 +130,7 @@ const SecurityDashboard: React.FC = () => {
       // Handle metrics response
       if (metricsRes.status === 'fulfilled') {
         setMetrics(metricsRes.value.data);
-      } else {
+      } else if (metricsRes.status === 'rejected') {
         console.error('Failed to fetch metrics:', metricsRes.reason);
         // Set default metrics if API fails
         setMetrics({
@@ -144,28 +144,32 @@ const SecurityDashboard: React.FC = () => {
       // Handle compliance response
       if (complianceRes.status === 'fulfilled') {
         setComplianceScore(complianceRes.value.data);
-      } else {
+      } else if (complianceRes.status === 'rejected') {
         console.error('Failed to fetch compliance score:', complianceRes.reason);
       }
 
       // Handle incidents response
       if (incidentsRes.status === 'fulfilled') {
         setIncidents(incidentsRes.value.data);
-      } else {
+      } else if (incidentsRes.status === 'rejected') {
         console.error('Failed to fetch incidents:', incidentsRes.reason);
       }
 
       // Handle audit logs response
-      if (auditRes.status === 'fulfilled' && auditRes.value.data?.logs) {
-        setAuditLogs(auditRes.value.data.logs);
-      } else {
+      if (auditRes.status === 'fulfilled') {
+        if (auditRes.value.data?.logs) {
+          setAuditLogs(auditRes.value.data.logs);
+        }
+      } else if (auditRes.status === 'rejected') {
         console.error('Failed to fetch audit logs:', auditRes.reason);
       }
 
       // Handle alerts response
-      if (alertsRes.status === 'fulfilled' && alertsRes.value.data?.alerts) {
-        setAlerts(alertsRes.value.data.alerts);
-      } else {
+      if (alertsRes.status === 'fulfilled') {
+        if (alertsRes.value.data?.alerts) {
+          setAlerts(alertsRes.value.data.alerts);
+        }
+      } else if (alertsRes.status === 'rejected') {
         console.error('Failed to fetch alerts:', alertsRes.reason);
       }
 
