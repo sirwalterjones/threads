@@ -434,7 +434,8 @@ class LoginSecurity {
         };
 
         if (requires2FA) {
-          response.requires_2fa = true;
+          response.requires2FA = true;  // Frontend expects camelCase
+          response.requires_2fa = true;  // Keep snake_case for backwards compatibility
           response.totp_enabled = user.totp_enabled;
           response.force_2fa_setup = user.force_2fa_setup;
         }

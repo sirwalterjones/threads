@@ -23,7 +23,8 @@ import {
   AccessTime as ExpirationIcon,
   ExitToApp as LogoutIcon,
   Whatshot as HotListIcon,
-  Security as IntelIcon
+  Security as IntelIcon,
+  Shield as SecurityIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -127,7 +128,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
     { text: 'Intel Approval', icon: <IntelIcon />, path: '/intel-reports/approval', roles: ['admin'], badge: () => pendingIntelCount },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
-    { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] }
+    { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] },
+    { text: 'Security Dashboard', icon: <SecurityIcon />, path: '/security', roles: ['admin'] }
   ];
 
   const handleNavigation = (path: string) => {
