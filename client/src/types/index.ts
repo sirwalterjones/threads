@@ -41,6 +41,7 @@ export interface Post {
   rank?: number;
   comment_count?: number;
   result_type?: 'post' | 'intel_report';
+  tags?: string[];
   // Intel report specific fields (when result_type is 'intel_report')
   intel_number?: string;
   classification?: string;

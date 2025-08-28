@@ -1,9 +1,60 @@
 const express = require('express');
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, authorizeSuperAdmin, auditLog } = require('../middleware/auth');
+const TagService = require('../services/tagService');
 const router = express.Router();
 
 console.log('Posts router loaded successfully');
+
+// Get all tags
+router.get('/tags', authenticateToken, async (req, res) => {
+  try {
+    const { search, limit = 50 } = req.query;
+    
+    let tags;
+    if (search) {
+      tags = await TagService.searchTags(search, parseInt(limit));
+    } else {
+      tags = await TagService.getAllTags(parseInt(limit));
+    }
+    
+    res.json({ tags });
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    res.status(500).json({ error: 'Failed to fetch tags' });
+  }
+});
+
+// Get popular tags
+router.get('/tags/popular', authenticateToken, async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const tags = await TagService.getPopularTags(parseInt(limit));
+    res.json({ tags });
+  } catch (error) {
+    console.error('Error fetching popular tags:', error);
+    res.status(500).json({ error: 'Failed to fetch popular tags' });
+  }
+});
+
+// Get posts by tag
+router.get('/tags/:tagName/posts', authenticateToken, async (req, res) => {
+  try {
+    const { tagName } = req.params;
+    const { limit = 50, offset = 0 } = req.query;
+    
+    const posts = await TagService.getPostsByTag(
+      decodeURIComponent(tagName),
+      parseInt(limit),
+      parseInt(offset)
+    );
+    
+    res.json({ posts });
+  } catch (error) {
+    console.error('Error fetching posts by tag:', error);
+    res.status(500).json({ error: 'Failed to fetch posts by tag' });
+  }
+});
 
 // Debug endpoint to check database content - no auth required
 router.get('/debug', async (req, res) => {
@@ -119,7 +170,8 @@ router.get('/',
         sortBy = 'wp_published_date',
         sortOrder = 'DESC',
         origin,
-        mine
+        mine,
+        tags
       } = req.query;
 
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -193,6 +245,16 @@ router.get('/',
         paramIndex++;
       }
 
+      // Handle tag filter
+      if (tags) {
+        const tagList = Array.isArray(tags) ? tags : tags.split(',');
+        const tagConditions = tagList.map((tag, i) => {
+          queryParams.push(tag.trim());
+          return `$${paramIndex++} = ANY(p.tags)`;
+        });
+        whereConditions.push(`(${tagConditions.join(' OR ')})`);
+      }
+
       // Handle origin filter
       if (origin === 'wordpress') {
         whereConditions.push(`wp_post_id IS NOT NULL`);
@@ -235,6 +297,7 @@ router.get('/',
           p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
           p.wp_published_date, p.ingested_at, p.retention_date, p.status,
           p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
+          COALESCE(p.tags, '{}') as tags,
           'post' as result_type,
           COALESCE(
             (SELECT json_agg(
@@ -740,7 +803,8 @@ router.post('/',
         excerpt,
         categoryId,
         retentionDays = process.env.DEFAULT_RETENTION_DAYS,
-        attachments = []
+        attachments = [],
+        tags = []
       } = req.body;
 
       if (!title || !content) {
@@ -788,6 +852,16 @@ router.post('/',
         `, [title, content, excerpt, finalCategoryId, req.user.username, retentionDate]);
 
         const post = postResult.rows[0];
+
+        // Process and add tags
+        if (tags && tags.length > 0) {
+          const processedTags = TagService.processTags(tags);
+          if (processedTags.length > 0) {
+            const tagIds = await TagService.getOrCreateTags(processedTags, client);
+            const tagNames = await TagService.associateTagsWithPost(post.id, tagIds, client);
+            post.tags = tagNames;
+          }
+        }
 
         // Create attachment relationships if any files were uploaded
         if (attachments && attachments.length > 0) {

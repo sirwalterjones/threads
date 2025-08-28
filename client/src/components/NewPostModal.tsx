@@ -7,6 +7,7 @@ import apiService from '../services/api';
 import auditService from '../services/auditService';
 import { Category } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import TagInput from './TagInput';
 
 import { Post } from '../types';
 
@@ -16,6 +17,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [uploads, setUploads] = useState<{url:string; path:string; mimeType:string; name?:string; id?:number}[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<{file: File; progress: number; status: 'uploading' | 'success' | 'error'; error?: string; id: string}[]>([]);
   const [error, setError] = useState('');
@@ -30,6 +32,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
     if (post) {
       setTitle(post.title || '');
       setContent(post.content || '');
+      setTags(post.tags || []);
 
       // Load existing attachments for editing - convert MediaFile to uploads format
       if (post.attachments && post.attachments.length > 0) {
@@ -46,6 +49,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
       }
     } else {
       setTitle(''); setContent('');
+      setTags([]);
       setUploads([]);
     }
   }, [open, post]);
@@ -240,7 +244,8 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         content: content.trim(), 
         excerpt: autoExcerpt,
         retentionDays: '365',
-        attachments: uploads.map(u => u.id).filter(Boolean) // Include file IDs
+        attachments: uploads.map(u => u.id).filter(Boolean), // Include file IDs
+        tags: tags // Include tags
       };
       
       console.log('User role:', user.role);
@@ -268,6 +273,7 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
         // Reset form
         setTitle(''); 
         setContent('');
+        setTags([]);
         setUploads([]);
         setShowSuccess(false);
         setError(''); // Clear any previous errors
@@ -492,6 +498,25 @@ const NewPostModal: React.FC<Props> = ({ open, onClose, onCreated, post }) => {
                 color: '#E7E9EA'
               }
             }}
+          />
+        </Box>
+
+        {/* Tags */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ 
+            mb: 1, 
+            color: '#E7E9EA', 
+            fontWeight: 600 
+          }}>
+            Tags
+          </Typography>
+          
+          <TagInput
+            tags={tags}
+            onTagsChange={setTags}
+            placeholder="Add tags (e.g., #canton, #news)"
+            helperText="Press Enter or comma to add a tag"
+            maxTags={10}
           />
         </Box>
 

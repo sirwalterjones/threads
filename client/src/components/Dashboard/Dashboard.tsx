@@ -45,6 +45,8 @@ import TwitterStylePostCard from '../TwitterStylePostCard';
 import FollowButton from '../FollowButton';
 import DeletePostButton from '../DeletePostButton';
 import { useDashboard } from '../../contexts/DashboardContext';
+import TagDisplay from '../TagDisplay';
+import TagFilter from '../TagFilter';
 
 const Dashboard: React.FC = () => {
   // Try to use dashboard context, but provide defaults if not available
@@ -78,6 +80,10 @@ const Dashboard: React.FC = () => {
   
   // View toggle state for Following posts
   const [followingViewMode, setFollowingViewMode] = useState<'cards' | 'feed'>('feed');
+  
+  // Tag filtering state
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   
   // Debug logging for view mode changes
   useEffect(() => {

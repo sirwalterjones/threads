@@ -20,6 +20,7 @@ import { Post } from '../types';
 import { format } from 'date-fns';
 import MediaGallery from './MediaGallery';
 import FollowButton from './FollowButton';
+import TagDisplay from './TagDisplay';
 
 interface TwitterStylePostCardProps {
   post: Post;
@@ -302,6 +303,20 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
           </Typography>
         )}
       </Box>
+
+      {/* Tags Section */}
+      {post.tags && post.tags.length > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <TagDisplay 
+            tags={post.tags} 
+            size="small"
+            onTagClick={(tag) => {
+              console.log('Tag clicked:', tag);
+              // You can add navigation or filtering here
+            }}
+          />
+        </Box>
+      )}
 
       {/* Media Section */}
       {hasMedia && (

@@ -1,0 +1,84 @@
+import React from 'react';
+import { Box, Chip, Typography } from '@mui/material';
+import { Tag as TagIcon, LocalOffer } from '@mui/icons-material';
+
+interface TagDisplayProps {
+  tags: string[];
+  onTagClick?: (tag: string) => void;
+  size?: 'small' | 'medium';
+  maxDisplay?: number;
+  showIcon?: boolean;
+  variant?: 'filled' | 'outlined';
+}
+
+const TagDisplay: React.FC<TagDisplayProps> = ({
+  tags,
+  onTagClick,
+  size = 'small',
+  maxDisplay = 5,
+  showIcon = false,
+  variant = 'filled'
+}) => {
+  if (!tags || tags.length === 0) {
+    return null;
+  }
+
+  const displayTags = tags.slice(0, maxDisplay);
+  const remainingCount = tags.length - maxDisplay;
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 0.5,
+        alignItems: 'center',
+      }}
+    >
+      {showIcon && (
+        <LocalOffer sx={{ fontSize: 16, color: 'text.secondary', mr: 0.5 }} />
+      )}
+      
+      {displayTags.map((tag) => (
+        <Chip
+          key={tag}
+          label={tag}
+          size={size}
+          variant={variant}
+          onClick={onTagClick ? () => onTagClick(tag) : undefined}
+          sx={{
+            backgroundColor: variant === 'filled' ? 'rgba(29, 155, 240, 0.1)' : 'transparent',
+            color: '#1D9BF0',
+            borderColor: '#1D9BF0',
+            fontSize: size === 'small' ? '0.75rem' : '0.875rem',
+            height: size === 'small' ? 20 : 24,
+            cursor: onTagClick ? 'pointer' : 'default',
+            '&:hover': onTagClick ? {
+              backgroundColor: 'rgba(29, 155, 240, 0.2)',
+              borderColor: '#1D9BF0',
+            } : {},
+            '& .MuiChip-label': {
+              px: 1,
+              fontWeight: 500,
+            },
+          }}
+        />
+      ))}
+      
+      {remainingCount > 0 && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            ml: 0.5,
+            alignSelf: 'center',
+          }}
+        >
+          +{remainingCount} more
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
+export default TagDisplay;
