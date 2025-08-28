@@ -92,6 +92,21 @@ const HomeSimple: React.FC = () => {
     return map;
   }, [categories]);
 
+  // Switch to grid view on mobile if table view is selected
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 600 && viewMode === 'table') {
+        setViewMode('grid');
+      }
+    };
+    
+    // Check on mount
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
+
   const loadData = async (page = 1, filters: SearchFilters = {}) => {
     try {
       setLoading(true);
@@ -529,8 +544,21 @@ const HomeSimple: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ py: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column',
+        px: { xs: 1, sm: 2, md: 3 } // Reduce padding on mobile
+      }}
+    >
+      <Box sx={{ 
+        py: { xs: 1, sm: 2, md: 3 }, 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column' 
+      }}>
         {/* Dashboard-style Search Interface */}
         {posts.length === 0 && !loading && (
           <Box sx={{ 
@@ -878,18 +906,32 @@ const HomeSimple: React.FC = () => {
 
         {/* Advanced Filters - Separate Section */}
         <Card sx={{ 
-          mb: 4,
+          mb: { xs: 2, sm: 3, md: 4 },
+          mx: { xs: 0, sm: 1, md: 0 }, // Add margin for mobile
           backgroundColor: '#16181C',
           border: '1px solid #2F3336',
           borderRadius: 2
         }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, color: '#E7E9EA', fontWeight: 600 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* Reduce padding on mobile */}
+            <Typography variant="h6" sx={{ 
+              mb: { xs: 1.5, sm: 2 }, 
+              color: '#E7E9EA', 
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' } // Smaller font on mobile
+            }}>
               Advanced Filters
             </Typography>
 
             {/* Uniform filter grid */}
-            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+            <Box sx={{ 
+              display: 'grid', 
+              gap: { xs: 1.5, sm: 2 }, 
+              gridTemplateColumns: { 
+                xs: '1fr', // Single column on mobile
+                sm: 'repeat(auto-fit, minmax(160px, 1fr))', 
+                md: 'repeat(auto-fit, minmax(180px, 1fr))'
+              }
+            }}>
               <Autocomplete
                 fullWidth
                 options={[{ id: '', name: 'All Categories', post_count: 0, parent_name: null }, ...categories]}
@@ -1474,9 +1516,13 @@ const HomeSimple: React.FC = () => {
                 onChange={(_, newMode) => newMode && setViewMode(newMode)}
                 size="small"
                 sx={{
+                  display: { xs: 'flex', sm: 'flex' },
                   '& .MuiToggleButton-root': {
                     color: '#E7E9EA',
                     borderColor: '#2F3336',
+                    px: { xs: 1.5, sm: 2 }, // Adjust padding for mobile
+                    py: { xs: 1, sm: 1.5 },
+                    minWidth: { xs: '44px', sm: '48px' }, // Ensure touch-friendly size
                     '&:hover': {
                       backgroundColor: 'rgba(29, 155, 240, 0.1)',
                       borderColor: '#1D9BF0',
@@ -1495,7 +1541,10 @@ const HomeSimple: React.FC = () => {
                 <ToggleButton value="grid">
                   <ViewModule />
                 </ToggleButton>
-                <ToggleButton value="table">
+                <ToggleButton 
+                  value="table" 
+                  sx={{ display: { xs: 'none', sm: 'flex' } }} // Hide on mobile
+                >
                   <ViewList />
                 </ToggleButton>
                 <ToggleButton value="feed">
@@ -1872,8 +1921,9 @@ const HomeSimple: React.FC = () => {
               </Box>
             ) : viewMode === 'feed' ? (
               <Box sx={{ 
-                maxWidth: '900px', 
-                mx: 'auto'
+                maxWidth: { xs: '100%', sm: '600px', md: '900px' }, 
+                mx: 'auto',
+                px: { xs: 0, sm: 1, md: 2 } // Add responsive padding
               }}>
                 {posts.map((post) => {
                   // Check if this is an intel report and render appropriate card
@@ -2035,20 +2085,49 @@ const HomeSimple: React.FC = () => {
             )}
 
             {totalPages > 1 && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                mt: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 0 } // Add padding on mobile
+              }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: { xs: 0.5, sm: 1 },
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center'
+                }}>
                   <Button 
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
+                    size={window.innerWidth < 600 ? "small" : "medium"}
+                    sx={{
+                      minWidth: { xs: '80px', sm: 'auto' },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                    }}
                   >
                     Previous
                   </Button>
-                  <Typography sx={{ px: 2, py: 1, alignSelf: 'center', color: '#E7E9EA' }}>
+                  <Typography sx={{ 
+                    px: { xs: 1, sm: 2 }, 
+                    py: 1, 
+                    alignSelf: 'center', 
+                    color: '#E7E9EA',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    textAlign: 'center',
+                    minWidth: { xs: '80px', sm: 'auto' }
+                  }}>
                     Page {currentPage} of {totalPages}
                   </Typography>
                   <Button 
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
+                    size={window.innerWidth < 600 ? "small" : "medium"}
+                    sx={{
+                      minWidth: { xs: '80px', sm: 'auto' },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                    }}
                   >
                     Next
                   </Button>
