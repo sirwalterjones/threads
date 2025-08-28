@@ -766,17 +766,20 @@ const HomeSimple: React.FC = () => {
         {(posts.length > 0 || loading) && (
           <Box sx={{ 
             display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile
             justifyContent: 'center', 
             alignItems: 'center', 
             mb: { xs: 3, sm: 4 },
-            gap: { xs: 1, sm: 2 },
-            flexWrap: 'wrap',
-            px: { xs: 2, sm: 0 }
+            gap: { xs: 2, sm: 2 },
+            px: { xs: 1, sm: 0 }, // Reduce padding on mobile
+            width: '100%',
+            maxWidth: '100%',
+            overflow: 'hidden' // Prevent overflow
           }}>
             <Box sx={{ 
               position: 'relative',
               width: '100%',
-              maxWidth: { xs: '100%', sm: '500px' }
+              maxWidth: { xs: '100%', sm: '400px' } // Reduce max width
             }}>
               <TextField
                 fullWidth
@@ -838,69 +841,79 @@ const HomeSimple: React.FC = () => {
               />
             </Box>
             
-            <Button 
-              variant="outlined" 
-              onClick={handleSearch}
-              disabled={loading || !searchTerm.trim()}
-              size={window.innerWidth < 600 ? "medium" : "small"}
-              fullWidth={window.innerWidth < 600}
-              sx={{ 
-                borderRadius: '8px',
-                borderColor: '#2F3336',
-                color: '#E7E9EA',
-                fontSize: { xs: '16px', sm: '14px' },
-                fontWeight: 500,
-                px: { xs: 4, sm: 3 },
-                py: { xs: 1.5, sm: 1 },
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: '#1D9BF0',
-                  backgroundColor: 'rgba(29, 155, 240, 0.1)',
-                  color: '#1D9BF0'
-                },
-                '&:disabled': {
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1, 
+              width: { xs: '100%', sm: 'auto' },
+              flexDirection: { xs: 'row', sm: 'row' }
+            }}>
+              <Button 
+                variant="outlined" 
+                onClick={handleSearch}
+                disabled={loading || !searchTerm.trim()}
+                size={window.innerWidth < 600 ? "medium" : "small"}
+                sx={{ 
+                  flex: { xs: 1, sm: 'none' }, // Take equal width on mobile
+                  borderRadius: '8px',
                   borderColor: '#2F3336',
-                  color: '#71767B'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
-              Search
-            </Button>
-            
-            <Button 
-              variant="outlined" 
-              onClick={() => {
-                setSearchTerm('');
-                setPosts([]);
-                setCurrentPage(1);
-              }}
-              disabled={!searchTerm && posts.length === 0}
-              size="small"
-              sx={{ 
-                borderRadius: '8px',
-                borderColor: '#2F3336',
-                color: '#71767B',
-                fontSize: '14px',
-                fontWeight: 500,
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: '#71767B',
-                  backgroundColor: 'rgba(113, 118, 123, 0.1)',
-                  color: '#E7E9EA'
-                },
-                '&:disabled': {
+                  color: '#E7E9EA',
+                  fontSize: { xs: '14px', sm: '14px' },
+                  fontWeight: 500,
+                  px: { xs: 2, sm: 3 },
+                  py: { xs: 1.2, sm: 1 },
+                  textTransform: 'none',
+                  minWidth: { xs: 'auto', sm: '80px' },
+                  '&:hover': {
+                    borderColor: '#1D9BF0',
+                    backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                    color: '#1D9BF0'
+                  },
+                  '&:disabled': {
+                    borderColor: '#2F3336',
+                    color: '#71767B'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {loading ? <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> : null}
+                Search
+              </Button>
+              
+              <Button 
+                variant="outlined" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setPosts([]);
+                  setCurrentPage(1);
+                }}
+                disabled={!searchTerm && posts.length === 0}
+                size="small"
+                sx={{ 
+                  flex: { xs: 1, sm: 'none' }, // Take equal width on mobile
+                  borderRadius: '8px',
                   borderColor: '#2F3336',
-                  color: '#71767B'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Clear
-            </Button>
+                  color: '#71767B',
+                  fontSize: { xs: '14px', sm: '14px' },
+                  fontWeight: 500,
+                  px: { xs: 2, sm: 3 },
+                  py: { xs: 1.2, sm: 1 },
+                  textTransform: 'none',
+                  minWidth: { xs: 'auto', sm: '80px' },
+                  '&:hover': {
+                    borderColor: '#71767B',
+                    backgroundColor: 'rgba(113, 118, 123, 0.1)',
+                    color: '#E7E9EA'
+                  },
+                  '&:disabled': {
+                    borderColor: '#2F3336',
+                    color: '#71767B'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Clear
+              </Button>
+            </Box>
           </Box>
         )}
 
