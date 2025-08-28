@@ -6,6 +6,10 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 require('dotenv').config();
 
+// Import CJIS Phase 2 security modules
+const httpsEnforcement = require('./middleware/httpsEnforcement');
+const encryptionService = require('./utils/encryption');
+
 // Import database modules (PostgreSQL for production, SQLite for local)
 const { initializeDatabase } = require('./config/database');
 const WordPressService = require('./services/wordpressService');
@@ -54,8 +58,18 @@ try {
   cronService = null;
 }
 
-// Middleware
-app.use(helmet());
+// CJIS Phase 2: Apply security middleware
+app.use(httpsEnforcement.enforceHttps());
+app.use(httpsEnforcement.setSecurityHeaders());
+app.use(httpsEnforcement.validateTlsVersion());
+app.use(httpsEnforcement.contentSecurityPolicy());
+app.use(httpsEnforcement.rateLimiting());
+
+// Standard middleware with enhanced Helmet configuration for CJIS
+app.use(helmet({
+  contentSecurityPolicy: false, // We set our own CSP in httpsEnforcement
+  hsts: false // We set our own HSTS in httpsEnforcement
+}));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://cso.vectoronline.us', 'https://cso.vectoronline.us'] 
