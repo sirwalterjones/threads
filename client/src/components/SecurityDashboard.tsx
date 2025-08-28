@@ -36,7 +36,8 @@ import {
   ReportProblem,
   VerifiedUser
 } from '@mui/icons-material';
-import apiService from '../services/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../services/api';
 
 interface SecurityMetrics {
   events_today: number;
@@ -110,18 +111,25 @@ const SecurityDashboard: React.FC = () => {
         return;
       }
 
+      // Setup axios config with token
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
       // Fetch all dashboard data in parallel
       const [metricsRes, complianceRes, incidentsRes, auditRes, alertsRes] = await Promise.allSettled([
-        apiService.get('/security-dashboard/metrics'),
-        apiService.get('/compliance-governance/compliance/score'),
-        apiService.get('/incident-response/statistics'),
-        apiService.get('/security-dashboard/audit-logs?limit=10'),
-        apiService.get('/security-dashboard/alerts')
+        axios.get(`${API_BASE_URL}/security-dashboard/metrics`, config),
+        axios.get(`${API_BASE_URL}/compliance-governance/compliance/score`, config),
+        axios.get(`${API_BASE_URL}/incident-response/statistics`, config),
+        axios.get(`${API_BASE_URL}/security-dashboard/audit-logs?limit=10`, config),
+        axios.get(`${API_BASE_URL}/security-dashboard/alerts`, config)
       ]);
 
       // Handle metrics response
       if (metricsRes.status === 'fulfilled') {
-        setMetrics(metricsRes.value);
+        setMetrics(metricsRes.value.data);
       } else {
         console.error('Failed to fetch metrics:', metricsRes.reason);
         // Set default metrics if API fails
@@ -135,28 +143,28 @@ const SecurityDashboard: React.FC = () => {
 
       // Handle compliance response
       if (complianceRes.status === 'fulfilled') {
-        setComplianceScore(complianceRes.value);
+        setComplianceScore(complianceRes.value.data);
       } else {
         console.error('Failed to fetch compliance score:', complianceRes.reason);
       }
 
       // Handle incidents response
       if (incidentsRes.status === 'fulfilled') {
-        setIncidents(incidentsRes.value);
+        setIncidents(incidentsRes.value.data);
       } else {
         console.error('Failed to fetch incidents:', incidentsRes.reason);
       }
 
       // Handle audit logs response
-      if (auditRes.status === 'fulfilled' && auditRes.value?.logs) {
-        setAuditLogs(auditRes.value.logs);
+      if (auditRes.status === 'fulfilled' && auditRes.value.data?.logs) {
+        setAuditLogs(auditRes.value.data.logs);
       } else {
         console.error('Failed to fetch audit logs:', auditRes.reason);
       }
 
       // Handle alerts response
-      if (alertsRes.status === 'fulfilled' && alertsRes.value?.alerts) {
-        setAlerts(alertsRes.value.alerts);
+      if (alertsRes.status === 'fulfilled' && alertsRes.value.data?.alerts) {
+        setAlerts(alertsRes.value.data.alerts);
       } else {
         console.error('Failed to fetch alerts:', alertsRes.reason);
       }
