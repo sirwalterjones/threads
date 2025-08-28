@@ -104,7 +104,8 @@ const AuditLog: React.FC = () => {
         entry.action?.toLowerCase().includes(query) ||
         entry.table_name?.toLowerCase().includes(query) ||
         entry.ip_address?.toLowerCase().includes(query) ||
-        entry.new_values?.toLowerCase().includes(query)
+        (typeof entry.new_values === 'string' ? entry.new_values.toLowerCase().includes(query) : 
+         JSON.stringify(entry.new_values || {}).toLowerCase().includes(query))
       );
     }
 
