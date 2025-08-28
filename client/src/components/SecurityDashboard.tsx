@@ -218,23 +218,23 @@ const SecurityDashboard: React.FC = () => {
   const tabPanelIndex = activeTab;
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#0a0e27', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#1a1a1a', minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
           <Box display="flex" alignItems="center" gap={2}>
-            <Shield sx={{ fontSize: 40, color: '#00d4ff' }} />
-            <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 600 }}>
+            <Shield sx={{ fontSize: 40, color: '#fff' }} />
+            <Typography variant="h4" sx={{ color: '#fff', fontWeight: 600 }}>
               CJIS Security Dashboard
             </Typography>
           </Box>
           <Tooltip title="Refresh Data">
-            <IconButton onClick={fetchDashboardData} disabled={refreshing} sx={{ color: '#00d4ff' }}>
+            <IconButton onClick={fetchDashboardData} disabled={refreshing} sx={{ color: '#fff' }}>
               <Refresh sx={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
             </IconButton>
           </Tooltip>
         </Box>
-        <Typography variant="body2" sx={{ color: '#8892b0' }}>
+        <Typography variant="body2" sx={{ color: '#999' }}>
           Criminal Justice Information Services Security Policy v6.0 Compliance
         </Typography>
       </Box>
@@ -243,11 +243,11 @@ const SecurityDashboard: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Compliance Score */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#112240', border: '1px solid #1e3a5f' }}>
+          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
-                  <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
                     Compliance Score
                   </Typography>
                   <Typography 
@@ -257,21 +257,21 @@ const SecurityDashboard: React.FC = () => {
                         ? complianceScore.score.overall >= 90 ? '#4caf50' 
                         : complianceScore.score.overall >= 70 ? '#ff9800' 
                         : '#f44336'
-                        : '#ffffff',
+                        : '#fff',
                       fontWeight: 600 
                     }}
                   >
                     {complianceScore?.score?.overall || 0}%
                   </Typography>
                 </Box>
-                <VerifiedUser sx={{ fontSize: 40, color: '#00d4ff', opacity: 0.7 }} />
+                <VerifiedUser sx={{ fontSize: 40, color: '#4caf50', opacity: 0.7 }} />
               </Box>
               <LinearProgress 
                 variant="determinate" 
                 value={complianceScore?.score?.overall || 0}
                 sx={{ 
                   mt: 2,
-                  backgroundColor: '#1e3a5f',
+                  backgroundColor: '#444',
                   '& .MuiLinearProgress-bar': {
                     backgroundColor: complianceScore?.score?.overall 
                       ? complianceScore.score.overall >= 90 ? '#4caf50' 
@@ -287,11 +287,11 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Active Incidents */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#112240', border: '1px solid #1e3a5f' }}>
+          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
-                  <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
                     Active Incidents
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 600 }}>
@@ -303,7 +303,7 @@ const SecurityDashboard: React.FC = () => {
                     </Typography>
                   ) : null}
                 </Box>
-                <Warning sx={{ fontSize: 40, color: '#ff9800', opacity: 0.7 }} />
+                <Warning sx={{ fontSize: 40, color: '#ff9800', opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
@@ -311,18 +311,18 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Security Events Today */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#112240', border: '1px solid #1e3a5f' }}>
+          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
-                  <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
                     Events Today
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 600 }}>
                     {metrics?.events_today || 0}
                   </Typography>
                 </Box>
-                <TrendingUp sx={{ fontSize: 40, color: '#00d4ff', opacity: 0.7 }} />
+                <TrendingUp sx={{ fontSize: 40, color: '#2196f3', opacity: 0.7 }} />
               </Box>
             </CardContent>
           </Card>
@@ -330,18 +330,18 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Active Users */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#112240', border: '1px solid #1e3a5f' }}>
+          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
-                  <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
                     Active Users
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 600 }}>
                     {metrics?.active_users || 0}
                   </Typography>
                 </Box>
-                <Group sx={{ fontSize: 40, color: '#4caf50', opacity: 0.7 }} />
+                <Group sx={{ fontSize: 40, color: '#4caf50', opacity: 0.8 }} />
               </Box>
             </CardContent>
           </Card>
@@ -349,20 +349,20 @@ const SecurityDashboard: React.FC = () => {
       </Grid>
 
       {/* Tabs */}
-      <Paper sx={{ backgroundColor: '#112240', border: '1px solid #1e3a5f', mb: 3 }}>
+      <Paper sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', mb: 3 }}>
         <Tabs 
           value={activeTab} 
           onChange={(_, newValue) => setActiveTab(newValue)}
           sx={{
-            borderBottom: '1px solid #1e3a5f',
+            borderBottom: '1px solid #444',
             '& .MuiTab-root': {
-              color: '#8892b0',
+              color: '#999',
               '&.Mui-selected': {
-                color: '#00d4ff',
+                color: '#fff',
               },
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#00d4ff',
+              backgroundColor: '#fff',
             },
           }}
         >
@@ -377,7 +377,7 @@ const SecurityDashboard: React.FC = () => {
           {/* Overview Tab */}
           {tabPanelIndex === 0 && (
             <Box>
-              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
                 Security Alerts
               </Typography>
               {alerts.length > 0 ? (
@@ -388,7 +388,7 @@ const SecurityDashboard: React.FC = () => {
                       severity={getAlertSeverityColor(alert.severity)}
                       icon={<ReportProblem />}
                       sx={{ 
-                        backgroundColor: '#0a0e27',
+                        backgroundColor: '#2d2d2d',
                         border: '1px solid',
                         borderColor: alert.severity === 'CRITICAL' ? '#f44336' : 
                                     alert.severity === 'HIGH' ? '#ff9800' : '#2196f3',
@@ -398,20 +398,20 @@ const SecurityDashboard: React.FC = () => {
                         }
                       }}
                     >
-                      <AlertTitle sx={{ color: '#ffffff' }}>
+                      <AlertTitle sx={{ color: '#fff' }}>
                         {alert.alert_type}
                       </AlertTitle>
-                      <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                      <Typography variant="body2" sx={{ color: '#999' }}>
                         {alert.description}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', mt: 1, display: 'block' }}>
+                      <Typography variant="caption" sx={{ color: '#999', mt: 1, display: 'block' }}>
                         {new Date(alert.created_at).toLocaleString()}
                       </Typography>
                     </Alert>
                   ))}
                 </Box>
               ) : (
-                <Typography variant="body1" sx={{ color: '#8892b0' }}>
+                <Typography variant="body1" sx={{ color: '#999' }}>
                   No active security alerts
                 </Typography>
               )}
@@ -421,26 +421,26 @@ const SecurityDashboard: React.FC = () => {
           {/* Incidents Tab */}
           {tabPanelIndex === 1 && (
             <Box>
-              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
                 Incident Statistics
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#0a0e27', border: '1px solid #1e3a5f' }}>
+                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
                     <CardContent>
-                      <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                      <Typography variant="body2" sx={{ color: '#999' }}>
                         Total Incidents
                       </Typography>
-                      <Typography variant="h5" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                      <Typography variant="h5" sx={{ color: '#fff', fontWeight: 600 }}>
                         {incidents?.overall?.total_incidents || 0}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#0a0e27', border: '1px solid #1e3a5f' }}>
+                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
                     <CardContent>
-                      <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                      <Typography variant="body2" sx={{ color: '#999' }}>
                         Critical Incidents
                       </Typography>
                       <Typography variant="h5" sx={{ color: '#f44336', fontWeight: 600 }}>
@@ -450,12 +450,12 @@ const SecurityDashboard: React.FC = () => {
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#0a0e27', border: '1px solid #1e3a5f' }}>
+                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
                     <CardContent>
-                      <Typography variant="body2" sx={{ color: '#8892b0' }}>
+                      <Typography variant="body2" sx={{ color: '#999' }}>
                         Avg Resolution Time
                       </Typography>
-                      <Typography variant="h5" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                      <Typography variant="h5" sx={{ color: '#fff', fontWeight: 600 }}>
                         {Math.round(incidents?.overall?.avg_resolution_minutes || 0)} min
                       </Typography>
                     </CardContent>
@@ -468,23 +468,23 @@ const SecurityDashboard: React.FC = () => {
           {/* Audit Trail Tab */}
           {tabPanelIndex === 2 && (
             <Box>
-              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
                 Recent Audit Logs
               </Typography>
-              <TableContainer component={Paper} sx={{ backgroundColor: '#0a0e27', border: '1px solid #1e3a5f' }}>
+              <TableContainer component={Paper} sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ color: '#8892b0', borderBottom: '1px solid #1e3a5f' }}>
+                      <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                         Action
                       </TableCell>
-                      <TableCell sx={{ color: '#8892b0', borderBottom: '1px solid #1e3a5f' }}>
+                      <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                         User
                       </TableCell>
-                      <TableCell sx={{ color: '#8892b0', borderBottom: '1px solid #1e3a5f' }}>
+                      <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                         Classification
                       </TableCell>
-                      <TableCell sx={{ color: '#8892b0', borderBottom: '1px solid #1e3a5f' }}>
+                      <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                         Time
                       </TableCell>
                     </TableRow>
@@ -493,30 +493,30 @@ const SecurityDashboard: React.FC = () => {
                     {auditLogs.length > 0 ? (
                       auditLogs.map((log) => (
                         <TableRow key={log.id}>
-                          <TableCell sx={{ color: '#ffffff', borderBottom: '1px solid #1e3a5f' }}>
+                          <TableCell sx={{ color: '#fff', borderBottom: '1px solid #444' }}>
                             {log.action}
                           </TableCell>
-                          <TableCell sx={{ color: '#8892b0', borderBottom: '1px solid #1e3a5f' }}>
+                          <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                             {log.username || 'System'}
                           </TableCell>
-                          <TableCell sx={{ borderBottom: '1px solid #1e3a5f' }}>
+                          <TableCell sx={{ borderBottom: '1px solid #444' }}>
                             <Chip
                               label={log.data_classification}
                               size="small"
                               sx={{
-                                backgroundColor: log.data_classification === 'cji' ? '#f44336' : '#1e3a5f',
-                                color: '#ffffff',
+                                backgroundColor: log.data_classification === 'cji' ? '#4d1f1f' : '#1f3a4d',
+                                color: log.data_classification === 'cji' ? '#ff6b6b' : '#64b5f6',
                               }}
                             />
                           </TableCell>
-                          <TableCell sx={{ color: '#64748b', borderBottom: '1px solid #1e3a5f' }}>
+                          <TableCell sx={{ color: '#999', borderBottom: '1px solid #444' }}>
                             {new Date(log.timestamp).toLocaleString()}
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} align="center" sx={{ color: '#8892b0', borderBottom: 'none' }}>
+                        <TableCell colSpan={4} align="center" sx={{ color: '#666', borderBottom: 'none' }}>
                           No audit logs available
                         </TableCell>
                       </TableRow>
@@ -530,14 +530,14 @@ const SecurityDashboard: React.FC = () => {
           {/* Compliance Tab */}
           {tabPanelIndex === 3 && (
             <Box>
-              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
                 CJIS Policy Areas
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {complianceScore?.score?.policyAreas && Object.entries(complianceScore.score.policyAreas).map(([area, data]) => (
-                  <Box key={area} sx={{ p: 2, backgroundColor: '#0a0e27', border: '1px solid #1e3a5f', borderRadius: 1 }}>
+                  <Box key={area} sx={{ p: 2, backgroundColor: '#2d2d2d', border: '1px solid #444', borderRadius: 1 }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Typography variant="body1" sx={{ color: '#ffffff', textTransform: 'capitalize' }}>
+                      <Typography variant="body1" sx={{ color: '#fff', textTransform: 'capitalize' }}>
                         {formatPolicyAreaName(area)}
                       </Typography>
                       <Box display="flex" alignItems="center" gap={2}>
@@ -548,7 +548,7 @@ const SecurityDashboard: React.FC = () => {
                             sx={{ 
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: '#1e3a5f',
+                              backgroundColor: '#444',
                               '& .MuiLinearProgress-bar': {
                                 borderRadius: 4,
                                 backgroundColor: data.score >= 90 ? '#4caf50' : 
@@ -557,7 +557,7 @@ const SecurityDashboard: React.FC = () => {
                             }}
                           />
                         </Box>
-                        <Typography variant="body2" sx={{ color: '#ffffff', minWidth: 50 }}>
+                        <Typography variant="body2" sx={{ color: '#fff', minWidth: 50 }}>
                           {data.score}%
                         </Typography>
                       </Box>
@@ -565,7 +565,7 @@ const SecurityDashboard: React.FC = () => {
                   </Box>
                 ))}
                 {!complianceScore?.score?.policyAreas && (
-                  <Typography variant="body1" sx={{ color: '#8892b0' }}>
+                  <Typography variant="body1" sx={{ color: '#999' }}>
                     No compliance data available
                   </Typography>
                 )}
@@ -577,7 +577,7 @@ const SecurityDashboard: React.FC = () => {
 
       {/* Footer */}
       <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#64748b' }}>
+        <Typography variant="caption" sx={{ color: '#999' }}>
           CJIS Security Policy v6.0 Compliant • Last Updated: {new Date().toLocaleString()}
         </Typography>
       </Box>
