@@ -212,8 +212,19 @@ router.get('/audit-logs', authenticateToken, requireAdmin, async (req, res) => {
 
     const result = await pool.query(query, params);
 
+    // Format logs for dashboard display
+    const formattedLogs = result.rows.map(log => ({
+      id: log.id,
+      action: log.action || log.event_type,
+      username: log.username || 'System',
+      data_classification: log.data_classification || 'public',
+      timestamp: log.timestamp,
+      ip_address: log.ip_address,
+      resource_type: log.resource_type
+    }));
+
     res.json({
-      logs: result.rows,
+      logs: formattedLogs,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -468,23 +479,32 @@ router.get('/report', authenticateToken, requireAdmin, async (req, res) => {
  */
 router.get('/metrics', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const metrics = await securityMonitor.generateMetrics();
-
-    // Get additional metrics
-    const additionalMetrics = await pool.query(`
+    // Get real-time metrics from database
+    const metricsResult = await pool.query(`
       SELECT 
-        COUNT(DISTINCT event_type) as event_types,
         COUNT(DISTINCT user_id) as active_users,
-        COUNT(CASE WHEN timestamp > CURRENT_TIMESTAMP - INTERVAL '1 hour' THEN 1 END) as last_hour_events,
-        COUNT(CASE WHEN timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours' THEN 1 END) as last_day_events
+        COUNT(CASE WHEN timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours' THEN 1 END) as events_today,
+        COUNT(CASE WHEN access_result = 'failed' AND timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours' THEN 1 END) as failed_logins
       FROM cjis_audit_log
     `);
 
-    res.json({
-      ...metrics,
-      ...additionalMetrics.rows[0],
+    // Get active sessions count
+    const sessionsResult = await pool.query(`
+      SELECT COUNT(*) as active_sessions
+      FROM user_sessions
+      WHERE expires_at > NOW()
+    `);
+
+    // Combine metrics for dashboard
+    const dashboardMetrics = {
+      events_today: parseInt(metricsResult.rows[0].events_today) || 0,
+      active_users: parseInt(metricsResult.rows[0].active_users) || 0,
+      failed_logins: parseInt(metricsResult.rows[0].failed_logins) || 0,
+      active_sessions: parseInt(sessionsResult.rows[0].active_sessions) || 0,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    res.json(dashboardMetrics);
   } catch (error) {
     console.error('Metrics retrieval error:', error);
     res.status(500).json({ error: 'Failed to retrieve metrics' });
