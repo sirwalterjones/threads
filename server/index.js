@@ -14,6 +14,9 @@ const encryptionService = require('./utils/encryption');
 const auditLogger = require('./middleware/auditLogger');
 const securityMonitor = require('./services/securityMonitor');
 
+// Import CJIS Phase 4 incident response modules
+const incidentResponse = require('./services/incidentResponse');
+
 // Import database modules (PostgreSQL for production, SQLite for local)
 const { initializeDatabase } = require('./config/database');
 const WordPressService = require('./services/wordpressService');
@@ -34,6 +37,7 @@ const healthRoutes = require('./routes/health');
 const twoFactorRoutes = require('./routes/two-factor');
 const intelReportsRoutes = require('./routes/intel-reports');
 const securityDashboardRoutes = require('./routes/security-dashboard');
+const incidentResponseRoutes = require('./routes/incident-response');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -300,6 +304,7 @@ app.use('/api/hotlist', hotlistRoutes);
 app.use('/api/2fa', twoFactorRoutes);
 app.use('/api/intel-reports', intelReportsRoutes);
 app.use('/api/security-dashboard', securityDashboardRoutes);
+app.use('/api/incident-response', incidentResponseRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
