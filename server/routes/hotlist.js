@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 
 // Get all hot lists for the current user
 router.get('/', authenticateToken, async (req, res) => {
@@ -22,7 +22,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create a new hot list
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, auditLog('create_hotlist', 'hotlists'), async (req, res) => {
   try {
     const { searchTerm } = req.body;
 
@@ -51,7 +51,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a hot list
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, auditLog('update_hotlist', 'hotlists'), async (req, res) => {
   try {
     const { id } = req.params;
     const { searchTerm, isActive, exactMatch } = req.body;
@@ -155,7 +155,7 @@ router.delete('/alerts', authenticateToken, async (req, res) => {
 });
 
 // Delete a hot list
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, auditLog('delete_hotlist', 'hotlists'), async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
@@ -33,7 +33,7 @@ const upload = multer({
 });
 
 // Get all intel reports with filters
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, auditLog('view_intel_reports', 'intel_reports'), async (req, res) => {
   try {
     const { 
       status = 'all', 
@@ -205,7 +205,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create new intel report
-router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
+router.post('/', authenticateToken, auditLog('create_intel_report', 'intel_reports'), upload.array('files'), async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -351,7 +351,7 @@ router.post('/', authenticateToken, upload.array('files'), async (req, res) => {
 });
 
 // Update intel report
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, auditLog('update_intel_report', 'intel_reports'), async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -515,7 +515,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Update report status
-router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervisor']), async (req, res) => {
+router.patch('/:id/status', authenticateToken, authorizeRole(['admin', 'supervisor']), auditLog('review_intel_report', 'intel_reports'), async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
@@ -641,7 +641,7 @@ router.patch('/:id/extend', authenticateToken, authorizeRole(['admin', 'supervis
 });
 
 // Delete intel report
-router.delete('/:id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.delete('/:id', authenticateToken, authorizeRole(['admin']), auditLog('delete_intel_report', 'intel_reports'), async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -676,7 +676,7 @@ router.delete('/:id', authenticateToken, authorizeRole(['admin']), async (req, r
 });
 
 // Get a single intel report by ID (must be last to avoid conflicts)
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateToken, auditLog('view_intel_report', 'intel_reports'), async (req, res) => {
   try {
     const { id } = req.params;
     console.log('[intel-reports] Fetch single report', { id, userId: req.user?.id, role: req.user?.role, super: req.user?.super_admin });

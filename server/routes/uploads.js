@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const { pool } = require('../config/database');
 
 const router = express.Router();
@@ -25,7 +25,7 @@ const upload = multer({
   }
 });
 
-router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), (req, res) => {
+router.post('/', authenticateToken, authorizeRole(['edit', 'admin']), auditLog('upload_file', 'files'), (req, res) => {
   upload.single('file')(req, res, async (err) => {
     if (err) {
       console.error('Multer error:', err);

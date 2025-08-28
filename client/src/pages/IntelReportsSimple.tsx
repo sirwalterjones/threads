@@ -43,7 +43,6 @@ import {
   Verified as ApprovedIcon,
   Warning as WarningIcon,
   Add as AddIcon,
-  FileDownload as ExportIcon,
   Refresh as RefreshIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
@@ -53,6 +52,7 @@ import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
+import auditService from '../services/auditService';
 
 interface IntelReport {
   id: string;
@@ -212,9 +212,15 @@ const IntelReportsSimple: React.FC = () => {
           reviews
         };
         setSelectedReport(completeReport);
+        
+        // Track intel report view
+        await auditService.trackIntelReportView(report.id, report.intelNumber, report.subject);
       } else {
         // If we can't fetch full data, just show the basic report
         setSelectedReport(report);
+        
+        // Track intel report view (basic)
+        await auditService.trackIntelReportView(report.id, report.intelNumber, report.subject);
       }
     } catch (error) {
       console.error('Error fetching full report data:', error);
@@ -348,9 +354,6 @@ const IntelReportsSimple: React.FC = () => {
           </Button>
           <IconButton sx={{ color: '#1D9BF0' }} title="Refresh" onClick={handleRefreshReports}>
             <RefreshIcon />
-          </IconButton>
-          <IconButton sx={{ color: '#1D9BF0' }} title="Export Reports">
-            <ExportIcon />
           </IconButton>
         </Box>
       </Box>

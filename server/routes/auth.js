@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const validator = require('validator');
 const router = express.Router();
 
@@ -54,6 +54,7 @@ router.get('/debug', async (req, res) => {
 router.post('/register', 
   authenticateToken, 
   authorizeRole(['admin']), 
+  auditLog('create_user', 'users'),
   async (req, res) => {
     try {
       const { username, email, password, role = 'view' } = req.body;
@@ -117,7 +118,7 @@ router.post('/register',
 );
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', auditLog('login_attempt'), async (req, res) => {
   try {
     const { username, password } = req.body;
 

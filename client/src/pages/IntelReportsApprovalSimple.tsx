@@ -46,6 +46,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
 import apiService from '../services/api';
+import auditService from '../services/auditService';
 
 interface IntelReport {
   id: string;
@@ -254,6 +255,13 @@ const IntelReportsApprovalSimple: React.FC = () => {
         reviewComments
       );
       console.log('Report status updated:', result);
+
+      // Track audit event
+      await auditService.trackIntelReportApproval(
+        selectedReport.id,
+        reviewAction,
+        reviewComments
+      );
 
       // Update local state
       const updatedReport = {

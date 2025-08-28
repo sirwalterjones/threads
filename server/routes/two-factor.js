@@ -2,11 +2,11 @@ const express = require('express');
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const { pool } = require('../config/database');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
 const router = express.Router();
 
 // Generate TOTP secret and QR code for setup
-router.post('/setup', authenticateToken, async (req, res) => {
+router.post('/setup', authenticateToken, auditLog('2fa_setup_init', 'users'), async (req, res) => {
   try {
     const userId = req.user.id;
     
@@ -51,7 +51,7 @@ router.post('/setup', authenticateToken, async (req, res) => {
 });
 
 // Verify and enable 2FA
-router.post('/verify-setup', authenticateToken, async (req, res) => {
+router.post('/verify-setup', authenticateToken, auditLog('2fa_setup_complete', 'users'), async (req, res) => {
   try {
     const { token } = req.body;
     const userId = req.user.id;
@@ -232,7 +232,7 @@ router.post('/enable-requirement', authenticateToken, async (req, res) => {
 });
 
 // Disable 2FA (user)
-router.post('/disable', authenticateToken, async (req, res) => {
+router.post('/disable', authenticateToken, auditLog('2fa_disable', 'users'), async (req, res) => {
   try {
     const { currentPassword } = req.body;
     const userId = req.user.id;
@@ -275,7 +275,7 @@ router.post('/disable', authenticateToken, async (req, res) => {
 });
 
 // Admin: Reset user's 2FA (admin only)
-router.post('/admin/reset/:userId', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.post('/admin/reset/:userId', authenticateToken, authorizeRole(['admin']), auditLog('admin_reset_user_2fa', 'users'), async (req, res) => {
   try {
     const targetUserId = req.params.userId;
     

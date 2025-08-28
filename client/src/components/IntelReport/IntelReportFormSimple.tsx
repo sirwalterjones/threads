@@ -17,6 +17,7 @@ import {
 import { Security as SecurityIcon, ArrowBack as BackIcon, Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import auditService from '../../services/auditService';
 
 interface IntelReportFormProps {
   isModal?: boolean;
@@ -407,6 +408,22 @@ const IntelReportFormSimple: React.FC<IntelReportFormProps> = ({ isModal = false
 
       const result = await response.json();
       console.log('Report submitted successfully:', result);
+      
+      // Track audit event
+      if (isEdit) {
+        await auditService.trackIntelReportEdit(id!, {
+          intel_number: formData.intelNumber,
+          classification: formData.classification,
+          subject: formData.subject,
+          summary: formData.summary
+        });
+      } else {
+        await auditService.trackIntelReportCreate(result.report?.id || result.id, {
+          intelNumber: formData.intelNumber,
+          classification: formData.classification,
+          subject: formData.subject
+        });
+      }
       
       // Always set success first
       setSuccess(true);

@@ -169,6 +169,267 @@ const auditService = {
     } catch (error) {
       console.warn('Failed to log post edit audit:', error);
     }
+  },
+
+  // Intel Report Audit Methods
+  async trackIntelReportCreate(reportId: string, data: any) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'CREATE',
+        table_name: 'intel_reports',
+        record_id: reportId,
+        meta: {
+          type: 'intel_report',
+          reportId,
+          intelNumber: data.intelNumber,
+          subject: data.subject,
+          classification: data.classification,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log intel report create audit:', error);
+    }
+  },
+
+  async trackIntelReportEdit(reportId: string, changes: any) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'EDIT',
+        table_name: 'intel_reports',
+        record_id: reportId,
+        meta: {
+          type: 'intel_report',
+          reportId,
+          changes,
+          changesSummary: changes ? Object.keys(changes).join(', ') : 'Unknown changes',
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log intel report edit audit:', error);
+    }
+  },
+
+  async trackIntelReportView(reportId: string, intelNumber?: string, subject?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'VIEW',
+        table_name: 'intel_reports',
+        record_id: reportId,
+        meta: {
+          type: 'intel_report',
+          reportId,
+          intelNumber,
+          subject,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log intel report view audit:', error);
+    }
+  },
+
+  async trackIntelReportApproval(reportId: string, action: 'approve' | 'reject', comments?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: action.toUpperCase(),
+        table_name: 'intel_reports',
+        record_id: reportId,
+        meta: {
+          type: 'intel_report_review',
+          reportId,
+          reviewAction: action,
+          comments,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log intel report approval audit:', error);
+    }
+  },
+
+  async trackIntelReportDelete(reportId: string, intelNumber?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'DELETE',
+        table_name: 'intel_reports',
+        record_id: reportId,
+        meta: {
+          type: 'intel_report',
+          reportId,
+          intelNumber,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log intel report delete audit:', error);
+    }
+  },
+
+  // User Management Audit Methods
+  async trackUserCreate(userId: number, userData: any) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'CREATE',
+        table_name: 'users',
+        record_id: userId,
+        meta: {
+          type: 'user',
+          userId,
+          username: userData.username,
+          email: userData.email,
+          role: userData.role,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log user create audit:', error);
+    }
+  },
+
+  async trackUserEdit(userId: number, changes: any) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'EDIT',
+        table_name: 'users',
+        record_id: userId,
+        meta: {
+          type: 'user',
+          userId,
+          changes,
+          changesSummary: changes ? Object.keys(changes).join(', ') : 'Unknown changes',
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log user edit audit:', error);
+    }
+  },
+
+  async trackUserDelete(userId: number, username?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'DELETE',
+        table_name: 'users',
+        record_id: userId,
+        meta: {
+          type: 'user',
+          userId,
+          username,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log user delete audit:', error);
+    }
+  },
+
+  async trackUserRoleChange(userId: number, oldRole: string, newRole: string, username?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'ROLE_CHANGE',
+        table_name: 'users',
+        record_id: userId,
+        meta: {
+          type: 'user_role_change',
+          userId,
+          username,
+          oldRole,
+          newRole,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log user role change audit:', error);
+    }
+  },
+
+  // File Operations Audit Methods
+  async trackFileUpload(filename: string, fileSize: number, fileType: string, context?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'UPLOAD',
+        table_name: 'files',
+        meta: {
+          type: 'file_upload',
+          filename,
+          fileSize,
+          fileType,
+          context,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log file upload audit:', error);
+    }
+  },
+
+  async trackFileDelete(filename: string, context?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: 'DELETE',
+        table_name: 'files',
+        meta: {
+          type: 'file_delete',
+          filename,
+          context,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log file delete audit:', error);
+    }
+  },
+
+  // 2FA Audit Methods
+  async track2FASetup(success: boolean, method?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: success ? '2FA_SETUP_SUCCESS' : '2FA_SETUP_FAILED',
+        table_name: 'users',
+        meta: {
+          type: '2fa_setup',
+          success,
+          method,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log 2FA setup audit:', error);
+    }
+  },
+
+  async track2FADisable(reason?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: '2FA_DISABLED',
+        table_name: 'users',
+        meta: {
+          type: '2fa_disable',
+          reason,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log 2FA disable audit:', error);
+    }
+  },
+
+  async track2FAFailed(reason?: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/audit/log`, {
+        action: '2FA_FAILED',
+        table_name: 'users',
+        meta: {
+          type: '2fa_failed_attempt',
+          reason,
+          timestamp: new Date().toISOString()
+        }
+      }, { headers: getAuthHeaders() });
+    } catch (error) {
+      console.warn('Failed to log 2FA failed attempt audit:', error);
+    }
   }
 };
 

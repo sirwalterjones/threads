@@ -27,6 +27,7 @@ import {
   LockReset as ResetIcon 
 } from '@mui/icons-material';
 import apiService from '../services/api';
+import auditService from '../services/auditService';
 import { User } from '../types';
 
 const UsersManage: React.FC = () => {
@@ -68,6 +69,14 @@ const UsersManage: React.FC = () => {
         }
       } catch (_) { /* non-blocking */ }
       setUsers((prev) => [res.user as any, ...prev]);
+      
+      // Track user creation
+      await auditService.trackUserCreate(res.user.id, {
+        username: payload.username,
+        email: payload.email,
+        role: payload.role
+      });
+      
       setOpenNew(false);
       setNewUser({ username: '', email: '', password: '', role: 'view' });
       setRequire2FA(false);
@@ -94,6 +103,13 @@ const UsersManage: React.FC = () => {
         copy[idx] = { ...copy[idx], ...updated } as any;
         return copy as any;
       });
+      
+      // Track user edit
+      await auditService.trackUserEdit(user.id, {
+        role: user.role,
+        isActive: typeof user.isActive === 'boolean' ? user.isActive : user.is_active
+      });
+      
       setSuccess('User updated');
     } catch (e:any) {
       setError(e?.response?.data?.error || 'Failed to update user');
@@ -148,6 +164,10 @@ const UsersManage: React.FC = () => {
       const updated = res.user as any;
       
       setUsers((prev) => prev.map(u => u.id === editDialog.user.id ? { ...u, ...updated } : u));
+      
+      // Track user edit with actual changes
+      await auditService.trackUserEdit(editDialog.user.id, updateData);
+      
       closeEditDialog();
       setSuccess('User updated successfully');
     } catch (e: any) {

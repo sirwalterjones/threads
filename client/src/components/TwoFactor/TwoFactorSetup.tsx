@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { QrCode, Smartphone, Security, CheckCircle, Shield, Download } from '@mui/icons-material';
 import apiService from '../../services/api';
+import auditService from '../../services/auditService';
 
 interface TwoFactorSetupProps {
   onComplete: () => void;
@@ -67,9 +68,16 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCancel })
     try {
       const response = await apiService.verify2FASetup(verificationToken);
       setBackupCodes(response.backupCodes);
+      
+      // Track successful 2FA setup
+      await auditService.track2FASetup(true, 'TOTP');
+      
       setStep(3);
       setBackupCodesDialogOpen(true);
     } catch (error: any) {
+      // Track failed 2FA setup
+      await auditService.track2FASetup(false, 'TOTP');
+      
       setError(error.response?.data?.error || 'Invalid verification code');
     } finally {
       setLoading(false);

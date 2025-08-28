@@ -745,7 +745,7 @@ router.post('/migrate-2fa', authenticateToken, authorizeRole(['admin']), async (
 });
 
 // Reset user password endpoint
-router.post('/reset-user-password', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.post('/reset-user-password', authenticateToken, authorizeRole(['admin']), auditLog('reset_user_password', 'users'), async (req, res) => {
   try {
     const { username, newPassword } = req.body;
     
@@ -791,7 +791,7 @@ router.post('/reset-user-password', authenticateToken, authorizeRole(['admin']),
 });
 
 // Temporarily disable 2FA for a user
-router.post('/disable-2fa-temp', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.post('/disable-2fa-temp', authenticateToken, authorizeRole(['admin']), auditLog('disable_user_2fa', 'users'), async (req, res) => {
   try {
     const { username } = req.body;
     
@@ -833,7 +833,7 @@ router.post('/disable-2fa-temp', authenticateToken, authorizeRole(['admin']), as
 });
 
 // Enable 2FA requirement for a user
-router.post('/enable-2fa-requirement', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.post('/enable-2fa-requirement', authenticateToken, authorizeRole(['admin']), auditLog('enable_user_2fa_requirement', 'users'), async (req, res) => {
   try {
     const { username } = req.body;
     
