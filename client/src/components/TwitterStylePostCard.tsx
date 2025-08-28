@@ -127,7 +127,9 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
         },
         '& *': {
           maxWidth: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word'
         },
         '&:hover': {
           backgroundColor: '#080808'
@@ -149,8 +151,21 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
           {post.author_name.charAt(0).toUpperCase()}
         </Avatar>
         
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+        <Box sx={{ 
+          flex: 1, 
+          minWidth: 0,
+          maxWidth: '100%',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1, 
+            mb: 0.5,
+            maxWidth: '100%',
+            overflow: 'hidden',
+            flexWrap: 'wrap'
+          }}>
             <Typography
               variant="body1"
               sx={{
@@ -225,7 +240,12 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
       </Box>
 
       {/* Post Content */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ 
+        mb: 3,
+        maxWidth: '100%',
+        overflow: 'hidden',
+        wordWrap: 'break-word'
+      }}>
         <Typography
           variant="body1"
           sx={{
@@ -233,7 +253,11 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
             fontSize: '1.1rem',
             lineHeight: 1.5,
             mb: 2,
-            wordBreak: 'break-word'
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
+            hyphens: 'auto',
+            maxWidth: '100%',
+            width: '100%'
           }}
         >
           {highlightText(stripHtmlTags(post.title))}
@@ -247,7 +271,11 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
               fontSize: '1rem',
               lineHeight: 1.5,
               mb: 2,
-              wordBreak: 'break-word'
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              hyphens: 'auto',
+              maxWidth: '100%',
+              width: '100%'
             }}
           >
             {highlightText(stripHtmlTags(post.excerpt))}
@@ -262,7 +290,11 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
               fontSize: '1rem',
               lineHeight: 1.5,
               mb: 2,
-              wordBreak: 'break-word'
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              hyphens: 'auto',
+              maxWidth: '100%',
+              width: '100%'
             }}
           >
             {post.content && highlightText(stripHtmlTags(post.content.substring(0, 280)))}
@@ -273,7 +305,13 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
 
       {/* Media Section */}
       {hasMedia && (
-        <Box sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ 
+          mb: 3, 
+          borderRadius: 3, 
+          overflow: 'hidden',
+          maxWidth: '100%',
+          width: '100%'
+        }}>
           {post.attachments && post.attachments.length > 0 ? (
             <MediaGallery attachments={post.attachments} maxHeight={window.innerWidth < 600 ? 300 : 400} />
           ) : post.featured_media_url ? (
