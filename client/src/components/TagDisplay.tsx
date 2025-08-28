@@ -29,7 +29,8 @@ const TagDisplay: React.FC<TagDisplayProps> = ({
   const displayTags = tags.slice(0, maxDisplay);
   const remainingCount = tags.length - maxDisplay;
   
-  const handleTagClick = (tag: string) => {
+  const handleTagClick = (e: React.MouseEvent, tag: string) => {
+    e.stopPropagation(); // Prevent card click from firing
     if (onTagClick) {
       onTagClick(tag);
     } else {
@@ -57,7 +58,7 @@ const TagDisplay: React.FC<TagDisplayProps> = ({
           label={tag}
           size={size}
           variant={variant}
-          onClick={() => handleTagClick(tag)}
+          onClick={(e) => handleTagClick(e, tag)}
           sx={{
             backgroundColor: variant === 'filled' ? 'rgba(29, 155, 240, 0.1)' : 'transparent',
             color: '#1D9BF0',

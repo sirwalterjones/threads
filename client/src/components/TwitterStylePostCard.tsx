@@ -363,38 +363,42 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
         </Box>
       )}
 
-      {/* Engagement Bar - Right side only */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-        {/* Comment Button */}
-        <IconButton
-          size="small"
-          onClick={handleComment}
-          sx={{
-            color: '#71767B',
-            '&:hover': {
-              backgroundColor: 'rgba(29, 155, 240, 0.1)',
-              color: '#1D9BF0'
-            }
-          }}
-        >
-          <ChatBubbleOutline sx={{ fontSize: '1.2rem' }} />
+      {/* Engagement Bar - Right side only with icon-only buttons */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+        {/* Comment Button with count */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton
+            size="small"
+            onClick={handleComment}
+            sx={{
+              color: '#71767B',
+              padding: '8px',
+              '&:hover': {
+                backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                color: '#1D9BF0'
+              }
+            }}
+          >
+            <ChatBubbleOutline sx={{ fontSize: '1.1rem' }} />
+          </IconButton>
           {(post.comment_count || 0) > 0 && (
-            <Box component="span" sx={{ ml: 0.5, fontSize: '0.8rem' }}>
-              {post.comment_count || 0}
-            </Box>
+            <Typography variant="caption" sx={{ color: '#71767B', fontSize: '0.75rem', minWidth: '20px' }}>
+              {post.comment_count}
+            </Typography>
           )}
-        </IconButton>
+        </Box>
         
-        {/* Follow Button */}
+        {/* Follow Button - Icon only */}
         <FollowButton
           postId={post.id}
-          variant="chip"
+          variant="icon"
           size="small"
           onFollowChange={(isFollowing) => {
             if (onFollowChange) {
               onFollowChange(post.id, isFollowing);
             }
           }}
+          showTooltip={true}
         />
       </Box>
     </Box>
