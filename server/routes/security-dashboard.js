@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const authenticateToken = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const auditLogger = require('../middleware/auditLogger');
 const securityMonitor = require('../services/securityMonitor');
 
