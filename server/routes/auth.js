@@ -224,6 +224,22 @@ router.post('/login', auditLog('login_attempt'), async (req, res) => {
           console.error('Error creating admin user:', createError);
         }
       }
+      
+      // Log failed login attempt for non-existent user
+      try {
+        await pool.query(`
+          INSERT INTO audit_log (action, table_name, new_values, ip_address)
+          VALUES ($1, $2, $3, $4)
+        `, [
+          'LOGIN_FAILED',
+          'users',
+          JSON.stringify({ username, reason: 'User not found', timestamp: new Date().toISOString() }),
+          req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
+        ]);
+      } catch (auditError) {
+        console.error('Failed to log failed login attempt:', auditError);
+      }
+      
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -237,6 +253,21 @@ router.post('/login', auditLog('login_attempt'), async (req, res) => {
     const passwordValid = await bcrypt.compare(password, user.password_hash);
     
     if (!passwordValid) {
+      // Log failed login attempt
+      try {
+        await pool.query(`
+          INSERT INTO audit_log (user_id, action, table_name, new_values, ip_address)
+          VALUES ($1, $2, $3, $4, $5)
+        `, [
+          user.id,
+          'LOGIN_FAILED',
+          'users',
+          JSON.stringify({ username, reason: 'Invalid password', timestamp: new Date().toISOString() }),
+          req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
+        ]);
+      } catch (auditError) {
+        console.error('Failed to log failed login attempt:', auditError);
+      }
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -255,6 +286,27 @@ router.post('/login', auditLog('login_attempt'), async (req, res) => {
 
     // Check if 2FA is required
     const requires2FA = user.force_2fa_setup || user.totp_enabled;
+
+    // Log successful login
+    try {
+      await pool.query(`
+        INSERT INTO audit_log (user_id, action, table_name, new_values, ip_address)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [
+        user.id,
+        'LOGIN_SUCCESS',
+        'users',
+        JSON.stringify({ 
+          username, 
+          requires2FA, 
+          userAgent: req.headers['user-agent'], 
+          timestamp: new Date().toISOString() 
+        }),
+        req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
+      ]);
+    } catch (auditError) {
+      console.error('Failed to log successful login:', auditError);
+    }
 
     res.json({
       message: 'Login successful',

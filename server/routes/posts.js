@@ -514,7 +514,7 @@ router.post('/follow-status', authenticateToken, async (req, res) => {
 });
 
 // Follow a post - REAL VERSION
-router.post('/:id/follow', authenticateToken, async (req, res) => {
+router.post('/:id/follow', authenticateToken, auditLog('follow_post', 'posts'), async (req, res) => {
   console.log('=== REAL FOLLOW ENDPOINT START ===');
   console.log('Request params:', req.params);
   console.log('User:', req.user ? { id: req.user.id, username: req.user.username } : 'NO USER');
@@ -860,7 +860,7 @@ router.put('/:id',
         attachments: attachments ? `${attachments.length} items` : null
       });
 
-      // Check if post exists
+      // Check if post exists and capture old values for audit
       console.log('Checking if post exists with ID:', id);
       const existingPost = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
       console.log('Existing post query result:', { rowCount: existingPost.rows.length, post: existingPost.rows[0] });
@@ -869,6 +869,16 @@ router.put('/:id',
         console.log('Post not found, returning 404');
         return res.status(404).json({ error: 'Post not found' });
       }
+
+      // Capture old values for detailed audit logging
+      const oldPost = existingPost.rows[0];
+      const oldValues = {
+        title: oldPost.title,
+        content: oldPost.content?.substring(0, 200) + (oldPost.content?.length > 200 ? '...' : ''),
+        excerpt: oldPost.excerpt,
+        category_id: oldPost.category_id,
+        retention_date: oldPost.retention_date
+      };
 
       // Use standard pool.query with proper error handling
       const updateFields = [];
@@ -954,6 +964,34 @@ router.put('/:id',
             }
           }
         }
+      }
+
+      // Create detailed audit log entry with before/after changes
+      const updatedPost = result.rows[0];
+      const newValues = {
+        title: updatedPost.title,
+        content: updatedPost.content?.substring(0, 200) + (updatedPost.content?.length > 200 ? '...' : ''),
+        excerpt: updatedPost.excerpt,
+        category_id: updatedPost.category_id,
+        retention_date: updatedPost.retention_date
+      };
+
+      // Log the changes with detailed before/after comparison
+      try {
+        await pool.query(`
+          INSERT INTO audit_log (user_id, action, table_name, record_id, old_values, new_values, ip_address)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+          req.user.id,
+          'EDIT_POST_DETAILED',
+          'posts',
+          id,
+          JSON.stringify(oldValues),
+          JSON.stringify(newValues),
+          req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
+        ]);
+      } catch (auditError) {
+        console.error('Failed to create detailed audit log:', auditError);
       }
       
       // Return the updated post
