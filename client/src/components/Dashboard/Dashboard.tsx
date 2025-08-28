@@ -33,7 +33,8 @@ import {
   Clear as ClearIcon,
   Bookmark,
   ViewModule,
-  ViewList
+  ViewList,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import DashboardCard from './DashboardCard';
 import apiService, { API_BASE_URL } from '../../services/api';
@@ -834,10 +835,8 @@ const Dashboard: React.FC = () => {
                   }}
                 />
                 
-                <Button
-                  startIcon={<Visibility />}
+                <IconButton
                   size="small"
-                  variant="contained"
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePostClick(post.id);
@@ -850,8 +849,8 @@ const Dashboard: React.FC = () => {
                     }
                   }}
                 >
-                  View Details
-                </Button>
+                  <Visibility sx={{ fontSize: '1.2rem' }} />
+                </IconButton>
               </Box>
             </CardContent>
           </Card>
@@ -1131,11 +1130,8 @@ const Dashboard: React.FC = () => {
                 
                 return showCount ? (
                   <Badge badgeContent={contentCount} color="secondary">
-                    <Button
-                      startIcon={<Visibility />}
-                      size={window.innerWidth < 600 ? "medium" : "small"}
-                      variant="contained"
-                      fullWidth={window.innerWidth < 600}
+                    <IconButton
+                      size="small"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePostClick(post.id);
@@ -1143,22 +1139,17 @@ const Dashboard: React.FC = () => {
                       sx={{
                         backgroundColor: '#000000',
                         color: '#ffffff',
-                        fontSize: { xs: '14px', sm: '12px' },
-                        px: { xs: 3, sm: 2 },
-                        py: { xs: 1, sm: 0.5 },
                         '&:hover': {
                           backgroundColor: '#1a1a1a'
                         }
                       }}
                     >
-                      View Details
-                    </Button>
+                      <Visibility sx={{ fontSize: '1.2rem' }} />
+                    </IconButton>
                   </Badge>
                 ) : (
-                  <Button
-                    startIcon={<Visibility />}
+                  <IconButton
                     size="small"
-                    variant="contained"
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePostClick(post.id);
@@ -1171,21 +1162,20 @@ const Dashboard: React.FC = () => {
                       }
                     }}
                   >
-                    View Details
-                  </Button>
+                    <Visibility sx={{ fontSize: '1.2rem' }} />
+                  </IconButton>
                 );
               })()}
               {!post.wp_post_id && (
-                <Button
+                <IconButton
                   size="small"
-                  variant="outlined"
                   onClick={(e) => {
                     e.stopPropagation();
                     const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
                     window.dispatchEvent(evt);
                   }}
                   sx={{
-                    borderColor: '#2F3336',
+                    border: '1px solid #2F3336',
                     color: '#E7E9EA',
                     '&:hover': {
                       borderColor: '#1D9BF0',
@@ -1193,8 +1183,8 @@ const Dashboard: React.FC = () => {
                     }
                   }}
                 >
-                  Edit
-                </Button>
+                  <EditIcon sx={{ fontSize: '1.2rem' }} />
+                </IconButton>
               )}
             </Box>
           </CardContent>
