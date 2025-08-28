@@ -40,57 +40,149 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p:2 }}>
-      <Typography variant="h5" sx={{ mb:2 }}>Profile</Typography>
-      {msg && <Alert sx={{ mb:2 }}>{msg}</Alert>}
-      {error && <Alert severity="error" sx={{ mb:2 }}>{error}</Alert>}
-      <Card><CardContent>
-        <TextField label="Username" value={user?.username || ''} fullWidth InputProps={{ readOnly: true }} sx={{ mb:2 }} />
-        <TextField label="Email" value={email} onChange={(e)=>setEmail(e.target.value)} fullWidth sx={{ mb:2 }} />
-        <Button variant="contained" onClick={save}>Save</Button>
-      </CardContent></Card>
+    <Box sx={{ 
+      p: 2, 
+      bgcolor: '#0F1419', 
+      color: '#E7E9EA', 
+      minHeight: '100vh',
+      '& .MuiPaper-root': {
+        bgcolor: '#16202A !important',
+        color: '#E7E9EA !important'
+      }
+    }}>
+      <Typography variant="h5" sx={{ mb: 2, color: '#E7E9EA' }}>Profile</Typography>
+      {msg && <Alert severity="success" sx={{ mb: 2, bgcolor: '#2E7D32', color: '#E7E9EA' }}>{msg}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2, bgcolor: '#D32F2F', color: '#E7E9EA' }}>{error}</Alert>}
+      
+      <Card sx={{ 
+        bgcolor: '#16202A', 
+        border: '1px solid #2F3336', 
+        color: '#E7E9EA'
+      }}>
+        <CardContent>
+          <TextField 
+            label="Username" 
+            value={user?.username || ''} 
+            fullWidth 
+            InputProps={{ readOnly: true }}
+            sx={{ 
+              mb: 2,
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' },
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4A4A4A' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
+                '& input': {
+                  color: '#E7E9EA',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #1A1A1A inset',
+                    WebkitTextFillColor: '#E7E9EA'
+                  }
+                }
+              }
+            }} 
+          />
+          <TextField 
+            label="Email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            fullWidth 
+            sx={{ 
+              mb: 2,
+              '& .MuiInputLabel-root': { color: '#8B98A5' },
+              '& .MuiInputLabel-root.Mui-focused': { color: '#E7E9EA' },
+              '& .MuiOutlinedInput-root': { 
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4A4A4A' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
+                '& input': {
+                  color: '#E7E9EA',
+                  '&:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #1A1A1A inset',
+                    WebkitTextFillColor: '#E7E9EA'
+                  }
+                }
+              }
+            }} 
+          />
+          <Button 
+            variant="contained" 
+            onClick={save}
+            sx={{ 
+              bgcolor: '#1976d2',
+              '&:hover': { bgcolor: '#1565c0' }
+            }}
+          >
+            Save
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* 2FA Management Section */}
-      <Card sx={{ mt: 2 }}>
+      <Card sx={{ 
+        mt: 2, 
+        bgcolor: '#16202A', 
+        border: '1px solid #2F3336', 
+        color: '#E7E9EA'
+      }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Security sx={{ mr: 1, color: '#1D9BF0' }} />
-            <Typography variant="h6">Two-Factor Authentication</Typography>
+            <Typography variant="h6" sx={{ color: '#E7E9EA' }}>Two-Factor Authentication</Typography>
           </Box>
           
           {twoFactorStatus && (
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="body2">Status:</Typography>
+                <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Status:</Typography>
                 {twoFactorStatus.enabled ? (
                   <Chip 
                     icon={<CheckCircle />} 
                     label="Enabled" 
-                    color="success" 
+                    sx={{
+                      bgcolor: '#2E7D32',
+                      color: '#E7E9EA',
+                      '& .MuiChip-icon': { color: '#E7E9EA' }
+                    }}
                     size="small" 
                   />
                 ) : (
                   <Chip 
                     icon={<Warning />} 
                     label="Not Enabled" 
-                    color="warning" 
+                    sx={{
+                      bgcolor: '#FF8F00',
+                      color: '#E7E9EA',
+                      '& .MuiChip-icon': { color: '#E7E9EA' }
+                    }}
                     size="small" 
                   />
                 )}
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Typography variant="body2">Requirement:</Typography>
+                <Typography variant="body2" sx={{ color: '#E7E9EA' }}>Requirement:</Typography>
                 {twoFactorStatus.required ? (
                   <Chip 
                     label="Required" 
-                    color="error" 
+                    sx={{
+                      bgcolor: '#D32F2F',
+                      color: '#E7E9EA'
+                    }}
                     size="small" 
                   />
                 ) : (
                   <Chip 
                     label="Optional" 
-                    color="default" 
+                    sx={{
+                      bgcolor: '#2F3336',
+                      color: '#E7E9EA'
+                    }}
                     size="small" 
                   />
                 )}
@@ -102,13 +194,21 @@ const Profile: React.FC = () => {
                   onClick={enable2FARequirement}
                   disabled={loading2FA}
                   startIcon={<Security />}
-                  sx={{ mr: 1 }}
+                  sx={{ 
+                    mr: 1,
+                    color: '#1D9BF0',
+                    borderColor: '#1D9BF0',
+                    '&:hover': { 
+                      borderColor: '#1976d2',
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                    }
+                  }}
                 >
                   Enable 2FA Requirement
                 </Button>
               )}
 
-              <Typography variant="caption" sx={{ color: '#71767B', display: 'block', mt: 1 }}>
+              <Typography variant="caption" sx={{ color: '#8B98A5', display: 'block', mt: 1 }}>
                 {twoFactorStatus.required 
                   ? '2FA is required for your account. You will be prompted to set it up on next login.'
                   : '2FA is optional. Enable the requirement to be prompted to set it up on next login.'

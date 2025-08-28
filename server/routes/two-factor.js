@@ -333,4 +333,62 @@ router.post('/admin/toggle-requirement/:userId', authenticateToken, authorizeRol
   }
 });
 
+// Admin: Force enable 2FA for a user (admin only)
+router.post('/admin/force-enable/:userId', authenticateToken, authorizeRole(['admin']), auditLog('admin_force_enable_2fa', 'users'), async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    
+    // Get user info
+    const userResult = await pool.query(
+      'SELECT username, totp_enabled FROM users WHERE id = $1',
+      [targetUserId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    if (user.totp_enabled) {
+      return res.status(400).json({ error: '2FA is already enabled for this user' });
+    }
+    
+    // Generate secret for the user
+    const secret = speakeasy.generateSecret({
+      name: `Vector (${user.username})`,
+      issuer: 'Vector Intelligence'
+    });
+    
+    // Generate backup codes
+    const backupCodes = [];
+    for (let i = 0; i < 10; i++) {
+      backupCodes.push(Math.random().toString(36).substring(2, 12).toUpperCase());
+    }
+    
+    // Force enable 2FA with generated secret and backup codes
+    await pool.query(
+      'UPDATE users SET totp_enabled = true, totp_secret = $1, totp_backup_codes = $2, force_2fa_setup = false WHERE id = $3',
+      [secret.base32, backupCodes, targetUserId]
+    );
+    
+    // Generate QR code for admin to share with user
+    const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
+    
+    res.json({
+      success: true,
+      message: '2FA force enabled successfully',
+      setup: {
+        secret: secret.base32,
+        qrCode: qrCodeDataURL,
+        manualEntryKey: secret.base32,
+        backupCodes: backupCodes
+      }
+    });
+  } catch (error) {
+    console.error('Admin force enable 2FA error:', error);
+    res.status(500).json({ error: 'Failed to force enable 2FA' });
+  }
+});
+
 module.exports = router;

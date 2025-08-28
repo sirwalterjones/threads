@@ -519,6 +519,11 @@ class ApiService {
     return response.data;
   }
 
+  async adminForceEnable2FA(userId: string): Promise<{ success: boolean; message: string; setup: { secret: string; qrCode: string; manualEntryKey: string; backupCodes: string[] } }> {
+    const response = await axios.post(`${API_BASE_URL}/2fa/admin/force-enable/${userId}`);
+    return response.data;
+  }
+
   // Intelligence Reports Methods
   async getIntelReports(params?: {
     status?: string;

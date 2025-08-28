@@ -1,6 +1,7 @@
 {
   "short_name": "Vector",
-  "name": "Vector",
+  "name": "Vector Intelligence Platform",
+  "description": "Vector Intelligence Platform",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +9,30 @@
       "type": "image/x-icon"
     },
     {
+      "src": "v.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "theme_color": "#1D9BF0",
-  "background_color": "#000000"
+  "background_color": "#0F1419",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["productivity", "business", "security"]
 }

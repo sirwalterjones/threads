@@ -24,7 +24,8 @@ import {
 import { 
   Edit as EditIcon,
   Security as SecurityIcon,
-  LockReset as ResetIcon 
+  LockReset as ResetIcon,
+  Shield as ShieldIcon 
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import auditService from '../services/auditService';
@@ -42,6 +43,7 @@ const UsersManage: React.FC = () => {
   const [editDialog, setEditDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
   const [editUser, setEditUser] = useState({ username: '', email: '', password: '', role: 'view' });
   const [editing, setEditing] = useState(false);
+  const [force2FADialog, setForce2FADialog] = useState<{ open: boolean; user: any; setup?: any }>({ open: false, user: null });
 
   useEffect(() => {
     apiService.getUsers().then((data) => {
@@ -203,6 +205,26 @@ const UsersManage: React.FC = () => {
     }
   };
 
+  const handleForceEnable2FA = async (userId: number, username: string) => {
+    if (!window.confirm(`Force enable 2FA for user ${username}? This will generate new 2FA credentials that you'll need to share with the user.`)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      const result = await apiService.adminForceEnable2FA(userId.toString());
+      setForce2FADialog({ 
+        open: true, 
+        user: { id: userId, username }, 
+        setup: result.setup 
+      });
+      setSuccess(`2FA force enabled for user ${username}`);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to force enable 2FA');
+    }
+  };
+
   return (
     <Box sx={{ 
       p: 2, 
@@ -319,6 +341,22 @@ const UsersManage: React.FC = () => {
                     }}
                   >
                     Reset 2FA
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<ShieldIcon fontSize="small" />}
+                    onClick={() => handleForceEnable2FA(u.id, u.username)}
+                    sx={{ 
+                      color: '#4CAF50',
+                      borderColor: '#4CAF50',
+                      '&:hover': { 
+                        borderColor: '#45A049',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)'
+                      }
+                    }}
+                  >
+                    Force 2FA
                   </Button>
                 </Stack>
               </CardContent>
@@ -578,6 +616,105 @@ const UsersManage: React.FC = () => {
           <Button onClick={closeEditDialog} disabled={editing} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button variant="contained" onClick={handleEdit} disabled={editing || !editUser.username || !editUser.email}>
             {editing ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Force 2FA Setup Dialog */}
+      <Dialog 
+        open={force2FADialog.open} 
+        onClose={() => setForce2FADialog({ open: false, user: null })} 
+        fullWidth 
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            bgcolor: '#16202A',
+            color: '#E7E9EA'
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>
+          2FA Force Enabled for {force2FADialog.user?.username}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
+          {force2FADialog.setup && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2, color: '#E7E9EA' }}>
+                2FA has been successfully enabled for this user. Share the following setup information with them:
+              </Typography>
+              
+              <Box sx={{ mb: 3, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ mb: 1, color: '#E7E9EA' }}>QR Code</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                  <img 
+                    src={force2FADialog.setup.qrCode} 
+                    alt="2FA QR Code"
+                    style={{ maxWidth: '200px', background: 'white', padding: '10px', borderRadius: '8px' }}
+                  />
+                </Box>
+                <Typography variant="body2" sx={{ color: '#8B98A5' }}>
+                  User can scan this with their authenticator app
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ mb: 1, color: '#E7E9EA' }}>Manual Entry Key</Typography>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  value={force2FADialog.setup.manualEntryKey}
+                  InputProps={{
+                    readOnly: true,
+                    style: { color: '#E7E9EA', backgroundColor: '#1A1A1A' }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: '#2F3336' },
+                      '&:hover fieldset': { borderColor: '#4A4A4A' },
+                    }
+                  }}
+                />
+                <Typography variant="body2" sx={{ color: '#8B98A5', mt: 1 }}>
+                  Manual entry key if QR code cannot be scanned
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" sx={{ mb: 1, color: '#E7E9EA' }}>Backup Codes</Typography>
+                <Typography variant="body2" sx={{ color: '#8B98A5', mb: 2 }}>
+                  Save these backup codes securely. Each can only be used once:
+                </Typography>
+                <Box sx={{ 
+                  bgcolor: '#1A1A1A', 
+                  p: 2, 
+                  borderRadius: 1, 
+                  border: '1px solid #2F3336',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 1
+                }}>
+                  {force2FADialog.setup.backupCodes.map((code: string, index: number) => (
+                    <Typography key={index} variant="body2" sx={{ color: '#E7E9EA', fontFamily: 'monospace' }}>
+                      {code}
+                    </Typography>
+                  ))}
+                </Box>
+              </Box>
+
+              <Box sx={{ p: 2, bgcolor: '#2D5A87', borderRadius: 1, mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
+                  <strong>Important:</strong> The user should set up their authenticator app immediately and test it before their next login.
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button 
+            onClick={() => setForce2FADialog({ open: false, user: null })} 
+            sx={{ color: '#E7E9EA' }}
+          >
+            Close
           </Button>
         </DialogActions>
       </Dialog>
