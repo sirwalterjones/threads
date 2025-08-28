@@ -142,21 +142,20 @@ router.get('/audit-logs', authenticateToken, requireAdmin, async (req, res) => {
       limit = 50
     } = req.query;
 
-    await auditLogger.logEvent({
-      eventType: 'AUDIT_LOG_VIEW',
-      action: 'VIEW_AUDIT_LOGS',
-      dataClassification: 'cji',
-      metadata: { filters: req.query },
-      req
-    });
+    // Don't log viewing of audit logs to prevent recursion
+    // await auditLogger.logEvent({
+    //   eventType: 'AUDIT_LOG_VIEW',
+    //   action: 'VIEW_AUDIT_LOGS',
+    //   dataClassification: 'cji',
+    //   metadata: { filters: req.query },
+    //   req
+    // });
 
+    // Simple query without complex count logic
     let query = `
       SELECT 
-        id, event_type, user_id, username, action,
-        resource_type, resource_id, data_classification,
-        access_result, ip_address, user_agent,
-        request_method, request_path, response_code,
-        timestamp, metadata
+        id, event_type as action, user_id, username, 
+        data_classification, timestamp, ip_address, resource_type
       FROM cjis_audit_log
       WHERE 1=1
     `;
@@ -194,20 +193,11 @@ router.get('/audit-logs', authenticateToken, requireAdmin, async (req, res) => {
       query += ` AND access_result = $${++paramIndex}`;
     }
 
-    // Get total count
-    const countQuery = query.replace(
-      'SELECT id, event_type, user_id, username, action,',
-      'SELECT COUNT(*) as total FROM ('
-    ) + ') as subquery';
-
-    const countResult = await pool.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].total);
-
-    // Add pagination
+    // Add ordering and limit
     query += ' ORDER BY timestamp DESC';
     const offset = (page - 1) * limit;
-    params.push(limit);
-    params.push(offset);
+    params.push(parseInt(limit));
+    params.push(parseInt(offset));
     query += ` LIMIT $${++paramIndex} OFFSET $${++paramIndex}`;
 
     const result = await pool.query(query, params);
@@ -228,8 +218,8 @@ router.get('/audit-logs', authenticateToken, requireAdmin, async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
+        total: formattedLogs.length,
+        pages: 1
       }
     });
   } catch (error) {

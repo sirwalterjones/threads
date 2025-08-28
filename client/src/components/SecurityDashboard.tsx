@@ -157,11 +157,17 @@ const SecurityDashboard: React.FC = () => {
 
       // Handle audit logs response
       if (auditRes.status === 'fulfilled') {
+        console.log('Audit logs response:', auditRes.value.data);
         if (auditRes.value.data?.logs) {
           setAuditLogs(auditRes.value.data.logs);
+          console.log('Set audit logs:', auditRes.value.data.logs.length, 'entries');
         }
       } else if (auditRes.status === 'rejected') {
         console.error('Failed to fetch audit logs:', auditRes.reason);
+        // Check if it's an auth error
+        if (auditRes.reason?.response?.status === 403) {
+          console.error('Admin privileges required for audit logs');
+        }
       }
 
       // Handle alerts response
@@ -471,6 +477,11 @@ const SecurityDashboard: React.FC = () => {
               <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
                 Recent Audit Logs
               </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                  Showing {auditLogs.length} recent audit entries
+                </Typography>
+              </Box>
               <TableContainer component={Paper} sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
                 <Table>
                   <TableHead>
@@ -491,8 +502,8 @@ const SecurityDashboard: React.FC = () => {
                   </TableHead>
                   <TableBody>
                     {auditLogs.length > 0 ? (
-                      auditLogs.map((log) => (
-                        <TableRow key={log.id}>
+                      auditLogs.slice(0, 10).map((log, index) => (
+                        <TableRow key={log.id || index}>
                           <TableCell sx={{ color: '#fff', borderBottom: '1px solid #444' }}>
                             {log.action}
                           </TableCell>
@@ -517,7 +528,7 @@ const SecurityDashboard: React.FC = () => {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={4} align="center" sx={{ color: '#666', borderBottom: 'none' }}>
-                          No audit logs available
+                          {loading ? 'Loading audit logs...' : 'No audit logs available. Ensure you have admin privileges.'}
                         </TableCell>
                       </TableRow>
                     )}
