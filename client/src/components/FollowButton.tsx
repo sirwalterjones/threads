@@ -13,6 +13,7 @@ import {
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useDashboard } from '../contexts/DashboardContext';
 
 interface FollowButtonProps {
   postId: number;
@@ -32,6 +33,15 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   showTooltip = true
 }) => {
   const { user } = useAuth();
+  // Try to use dashboard context, but don't fail if not available
+  let triggerFollowingRefresh: (() => void) | undefined;
+  try {
+    const dashboardContext = useDashboard();
+    triggerFollowingRefresh = dashboardContext.triggerFollowingRefresh;
+  } catch (e) {
+    // Context not available, that's okay
+    console.log('Dashboard context not available');
+  }
   const [isFollowing, setIsFollowing] = useState(initialFollowState || false);
   const [loading, setLoading] = useState(false);
 
@@ -81,6 +91,8 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         console.log('Unfollow response:', response);
         setIsFollowing(false);
         onFollowChange?.(false);
+        // Trigger dashboard refresh if available
+        triggerFollowingRefresh?.();
       } else {
         console.log('Following post:', postId);
         console.log('About to call apiService.followPost...');
@@ -88,6 +100,8 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         console.log('Follow response received:', response);
         setIsFollowing(true);
         onFollowChange?.(true);
+        // Trigger dashboard refresh if available
+        triggerFollowingRefresh?.();
       }
     } catch (error) {
       console.error('Error toggling follow status:', error);

@@ -44,8 +44,22 @@ import MediaGallery from '../MediaGallery';
 import TwitterStylePostCard from '../TwitterStylePostCard';
 import FollowButton from '../FollowButton';
 import DeletePostButton from '../DeletePostButton';
+import { useDashboard } from '../../contexts/DashboardContext';
 
 const Dashboard: React.FC = () => {
+  // Try to use dashboard context, but provide defaults if not available
+  let shouldRefreshFollowing = false;
+  let clearFollowingRefresh = () => {};
+  let lastFollowChange = 0;
+  
+  try {
+    const dashboardContext = useDashboard();
+    shouldRefreshFollowing = dashboardContext.shouldRefreshFollowing;
+    clearFollowingRefresh = dashboardContext.clearFollowingRefresh;
+    lastFollowChange = dashboardContext.lastFollowChange;
+  } catch (e) {
+    console.log('Dashboard context not available');
+  }
   const [stats, setStats] = useState<ApiDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -183,6 +197,15 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  // Auto-refresh following posts when follow status changes
+  useEffect(() => {
+    if (shouldRefreshFollowing && activeTab === 'following') {
+      console.log('Auto-refreshing following posts due to follow change');
+      loadFollowingPosts();
+      clearFollowingRefresh();
+    }
+  }, [shouldRefreshFollowing, lastFollowChange]);
 
   const loadManualPosts = async () => {
     try {

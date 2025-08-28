@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeModeProvider } from './contexts/ThemeModeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DashboardProvider } from './contexts/DashboardContext';
 import Layout from './components/Layout/Layout';
 import Login from './pages/Login';
 import Home from './pages/HomeSimple';
@@ -116,9 +117,11 @@ const App: React.FC = () => {
     <ThemeModeProvider>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <DashboardProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </DashboardProvider>
       </AuthProvider>
     </ThemeModeProvider>
   );
