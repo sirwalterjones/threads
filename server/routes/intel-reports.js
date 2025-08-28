@@ -33,7 +33,8 @@ const upload = multer({
 });
 
 // Get all intel reports with filters
-router.get('/', authenticateToken, auditLog('view_intel_reports', 'intel_reports'), async (req, res) => {
+// Note: Audit logging removed from GET to reduce noise - only writes are audited
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const { 
       status = 'all', 
@@ -676,7 +677,7 @@ router.delete('/:id', authenticateToken, authorizeRole(['admin']), auditLog('del
 });
 
 // Get a single intel report by ID (must be last to avoid conflicts)
-router.get('/:id', authenticateToken, auditLog('view_intel_report', 'intel_reports'), async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     console.log('[intel-reports] Fetch single report', { id, userId: req.user?.id, role: req.user?.role, super: req.user?.super_admin });
