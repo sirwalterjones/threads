@@ -10,6 +10,10 @@ require('dotenv').config();
 const httpsEnforcement = require('./middleware/httpsEnforcement');
 const encryptionService = require('./utils/encryption');
 
+// Import CJIS Phase 3 monitoring modules
+const auditLogger = require('./middleware/auditLogger');
+const securityMonitor = require('./services/securityMonitor');
+
 // Import database modules (PostgreSQL for production, SQLite for local)
 const { initializeDatabase } = require('./config/database');
 const WordPressService = require('./services/wordpressService');
@@ -29,6 +33,7 @@ const hotlistRoutes = require('./routes/hotlist');
 const healthRoutes = require('./routes/health');
 const twoFactorRoutes = require('./routes/two-factor');
 const intelReportsRoutes = require('./routes/intel-reports');
+const securityDashboardRoutes = require('./routes/security-dashboard');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -109,6 +114,64 @@ app.use((req, res, next) => {
   if (!req.path.includes('/health') && !req.path.includes('/api/health')) {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
   }
+  next();
+});
+
+// CJIS Phase 3: Audit logging for all API requests
+app.use('/api', async (req, res, next) => {
+  // Skip audit for health checks
+  if (req.path.includes('/health')) return next();
+  
+  // Log the request
+  const startTime = Date.now();
+  
+  // Capture response
+  const originalSend = res.send;
+  res.send = function(data) {
+    res.responseBody = data;
+    return originalSend.call(this, data);
+  };
+  
+  // Log on response finish
+  res.on('finish', async () => {
+    try {
+      const responseTime = Date.now() - startTime;
+      
+      // Determine if this is a sensitive operation
+      const sensitiveRoutes = ['/api/auth', '/api/admin', '/api/intel-reports', '/api/security-dashboard'];
+      const isSensitive = sensitiveRoutes.some(route => req.path.startsWith(route));
+      
+      // Log to audit system
+      await auditLogger.logEvent({
+        eventType: 'API_REQUEST',
+        action: `${req.method} ${req.path}`,
+        dataClassification: isSensitive ? 'sensitive' : 'public',
+        accessResult: res.statusCode < 400 ? 'granted' : 'denied',
+        responseCode: res.statusCode,
+        metadata: {
+          responseTime,
+          queryParams: req.query,
+          bodySize: req.body ? JSON.stringify(req.body).length : 0
+        },
+        req
+      });
+      
+      // Monitor authentication events
+      if (req.path === '/api/auth/login') {
+        const success = res.statusCode === 200;
+        await securityMonitor.monitorAuthentication(
+          success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED',
+          req.body?.userId,
+          req.body?.username,
+          success,
+          { ipAddress: req.ip }
+        );
+      }
+    } catch (error) {
+      console.error('Audit logging error:', error);
+    }
+  });
+  
   next();
 });
 
@@ -236,6 +299,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/hotlist', hotlistRoutes);
 app.use('/api/2fa', twoFactorRoutes);
 app.use('/api/intel-reports', intelReportsRoutes);
+app.use('/api/security-dashboard', securityDashboardRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
