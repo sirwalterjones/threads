@@ -17,6 +17,9 @@ const securityMonitor = require('./services/securityMonitor');
 // Import CJIS Phase 4 incident response modules
 const incidentResponse = require('./services/incidentResponse');
 
+// Import CJIS Phase 5 compliance governance modules
+const complianceGovernance = require('./services/complianceGovernance');
+
 // Import database modules (PostgreSQL for production, SQLite for local)
 const { initializeDatabase } = require('./config/database');
 const WordPressService = require('./services/wordpressService');
@@ -38,6 +41,7 @@ const twoFactorRoutes = require('./routes/two-factor');
 const intelReportsRoutes = require('./routes/intel-reports');
 const securityDashboardRoutes = require('./routes/security-dashboard');
 const incidentResponseRoutes = require('./routes/incident-response');
+const complianceGovernanceRoutes = require('./routes/compliance-governance');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -305,6 +309,7 @@ app.use('/api/2fa', twoFactorRoutes);
 app.use('/api/intel-reports', intelReportsRoutes);
 app.use('/api/security-dashboard', securityDashboardRoutes);
 app.use('/api/incident-response', incidentResponseRoutes);
+app.use('/api/compliance-governance', complianceGovernanceRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
