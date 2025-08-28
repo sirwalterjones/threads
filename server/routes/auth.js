@@ -3,6 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
+const passwordPolicy = require('../middleware/passwordPolicy');
+const loginSecurity = require('../middleware/loginSecurity');
+const sessionManager = require('../middleware/sessionManager');
 const validator = require('validator');
 const router = express.Router();
 
@@ -54,6 +57,7 @@ router.get('/debug', async (req, res) => {
 router.post('/register', 
   authenticateToken, 
   authorizeRole(['admin']), 
+  passwordPolicy.validatePassword(),
   auditLog('create_user', 'users'),
   async (req, res) => {
     try {
@@ -91,14 +95,17 @@ router.post('/register',
       const saltRounds = 12;
       const passwordHash = await bcrypt.hash(password, saltRounds);
 
-      // Create user
+      // Create user with CJIS password security fields
       const result = await pool.query(`
-        INSERT INTO users (username, email, password_hash, role)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO users (username, email, password_hash, role, last_password_change, password_strength_score)
+        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
         RETURNING id, username, email, role, created_at
-      `, [username, email, passwordHash, role]);
+      `, [username, email, passwordHash, role, req.passwordValidation?.strength?.score || 0]);
 
       const user = result.rows[0];
+
+      // Store password in history for CJIS compliance
+      await passwordPolicy.storePasswordHistory(user.id, passwordHash);
       
       res.status(201).json({
         message: 'User created successfully',
@@ -117,223 +124,8 @@ router.post('/register',
   }
 );
 
-// Login
-router.post('/login', auditLog('login_attempt'), async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
-    // Debug logging
-    console.log('Login attempt:', {
-      username: username,
-      hasPool: !!pool,
-      nodeEnv: process.env.NODE_ENV,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasDbPassword: !!process.env.DB_PASSWORD
-    });
-
-    // Find user - handle missing 2FA columns gracefully
-    let result;
-    try {
-      result = await pool.query(
-        'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
-        [username]
-      );
-    } catch (error) {
-      // If 2FA columns don't exist, fall back to basic query
-      if (error.message.includes('column') && error.message.includes('does not exist')) {
-        result = await pool.query(
-          'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
-          [username]
-        );
-        // Add default values for missing 2FA columns
-        result.rows.forEach(row => {
-          row.totp_enabled = false;
-          row.force_2fa_setup = false;
-        });
-      } else {
-        throw error;
-      }
-    }
-
-    if (result.rows.length === 0) {
-      // If admin user doesn't exist, create it
-      if (username === 'admin') {
-        try {
-          const bcrypt = require('bcryptjs');
-          const saltRounds = 12;
-          const passwordHash = await bcrypt.hash('admin123456', saltRounds);
-
-          await pool.query(`
-            INSERT INTO users (username, email, password_hash, role)
-            VALUES ($1, $2, $3, $4)
-          `, ['admin', 'admin@threads.local', passwordHash, 'admin']);
-
-          // Try login again - handle missing 2FA columns gracefully
-          let newResult;
-          try {
-            newResult = await pool.query(
-              'SELECT id, username, email, password_hash, role, is_active, super_admin, totp_enabled, force_2fa_setup FROM users WHERE username = $1',
-              [username]
-            );
-          } catch (error) {
-            // If 2FA columns don't exist, fall back to basic query
-            if (error.message.includes('column') && error.message.includes('does not exist')) {
-              newResult = await pool.query(
-                'SELECT id, username, email, password_hash, role, is_active, super_admin FROM users WHERE username = $1',
-                [username]
-              );
-              // Add default values for missing 2FA columns
-              newResult.rows.forEach(row => {
-                row.totp_enabled = false;
-                row.force_2fa_setup = false;
-              });
-            } else {
-              throw error;
-            }
-          }
-
-          if (newResult.rows.length > 0 && password === 'admin123456') {
-            const user = newResult.rows[0];
-            const token = jwt.sign(
-              { 
-                userId: user.id, 
-                username: user.username, 
-                role: user.role 
-              },
-              process.env.JWT_SECRET,
-              { expiresIn: '24h' }
-            );
-
-            return res.json({
-              success: true,
-              token,
-              user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
-                super_admin: user.super_admin
-              }
-            });
-          }
-        } catch (createError) {
-          console.error('Error creating admin user:', createError);
-        }
-      }
-      
-      // Log failed login attempt for non-existent user
-      try {
-        await pool.query(`
-          INSERT INTO audit_log (action, table_name, new_values, ip_address)
-          VALUES ($1, $2, $3, $4)
-        `, [
-          'LOGIN_FAILED',
-          'users',
-          JSON.stringify({ username, reason: 'User not found', timestamp: new Date().toISOString() }),
-          req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
-        ]);
-      } catch (auditError) {
-        console.error('Failed to log failed login attempt:', auditError);
-      }
-      
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const user = result.rows[0];
-
-    if (!user.is_active) {
-      return res.status(401).json({ error: 'Account is deactivated' });
-    }
-
-    // Verify password
-    const passwordValid = await bcrypt.compare(password, user.password_hash);
-    
-    if (!passwordValid) {
-      // Log failed login attempt
-      try {
-        await pool.query(`
-          INSERT INTO audit_log (user_id, action, table_name, new_values, ip_address)
-          VALUES ($1, $2, $3, $4, $5)
-        `, [
-          user.id,
-          'LOGIN_FAILED',
-          'users',
-          JSON.stringify({ username, reason: 'Invalid password', timestamp: new Date().toISOString() }),
-          req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
-        ]);
-      } catch (auditError) {
-        console.error('Failed to log failed login attempt:', auditError);
-      }
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Update last login
-    await pool.query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
-      [user.id]
-    );
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Check if 2FA is required
-    const requires2FA = user.force_2fa_setup || user.totp_enabled;
-
-    // Log successful login
-    try {
-      await pool.query(`
-        INSERT INTO audit_log (user_id, action, table_name, new_values, ip_address)
-        VALUES ($1, $2, $3, $4, $5)
-      `, [
-        user.id,
-        'LOGIN_SUCCESS',
-        'users',
-        JSON.stringify({ 
-          username, 
-          requires2FA, 
-          userAgent: req.headers['user-agent'], 
-          timestamp: new Date().toISOString() 
-        }),
-        req.headers['x-forwarded-for'] ? String(req.headers['x-forwarded-for']).split(',')[0].trim() : req.ip
-      ]);
-    } catch (auditError) {
-      console.error('Failed to log successful login:', auditError);
-    }
-
-    res.json({
-      message: 'Login successful',
-      token,
-      requires2FA,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        super_admin: user.super_admin
-      }
-    });
-  } catch (error) {
-    console.error('Login error details:', {
-      message: error.message,
-      stack: error.stack,
-      username: req.body.username,
-      hasJwtSecret: !!process.env.JWT_SECRET,
-      dbConnected: !!pool
-    });
-    res.status(500).json({ 
-      error: 'Login failed',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
+// CJIS v6.0 Compliant Login
+router.post('/login', auditLog('login_attempt'), loginSecurity.loginHandler());
 
 // Get users for @ mention suggestions
 router.get('/users/mentions', authenticateToken, async (req, res) => {
