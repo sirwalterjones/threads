@@ -54,6 +54,8 @@ import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
 import IntelReportCard from '../components/IntelReportCard';
 import TwitterStylePostCard from '../components/TwitterStylePostCard';
+import TagDisplay from '../components/TagDisplay';
+import TagFilter from '../components/TagFilter';
 import { useAuth } from '../contexts/AuthContext';
 
 
@@ -85,6 +87,8 @@ const HomeSimple: React.FC = () => {
   const [sortBy, setSortBy] = useState<'wp_published_date'|'title'|'author_name'|'ingested_at'>('ingested_at');
   const [sortOrder, setSortOrder] = useState<'ASC'|'DESC'>('DESC');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   const categoryByName = useMemo(() => {
     const map = new Map<string, Category>();
@@ -110,7 +114,7 @@ const HomeSimple: React.FC = () => {
   const loadData = async (page = 1, filters: SearchFilters = {}) => {
     try {
       setLoading(true);
-      const [postsResponse, categoriesResponse, authorsResponse] = await Promise.all([
+      const [postsResponse, categoriesResponse, authorsResponse, tagsResponse] = await Promise.all([
         apiService.getPosts({
           page,
           limit: 12,
@@ -122,10 +126,12 @@ const HomeSimple: React.FC = () => {
           sortOrder,
           ...filters,
           ...(origin !== 'all' ? { origin } as any : {}),
-          ...(mineOnly ? { mine: true } as any : {})
+          ...(mineOnly ? { mine: true } as any : {}),
+          ...(selectedTags.length > 0 ? { tags: selectedTags.join(',') } as any : {})
         }),
         categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
-        authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors })
+        authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors }),
+        availableTags.length === 0 ? apiService.getTags().catch(() => []) : Promise.resolve(availableTags)
       ]);
 
       setPosts(postsResponse.posts);
@@ -135,6 +141,9 @@ const HomeSimple: React.FC = () => {
       }
       if (authors.length === 0) {
         setAuthors(authorsResponse.authors);
+      }
+      if (availableTags.length === 0 && Array.isArray(tagsResponse)) {
+        setAvailableTags(tagsResponse);
       }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Failed to load data');
@@ -348,7 +357,8 @@ const HomeSimple: React.FC = () => {
     loadData(1, {
       search: q,
       ...(origin !== 'all' ? { origin } as any : {}),
-      ...(mineOnly ? { mine: true } as any : {})
+      ...(mineOnly ? { mine: true } as any : {}),
+      ...(selectedTags.length > 0 ? { tags: selectedTags.join(',') } as any : {})
     });
   };
 
@@ -419,6 +429,7 @@ const HomeSimple: React.FC = () => {
         ...(dateToFilter ? { dateTo: dateToFilter } as any : {}),
         ...(origin !== 'all' ? { origin } as any : {}),
         ...(mineOnly ? { mine: true } as any : {}),
+        ...(selectedTags.length > 0 ? { tags: selectedTags.join(',') } as any : {}),
         sortBy,
         sortOrder
       });
@@ -426,7 +437,7 @@ const HomeSimple: React.FC = () => {
     }, 300);
     return () => clearTimeout(debounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, authorFilter, dateFromFilter, dateToFilter, origin, mineOnly, sortBy, sortOrder, categories]);
+  }, [selectedCategory, authorFilter, dateFromFilter, dateToFilter, origin, mineOnly, sortBy, sortOrder, categories, selectedTags]);
 
   const handleCategoryFilter = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -1470,6 +1481,17 @@ const HomeSimple: React.FC = () => {
               </Button>
             </Box>
 
+            {/* Tag Filter */}
+            {availableTags.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <TagFilter
+                  availableTags={availableTags}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                />
+              </Box>
+            )}
+
             {/* Active filter chips and view switch */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -1521,6 +1543,22 @@ const HomeSimple: React.FC = () => {
                     color="default"
                   />
                 )}
+                {selectedTags.map(tag => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    onDelete={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                    size="small"
+                    sx={{
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)',
+                      color: '#1D9BF0',
+                      borderColor: '#1D9BF0',
+                      '& .MuiChip-deleteIcon': {
+                        color: '#1D9BF0'
+                      }
+                    }}
+                  />
+                ))}
               </Box>
 
               <ToggleButtonGroup
@@ -1697,6 +1735,22 @@ const HomeSimple: React.FC = () => {
                       <Typography variant="h6" component="h2" gutterBottom sx={{ color: '#E7E9EA', fontSize: '1rem', mb: 1 }}>
                         {highlightText(stripHtmlTags(post.title))}
                       </Typography>
+                      
+                      {/* Display tags */}
+                      {post.tags && post.tags.length > 0 && (
+                        <Box sx={{ mb: 1 }}>
+                          <TagDisplay 
+                            tags={post.tags} 
+                            size="small"
+                            onTagClick={(tag) => {
+                              // Add tag to selected tags if not already selected
+                              if (!selectedTags.includes(tag)) {
+                                setSelectedTags([...selectedTags, tag]);
+                              }
+                            }}
+                          />
+                        </Box>
+                      )}
                       
                       {(() => {
                         const raw = post.excerpt && post.excerpt.trim().length > 0 
@@ -2027,6 +2081,22 @@ const HomeSimple: React.FC = () => {
                               <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
                                 {highlightText(stripHtmlTags(post.excerpt).substring(0, 150))}...
                               </Typography>
+                            )}
+                            {/* Display tags in table */}
+                            {post.tags && post.tags.length > 0 && (
+                              <Box sx={{ mt: 0.5 }}>
+                                <TagDisplay 
+                                  tags={post.tags} 
+                                  size="small"
+                                  maxDisplay={3}
+                                  onTagClick={(tag) => {
+                                    // Add tag to selected tags if not already selected
+                                    if (!selectedTags.includes(tag)) {
+                                      setSelectedTags([...selectedTags, tag]);
+                                    }
+                                  }}
+                                />
+                              </Box>
                             )}
                           </Box>
                         </TableCell>

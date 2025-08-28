@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Chip, Typography } from '@mui/material';
 import { Tag as TagIcon, LocalOffer } from '@mui/icons-material';
 
@@ -19,12 +20,23 @@ const TagDisplay: React.FC<TagDisplayProps> = ({
   showIcon = false,
   variant = 'filled'
 }) => {
+  const navigate = useNavigate();
+  
   if (!tags || tags.length === 0) {
     return null;
   }
 
   const displayTags = tags.slice(0, maxDisplay);
   const remainingCount = tags.length - maxDisplay;
+  
+  const handleTagClick = (tag: string) => {
+    if (onTagClick) {
+      onTagClick(tag);
+    } else {
+      // Navigate to tag page by default
+      navigate(`/tags/${encodeURIComponent(tag)}`);
+    }
+  };
 
   return (
     <Box
@@ -45,18 +57,18 @@ const TagDisplay: React.FC<TagDisplayProps> = ({
           label={tag}
           size={size}
           variant={variant}
-          onClick={onTagClick ? () => onTagClick(tag) : undefined}
+          onClick={() => handleTagClick(tag)}
           sx={{
             backgroundColor: variant === 'filled' ? 'rgba(29, 155, 240, 0.1)' : 'transparent',
             color: '#1D9BF0',
             borderColor: '#1D9BF0',
             fontSize: size === 'small' ? '0.75rem' : '0.875rem',
             height: size === 'small' ? 20 : 24,
-            cursor: onTagClick ? 'pointer' : 'default',
-            '&:hover': onTagClick ? {
+            cursor: 'pointer',
+            '&:hover': {
               backgroundColor: 'rgba(29, 155, 240, 0.2)',
               borderColor: '#1D9BF0',
-            } : {},
+            },
             '& .MuiChip-label': {
               px: 1,
               fontWeight: 500,

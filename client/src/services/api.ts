@@ -302,6 +302,22 @@ class ApiService {
     return response.data;
   }
 
+  // Tags
+  async getTags(): Promise<string[]> {
+    const response = await axios.get(`${API_BASE_URL}/posts/tags`);
+    return response.data;
+  }
+
+  async getPopularTags(limit = 10): Promise<Array<{ tag: string; count: number }>> {
+    const response = await axios.get(`${API_BASE_URL}/posts/tags/popular?limit=${limit}`);
+    return response.data;
+  }
+
+  async getPostsByTag(tagName: string, page = 1, limit = 12): Promise<PostsResponse> {
+    const response = await axios.get(`${API_BASE_URL}/posts/tags/${encodeURIComponent(tagName)}/posts?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
   // Enhanced Audit Logging
   async logAuditEvents(events: any[]): Promise<{ success: boolean }> {
     const response = await axios.post(`${API_BASE_URL}/audit/bulk`, {

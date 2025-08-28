@@ -768,6 +768,17 @@ const Dashboard: React.FC = () => {
                 )}
               </Box>
 
+              {/* Tags */}
+              {post.tags && post.tags.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <TagDisplay
+                    tags={post.tags}
+                    size="small"
+                    maxDisplay={3}
+                  />
+                </Box>
+              )}
+
               {/* Featured media preview */}
               {post.featured_media_url && (
                 <Box sx={{ mb: 2 }}>

@@ -310,10 +310,6 @@ const TwitterStylePostCard: React.FC<TwitterStylePostCardProps> = ({
           <TagDisplay 
             tags={post.tags} 
             size="small"
-            onTagClick={(tag) => {
-              console.log('Tag clicked:', tag);
-              // You can add navigation or filtering here
-            }}
           />
         </Box>
       )}

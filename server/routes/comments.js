@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
+const TagService = require('../services/tagService');
 
 // Get comments for a post
 router.get('/post/:postId', async (req, res) => {
@@ -70,6 +71,37 @@ router.post('/',
         await createMentionNotifications(mentions, comment.id, postId, userId);
       }
       
+      // Extract hashtags from comment and add them to the post
+      const hashtags = extractHashtags(content);
+      if (hashtags.length > 0) {
+        // Get current post tags
+        const postResult = await pool.query('SELECT tags FROM posts WHERE id = $1', [postId]);
+        const currentTags = postResult.rows[0].tags || [];
+        
+        // Combine with new hashtags (avoiding duplicates)
+        const allTags = [...new Set([...currentTags, ...hashtags])];
+        
+        // Update post with new tags
+        await pool.query('UPDATE posts SET tags = $1 WHERE id = $2', [allTags, postId]);
+        
+        // Also update normalized tags tables
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          const processedTags = TagService.processTags(hashtags);
+          if (processedTags.length > 0) {
+            const tagIds = await TagService.getOrCreateTags(processedTags, client);
+            await TagService.associateTagsWithPost(postId, tagIds, client);
+          }
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          console.error('Error updating normalized tags:', error);
+        } finally {
+          client.release();
+        }
+      }
+      
       res.status(201).json({ comment });
     } catch (error) {
       console.error('Error creating comment:', error);
@@ -89,6 +121,19 @@ function extractMentions(content) {
   }
   
   return [...new Set(mentions)]; // Remove duplicates
+}
+
+// Helper function to extract hashtags from comment content
+function extractHashtags(content) {
+  const hashtagRegex = /#(\w+)/g;
+  const hashtags = [];
+  let match;
+  
+  while ((match = hashtagRegex.exec(content)) !== null) {
+    hashtags.push('#' + match[1].toLowerCase());
+  }
+  
+  return [...new Set(hashtags)]; // Remove duplicates
 }
 
 // Helper function to create notifications for @ mentions
@@ -138,7 +183,7 @@ router.put('/:id',
       
       // Check if comment exists and user owns it (or is admin)
       const commentCheck = await pool.query(`
-        SELECT user_id FROM comments WHERE id = $1
+        SELECT user_id, post_id FROM comments WHERE id = $1
       `, [id]);
       
       if (commentCheck.rows.length === 0) {
@@ -146,6 +191,8 @@ router.put('/:id',
       }
       
       const commentUserId = commentCheck.rows[0].user_id;
+      const postId = commentCheck.rows[0].post_id;
+      
       if (commentUserId !== userId && req.user.role !== 'admin') {
         return res.status(403).json({ error: 'You can only edit your own comments' });
       }
@@ -165,6 +212,37 @@ router.put('/:id',
         username: userResult.rows[0].username,
         role: userResult.rows[0].role
       };
+      
+      // Extract hashtags from updated comment and add them to the post
+      const hashtags = extractHashtags(content);
+      if (hashtags.length > 0) {
+        // Get current post tags
+        const postResult = await pool.query('SELECT tags FROM posts WHERE id = $1', [postId]);
+        const currentTags = postResult.rows[0].tags || [];
+        
+        // Combine with new hashtags (avoiding duplicates)
+        const allTags = [...new Set([...currentTags, ...hashtags])];
+        
+        // Update post with new tags
+        await pool.query('UPDATE posts SET tags = $1 WHERE id = $2', [allTags, postId]);
+        
+        // Also update normalized tags tables
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          const processedTags = TagService.processTags(hashtags);
+          if (processedTags.length > 0) {
+            const tagIds = await TagService.getOrCreateTags(processedTags, client);
+            await TagService.associateTagsWithPost(postId, tagIds, client);
+          }
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          console.error('Error updating normalized tags:', error);
+        } finally {
+          client.release();
+        }
+      }
       
       res.json({ comment });
     } catch (error) {

@@ -491,6 +491,7 @@ router.get('/following', authenticateToken, async (req, res) => {
         p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
         p.wp_published_date, p.ingested_at, p.retention_date, p.status,
         p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
+        COALESCE(p.tags, '{}') as tags,
         COALESCE(
           (SELECT json_agg(
             json_build_object(
@@ -841,26 +842,28 @@ router.post('/',
           }
         }
 
-        // Create the post
+        // Process tags before creating the post
+        let processedTags = [];
+        if (tags && tags.length > 0) {
+          processedTags = TagService.processTags(tags);
+        }
+
+        // Create the post with tags
         const postResult = await client.query(`
           INSERT INTO posts (
             title, content, excerpt, category_id, author_name, 
-            wp_published_date, retention_date, status
+            wp_published_date, retention_date, status, tags
           )
-          VALUES ($1, $2, $3, $4, $5, NOW(), $6, 'publish')
+          VALUES ($1, $2, $3, $4, $5, NOW(), $6, 'publish', $7)
           RETURNING *
-        `, [title, content, excerpt, finalCategoryId, req.user.username, retentionDate]);
+        `, [title, content, excerpt, finalCategoryId, req.user.username, retentionDate, processedTags]);
 
         const post = postResult.rows[0];
 
-        // Process and add tags
-        if (tags && tags.length > 0) {
-          const processedTags = TagService.processTags(tags);
-          if (processedTags.length > 0) {
-            const tagIds = await TagService.getOrCreateTags(processedTags, client);
-            const tagNames = await TagService.associateTagsWithPost(post.id, tagIds, client);
-            post.tags = tagNames;
-          }
+        // Also save to normalized tags tables for better querying
+        if (processedTags.length > 0) {
+          const tagIds = await TagService.getOrCreateTags(processedTags, client);
+          await TagService.associateTagsWithPost(post.id, tagIds, client);
         }
 
         // Create attachment relationships if any files were uploaded
@@ -921,7 +924,7 @@ router.put('/:id',
       console.log('Update post route called with:', { id: req.params.id, body: req.body, user: req.user });
       
       const { id } = req.params;
-      const { title, content, excerpt, categoryId, retentionDays, attachments } = req.body;
+      const { title, content, excerpt, categoryId, retentionDays, attachments, tags } = req.body;
       
       console.log('Parsed request data:', {
         id,
@@ -999,6 +1002,14 @@ router.put('/:id',
         paramIndex++;
       }
 
+      // Handle tags update
+      if (tags !== undefined) {
+        const processedTags = tags && tags.length > 0 ? TagService.processTags(tags) : [];
+        updateFields.push(`tags = $${paramIndex}`);
+        queryParams.push(processedTags);
+        paramIndex++;
+      }
+
       if (updateFields.length === 0) {
         return res.status(400).json({ error: 'No fields to update' });
       }
@@ -1037,6 +1048,33 @@ router.put('/:id',
               }
             }
           }
+        }
+      }
+
+      // Update normalized tags tables if tags were provided
+      if (tags !== undefined) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          
+          // Delete existing tag associations
+          await client.query('DELETE FROM post_tags WHERE post_id = $1', [id]);
+          
+          // Add new tag associations if any
+          if (tags && tags.length > 0) {
+            const processedTags = TagService.processTags(tags);
+            if (processedTags.length > 0) {
+              const tagIds = await TagService.getOrCreateTags(processedTags, client);
+              await TagService.associateTagsWithPost(id, tagIds, client);
+            }
+          }
+          
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          console.error('Error updating tags:', error);
+        } finally {
+          client.release();
         }
       }
 

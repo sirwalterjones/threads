@@ -18,6 +18,7 @@ import IntelReportsSimple from './pages/IntelReportsSimple';
 import IntelReportsApprovalSimple from './pages/IntelReportsApprovalSimple';
 import IntelReportFormSimple from './components/IntelReport/IntelReportFormSimple';
 import SecurityDashboard from './components/SecurityDashboard';
+import TagPosts from './pages/TagPosts';
 import { CircularProgress, Box } from '@mui/material';
 
 // Theme is now controlled by ThemeModeProvider
@@ -102,6 +103,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/intel-reports/:id/edit" element={<IntelReportFormSimple />} />
                 <Route path="/intel-reports/approval" element={<IntelReportsApprovalSimple />} />
                 <Route path="/security" element={<SecurityDashboard />} />
+                <Route path="/tags/:tagName" element={<TagPosts />} />
                 <Route path="/tables" element={<Home />} />
               </Routes>
             </Layout>
