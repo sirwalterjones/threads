@@ -113,11 +113,18 @@ class BOLOService {
           // For now, we'll store metadata only and handle file storage later
           const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
           
-          // TODO: In production, upload file.buffer to cloud storage (S3, Cloudinary, etc.)
-          // For now, we'll use a placeholder URL in production
-          const fileUrl = process.env.NODE_ENV === 'production' 
-            ? `https://via.placeholder.com/400x300.png?text=BOLO+Image` // Placeholder for production
-            : `/uploads/bolo/${filename}`;
+          // Save file to disk in all environments
+          // In production, we'll write file.buffer to disk
+          // TODO: Later upgrade to cloud storage (S3, Cloudinary, etc.)
+          if (process.env.NODE_ENV === 'production' && file.buffer) {
+            const fs = require('fs').promises;
+            const path = require('path');
+            const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
+            await fs.mkdir(uploadDir, { recursive: true });
+            const filePath = path.join(uploadDir, filename);
+            await fs.writeFile(filePath, file.buffer);
+          }
+          const fileUrl = `/uploads/bolo/${filename}`;
           
           const mediaResult = await client.query(`
             INSERT INTO bolo_media (
@@ -454,11 +461,18 @@ class BOLOService {
             // For now, we'll store metadata only and handle file storage later
             const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
             
-            // TODO: In production, upload file.buffer to cloud storage (S3, Cloudinary, etc.)
-            // For now, we'll use a placeholder URL in production
-            const fileUrl = process.env.NODE_ENV === 'production' 
-              ? `https://via.placeholder.com/400x300.png?text=BOLO+Image` // Placeholder for production
-              : `/uploads/bolo/${filename}`;
+            // Save file to disk in all environments
+            // In production, we'll write file.buffer to disk
+            // TODO: Later upgrade to cloud storage (S3, Cloudinary, etc.)
+            if (process.env.NODE_ENV === 'production' && file.buffer) {
+              const fs = require('fs').promises;
+              const path = require('path');
+              const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
+              await fs.mkdir(uploadDir, { recursive: true });
+              const filePath = path.join(uploadDir, filename);
+              await fs.writeFile(filePath, file.buffer);
+            }
+            const fileUrl = `/uploads/bolo/${filename}`;
             
             await client.query(`
               INSERT INTO bolo_media (
@@ -489,9 +503,8 @@ class BOLOService {
           
           if (existingMedia.rows[0].count === 0) {
             // This is the first media, set it as primary image
-            const fileUrl = process.env.NODE_ENV === 'production' 
-              ? `https://via.placeholder.com/400x300.png?text=BOLO+Image`
-              : `/uploads/bolo/${files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`}`;
+            const firstFilename = files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`;
+            const fileUrl = `/uploads/bolo/${firstFilename}`;
               
             await client.query(
               'UPDATE bolos SET primary_image_url = $1, primary_thumbnail_url = $2 WHERE id = $3',
