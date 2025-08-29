@@ -137,6 +137,15 @@ router.get('/unified', authenticateToken, async (req, res) => {
       parseInt(countQueries[1].rows[0].count) + 
       parseInt(countQueries[2].rows[0].count);
     
+    // Debug logging
+    console.log('Unified search results:', {
+      query: searchTerm,
+      posts: postsResult.rows.length,
+      bolos: bolosResult.rows.length,
+      intelReports: intelResult.rows.length,
+      totalCount
+    });
+    
     res.json({
       posts: postsResult.rows,
       bolos: bolosResult.rows,

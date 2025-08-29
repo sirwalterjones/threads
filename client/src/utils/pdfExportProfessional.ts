@@ -89,6 +89,18 @@ interface FormattedText {
   listItem?: boolean;
   code?: boolean;
   blockquote?: boolean;
+  isIntelField?: boolean;
+  isIntelValue?: boolean;
+}
+
+// Helper to format Intel Report fields uniformly
+function formatIntelReportField(label: string, value: string): FormattedText[] {
+  return [
+    { text: label, bold: true, isIntelField: true },
+    { text: '\n', isIntelField: true },
+    { text: value || 'N/A', isIntelValue: true },
+    { text: '\n\n' }
+  ];
 }
 
 function parseHtmlToFormattedText(html: string): FormattedText[] {
@@ -476,7 +488,9 @@ export async function downloadPDF(
     const formattedContent = parseHtmlToFormattedText(post.content);
     let listCounter = 0;
     
-    for (const segment of formattedContent) {
+    for (let index = 0; index < formattedContent.length; index++) {
+      const segment = formattedContent[index];
+      
       // Check for page break
       if (yPosition > 270) {
         doc.addPage();
@@ -497,6 +511,27 @@ export async function downloadPDF(
       
       // Skip completely empty text segments (but not line breaks)
       if (!segment.text.trim()) continue;
+      
+      // Special handling for Intel Report fields
+      if (segment.isIntelField || segment.isIntelValue) {
+        if (segment.isIntelField) {
+          doc.setFont(fonts.heading, 'bold');
+          doc.setFontSize(fontSizes.body);
+          doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+          doc.text(segment.text, 15, yPosition);
+          yPosition += 6;
+        } else if (segment.isIntelValue) {
+          doc.setFont(fonts.body, 'normal');
+          doc.setFontSize(fontSizes.body);
+          doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+          const valueLines = doc.splitTextToSize(segment.text, 170);
+          valueLines.forEach((line: string) => {
+            doc.text(line, 25, yPosition);
+            yPosition += 6;
+          });
+        }
+        continue;
+      }
       
       // Set font styles based on formatting
       if (segment.header) {
@@ -598,24 +633,31 @@ export async function downloadPDF(
           doc.textWithLink(line, indent, yPosition, { url: segment.link });
           doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
         } else if (segment.header && segment.header <= 3) {
-          // Check if this is an intel report field that should be left-aligned
-          const isIntelField = line.includes('Date of Report') || 
-                              line.includes('Time of Report') || 
-                              line.includes('Incident Location') || 
-                              line.includes('Report Title');
+          // Define all Intel Report field labels that should be consistently formatted
+          const intelFieldLabels = [
+            'Date of Report', 'Time of Report', 'Incident Location', 'Report Title',
+            'Narrative', 'Submitting Agent', 'Approving Supervisor', 'Approving Commander'
+          ];
           
-          // Center "Investigative Narrative" title specifically
-          const isNarrativeTitle = line === 'Investigative Narrative' || 
-                                  line === 'INVESTIGATIVE NARRATIVE';
+          const isIntelFieldLabel = intelFieldLabels.some(label => line === label || line.startsWith(label));
           
-          if (isIntelField) {
-            // Left align intel report fields
-            doc.text(line, indent, yPosition);
-          } else if (isNarrativeTitle) {
-            // Center the Investigative Narrative title
+          // Center these specific titles
+          const centeredTitles = [
+            'Investigative Narrative', 'INVESTIGATIVE NARRATIVE',
+            'Cherokee Multi-Agency Narcotics Squad', 'Initial Report', 'Final Report'
+          ];
+          
+          const isCenteredTitle = centeredTitles.includes(line);
+          
+          if (isIntelFieldLabel) {
+            // Consistent left alignment for all field labels
+            doc.setFont(fonts.heading, 'bold');
+            doc.text(line, 15, yPosition);
+          } else if (isCenteredTitle) {
+            // Center specific titles
             doc.text(line, 105, yPosition, { align: 'center' });
           } else {
-            // Center other h1, h2, h3 headers
+            // Center other headers
             doc.text(line, 105, yPosition, { align: 'center' });
           }
         } else if (!segment.code && !segment.listItem && line.length < 60 && 
@@ -623,23 +665,48 @@ export async function downloadPDF(
                    !line.includes('Time of Report') &&
                    !line.includes('Incident Location') &&
                    !line.includes('Report Title') &&
+                   !line.includes('Submitting Agent') &&
+                   !line.includes('Approving Supervisor') &&
+                   !line.includes('Approving Commander') &&
                    !line.match(/^\d{1,2}:\d{2} [AP]M$/i) && // Don't center time values
                    !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$/i) && // Don't center dates
+                   !line.trim().match(/^\d+\s+[A-Za-z]+/) && // Don't center addresses
                    (line === line.toUpperCase() || // All caps
                     line.match(/^\d{2}-\d{4}-\d{2}-\d{2}$/) || // Case number format
-                    line.match(/^[A-Z][a-z]+ [A-Z][a-z]+ /) || // Title case multi-word
-                    line === 'Investigative Narrative' || // Center this specific title
-                    line === 'INVESTIGATIVE NARRATIVE' || // Center uppercase version
-                    line.includes('Report') ||
-                    line.includes('Squad'))) {
-          // Center text that looks like headers (all caps, case numbers, or title-like) 
-          // unless they are intel report fields or time/date values
+                    line === 'Investigative Narrative' || 
+                    line === 'INVESTIGATIVE NARRATIVE' || 
+                    line === 'Cherokee Multi-Agency Narcotics Squad' ||
+                    line === 'Initial Report' ||
+                    line === 'Final Report')) {
+          // Center only specific headers and case numbers
           doc.text(line, 105, yPosition, { align: 'center' });
-        } else if (segment.bold && segment.text.trim().startsWith('Time of Report:')) {
-          // Special handling for Time of Report - ensure the value is left-aligned
-          doc.text(line, indent, yPosition);
+        } else if (segment.bold && (
+          line.startsWith('Date of Report') ||
+          line.startsWith('Time of Report') ||
+          line.startsWith('Incident Location') ||
+          line.startsWith('Report Title') ||
+          line.startsWith('Narrative') ||
+          line.startsWith('Submitting Agent') ||
+          line.startsWith('Approving')
+        )) {
+          // Intel Report fields - use consistent formatting
+          doc.setFont(fonts.heading, 'bold');
+          doc.text(line, 15, yPosition);
         } else {
-          doc.text(line, segment.code ? 15 : indent, yPosition);
+          // Regular text - check if it's a field value that should be indented
+          const prevSegment = index > 0 ? formattedContent[index - 1] : null;
+          const isFieldValue = prevSegment && prevSegment.bold && (
+            prevSegment.text.includes('Date of Report') ||
+            prevSegment.text.includes('Time of Report') ||
+            prevSegment.text.includes('Incident Location') ||
+            prevSegment.text.includes('Report Title') ||
+            prevSegment.text.includes('Submitting Agent') ||
+            prevSegment.text.includes('Approving')
+          );
+          
+          // Use consistent indentation: 15 for labels, 25 for values
+          const textIndent = segment.code ? 15 : (isFieldValue ? 25 : 15);
+          doc.text(line, textIndent, yPosition);
         }
         
         // Professional line spacing (like Word document)

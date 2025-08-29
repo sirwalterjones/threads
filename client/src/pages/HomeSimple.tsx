@@ -137,6 +137,13 @@ const HomeSimple: React.FC = () => {
           availableTags.length === 0 ? apiService.getTags().catch(() => []) : Promise.resolve(availableTags)
         ]);
         
+        // Debug logging
+        console.log('Unified search response:', {
+          posts: unifiedResponse.posts.length,
+          bolos: unifiedResponse.bolos.length,
+          intelReports: unifiedResponse.intelReports.length
+        });
+        
         // Combine all results into posts array
         const combinedResults = [
           ...unifiedResponse.posts.map((p: any) => ({ ...p, result_type: 'post' })),
@@ -144,6 +151,7 @@ const HomeSimple: React.FC = () => {
           ...unifiedResponse.intelReports.map((i: any) => ({ ...i, result_type: 'intel_report' }))
         ];
         
+        console.log('Combined results:', combinedResults.length, 'items');
         setPosts(combinedResults);
         setTotalPages(unifiedResponse.pagination.pages);
         
