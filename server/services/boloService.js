@@ -522,14 +522,9 @@ class BOLOService {
             ]);
           }
           
-          // Update BOLO primary image if this is the first media being added
-          const existingMedia = await client.query(
-            'SELECT COUNT(*) as count FROM bolo_media WHERE bolo_id = $1 AND uploaded_at < NOW() - INTERVAL \'1 second\'',
-            [boloId]
-          );
-          
-          if (existingMedia.rows[0].count === 0) {
-            // This is the first media, set it as primary image
+          // Always update BOLO primary image when adding new media (edit mode)
+          // Set the first uploaded file as the new primary image
+          if (files.length > 0) {
             const firstFilename = files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`;
             const fileUrl = process.env.NODE_ENV === 'production' 
               ? files[0].buffer 
