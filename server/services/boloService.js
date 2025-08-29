@@ -522,20 +522,22 @@ class BOLOService {
             ]);
           }
           
-          // Always update BOLO primary image when adding new media (edit mode)
-          // Set the first uploaded file as the new primary image
+          // Always update BOLO primary image ID when adding new media (edit mode)
+          // Get the ID of the first media we just inserted
           if (files.length > 0) {
-            const firstFilename = files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`;
-            const fileUrl = process.env.NODE_ENV === 'production' 
-              ? files[0].buffer 
-                ? `data:${files[0].mimetype};base64,${files[0].buffer.toString('base64')}`
-                : `/uploads/bolo/${firstFilename}`
-              : `/uploads/bolo/${firstFilename}`;
-              
-            await client.query(
-              'UPDATE bolos SET primary_image_url = $1, primary_thumbnail_url = $2 WHERE id = $3',
-              [fileUrl, fileUrl, boloId]
+            const firstMediaResult = await client.query(
+              'SELECT id FROM bolo_media WHERE bolo_id = $1 ORDER BY uploaded_at DESC LIMIT 1',
+              [boloId]
             );
+            
+            if (firstMediaResult.rows.length > 0) {
+              const primaryMediaId = firstMediaResult.rows[0].id;
+              
+              await client.query(
+                'UPDATE bolos SET primary_image_id = $1 WHERE id = $2',
+                [primaryMediaId, boloId]
+              );
+            }
           }
         }
         
