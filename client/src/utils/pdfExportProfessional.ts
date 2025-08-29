@@ -341,28 +341,27 @@ export async function downloadPDF(
     doc.setFillColor(colors.headerBg[0], colors.headerBg[1], colors.headerBg[2]);
     doc.rect(0, 0, 210, 18, 'F');
     
-    // Vector logo placeholder (V in a circle)
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(1);
-    doc.circle(10, 9, 4);
+    // VECTOR logo - V in blue, ECTOR in white
     doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(255, 255, 255);
-    doc.text('V', 10, 10, { align: 'center' });
+    doc.setFontSize(14);
     
-    // Title
-    doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(fontSizes.h4);
-    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
-    doc.text('VECTOR INTELLIGENCE', 18, 10);
+    // V in blue
+    doc.setTextColor(41, 98, 255);
+    doc.text('V', 10, 11);
+    
+    // ECTOR in white
+    doc.setTextColor(255, 255, 255);
+    doc.text('ECTOR', 16, 11);
+    
+    // INTELLIGENCE in white (smaller)
+    doc.setFontSize(10);
+    doc.text('INTELLIGENCE', 48, 11);
     
     // Page number
     doc.setFont(fonts.body, 'normal');
     doc.setFontSize(fontSizes.small);
     doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
     doc.text(`Page ${pageNum}`, 195, 10, { align: 'right' });
-    
-    // No separator line needed with black background
   };
 
   // Add footer with subtle branding
@@ -486,7 +485,7 @@ export async function downloadPDF(
       
       // Handle line breaks
       if (segment.text === '\n') {
-        yPosition += 3; // Add space for line break
+        yPosition += 1.5; // Minimal space for line break
         continue;
       }
       
@@ -505,8 +504,8 @@ export async function downloadPDF(
           6: fontSizes.h6
         };
         
-        // Add space before headers
-        if (yPosition > 30) yPosition += segment.header <= 2 ? 5 : 3;
+        // Add minimal space before headers
+        if (yPosition > 30) yPosition += segment.header <= 2 ? 2 : 1;
         
         doc.setFontSize(headerSizes[segment.header] || fontSizes.h6);
         doc.setFont(fonts.heading, 'bold');
@@ -596,24 +595,24 @@ export async function downloadPDF(
           doc.text(line, segment.code ? 15 : indent, yPosition);
         }
         
-        // Line spacing based on element type
-        const lineSpacing = segment.header ? 6 :
-                          segment.code ? 4 :
-                          segment.blockquote ? 5 : 
-                          4.5;
+        // Compact line spacing
+        const lineSpacing = segment.header ? 4 :
+                          segment.code ? 3.5 :
+                          segment.blockquote ? 3.5 : 
+                          3.5;
         yPosition += lineSpacing;
       });
       
-      // Add spacing after elements
+      // Add minimal spacing after elements
       if (segment.header) {
-        yPosition += segment.header <= 2 ? 3 : 2;
+        yPosition += segment.header <= 2 ? 1 : 0.5;
       } else if (segment.blockquote) {
-        yPosition += 2;
+        yPosition += 1;
       } else if (segment.code) {
-        yPosition += 2;
+        yPosition += 1;
       } else if (segment.bold && segment.text.trim().endsWith(':')) {
-        // Add extra space after bold labels (like "Date of Report:")
-        yPosition += 2;
+        // Add small space after bold labels (like "Date of Report:")
+        yPosition += 0.5;
       }
     }
     
