@@ -251,7 +251,8 @@ class LoginSecurity {
             COALESCE(totp_enabled, false) as totp_enabled,
             COALESCE(force_2fa_setup, false) as force_2fa_setup,
             failed_login_attempts,
-            account_locked_until
+            account_locked_until,
+            session_duration_hours
           FROM users 
           WHERE username = $1
         `, [username]);
@@ -379,6 +380,12 @@ class LoginSecurity {
         // Reset failed attempts on successful login
         await this.resetFailedAttempts(user.id);
 
+        // Use user's session duration preference (in hours, converted to minutes)
+        // Default to 30 minutes if not set (CJIS minimum)
+        const sessionMinutes = user.session_duration_hours 
+          ? user.session_duration_hours * 60 
+          : this.sessionTimeout;
+
         // Generate JWT token
         const tokenPayload = { 
           userId: user.id, 
@@ -386,7 +393,7 @@ class LoginSecurity {
           role: user.role 
         };
         const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { 
-          expiresIn: `${this.sessionTimeout}m` 
+          expiresIn: `${sessionMinutes}m` 
         });
 
         // Create session record
