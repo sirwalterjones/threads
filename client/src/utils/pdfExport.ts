@@ -489,7 +489,7 @@ async function parseContentWithImages(html: string): Promise<Array<{ type: 'text
     if (line.includes('__IMAGE_')) {
       // Check if this line contains an image placeholder
       const match = line.match(/__IMAGE_(\d+)__/);
-      if (match) {
+      if (match && match.index !== undefined) {
         const placeholder = match[0];
         const src = imageMap.get(placeholder);
         
@@ -505,9 +505,11 @@ async function parseContentWithImages(html: string): Promise<Array<{ type: 'text
         }
         
         // Add text after image if any
-        const afterText = line.substring(match.index + placeholder.length).trim();
-        if (afterText) {
-          parts.push({ type: 'text', content: afterText });
+        if (match.index !== undefined) {
+          const afterText = line.substring(match.index + placeholder.length).trim();
+          if (afterText) {
+            parts.push({ type: 'text', content: afterText });
+          }
         }
       } else {
         parts.push({ type: 'text', content: line });
