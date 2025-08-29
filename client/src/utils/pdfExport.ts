@@ -20,7 +20,10 @@ interface Comment {
   created_at: string;
 }
 
-export const generatePDF = (posts: Post[], options: { includeComments?: boolean; includeTags?: boolean } = {}) => {
+// Cache for loaded images
+const imageCache: Map<string, { width: number; height: number; data: string }> = new Map();
+
+export const generatePDF = async (posts: Post[], options: { includeComments?: boolean; includeTags?: boolean } = {}) => {
   const doc = new jsPDF();
   
   // Professional color scheme
@@ -70,7 +73,9 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
   yPosition = 60;
   
   // Process each post with improved formatting
-  posts.forEach((post, index) => {
+  for (let index = 0; index < posts.length; index++) {
+    const post = posts[index];
+    
     // Check if we need a new page
     if (yPosition > 240) {
       doc.addPage();
@@ -137,26 +142,86 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
       yPosition += 2;
     }
     
-    // Post content - show full content, not truncated
+    // Featured media image if present
+    if (post.featured_media_url) {
+      try {
+        const imageAdded = await addImageToPDF(doc, post.featured_media_url, 20, yPosition, 170);
+        if (imageAdded.success) {
+          yPosition = imageAdded.newY + 5;
+        } else {
+          // Fallback text for failed image
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+          doc.text(`[Featured Image: ${post.featured_media_url}]`, 20, yPosition);
+          yPosition += 5;
+        }
+      } catch (error) {
+        // Fallback for image load error
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+        doc.text(`[Featured Image: ${post.featured_media_url}]`, 20, yPosition);
+        yPosition += 5;
+      }
+    }
+    
+    // Post content with inline images
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
     
-    // Clean HTML and preserve formatting
-    const cleanContent = cleanHtmlContent(post.content || '');
-    const contentLines = doc.splitTextToSize(cleanContent, 170);
+    // Parse content for images and text
+    const contentParts = await parseContentWithImages(post.content || '');
     
-    contentLines.forEach((line: string) => {
-      if (yPosition > 270) {
-        doc.addPage();
-        addPageHeader(doc, black, white);
-        yPosition = 45;
+    for (const part of contentParts) {
+      if (part.type === 'text') {
+        const contentLines = doc.splitTextToSize(part.content, 170);
+        contentLines.forEach((line: string) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            addPageHeader(doc, black, white);
+            yPosition = 45;
+          }
+          doc.text(line, 20, yPosition);
+          yPosition += 5;
+        });
+      } else if (part.type === 'image') {
+        // Check if we need a new page for the image
+        if (yPosition > 200) {
+          doc.addPage();
+          addPageHeader(doc, black, white);
+          yPosition = 45;
+        }
+        
+        try {
+          const imageAdded = await addImageToPDF(doc, part.src, 20, yPosition, 170);
+          if (imageAdded.success) {
+            yPosition = imageAdded.newY + 5;
+          } else {
+            // Show image URL as fallback
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+            doc.text(`[Image: ${part.src}]`, 20, yPosition);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+            yPosition += 5;
+          }
+        } catch (error) {
+          // Fallback for failed images
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+          doc.text(`[Image: ${part.src}]`, 20, yPosition);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+          yPosition += 5;
+        }
       }
-      doc.text(line, 20, yPosition);
-      yPosition += 5;
-    });
+    }
     
-    // Attachments section
+    // Attachments section with images
     if (post.attachments && post.attachments.length > 0) {
       yPosition += 3;
       doc.setFontSize(10);
@@ -169,34 +234,49 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
       
-      post.attachments.forEach((attachment: any) => {
-        if (yPosition > 270) {
+      for (const attachment of post.attachments) {
+        if (yPosition > 250) {
           doc.addPage();
           addPageHeader(doc, black, white);
           yPosition = 45;
         }
-        const attachmentText = `• ${attachment.title || attachment.filename || 'Attachment'} (${attachment.mime_type || 'file'})`;
-        doc.text(attachmentText, 25, yPosition);
-        if (attachment.url) {
-          doc.setTextColor(accentBlue[0], accentBlue[1], accentBlue[2]);
-          doc.textWithLink('[View]', 180, yPosition, { url: attachment.url });
-          doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+        
+        // Check if attachment is an image
+        if (attachment.mime_type && attachment.mime_type.startsWith('image/') && attachment.url) {
+          try {
+            const imageAdded = await addImageToPDF(doc, attachment.url, 25, yPosition, 100);
+            if (imageAdded.success) {
+              // Add caption for the image
+              doc.setFontSize(8);
+              doc.text(attachment.title || attachment.filename || 'Attachment', 25, imageAdded.newY + 3);
+              yPosition = imageAdded.newY + 8;
+            } else {
+              // Text fallback
+              const attachmentText = `• ${attachment.title || attachment.filename || 'Attachment'} (${attachment.mime_type || 'file'})`;
+              doc.text(attachmentText, 25, yPosition);
+              yPosition += 4;
+            }
+          } catch (error) {
+            // Text fallback
+            const attachmentText = `• ${attachment.title || attachment.filename || 'Attachment'} (${attachment.mime_type || 'file'})`;
+            doc.text(attachmentText, 25, yPosition);
+            yPosition += 4;
+          }
+        } else {
+          // Non-image attachment
+          const attachmentText = `• ${attachment.title || attachment.filename || 'Attachment'} (${attachment.mime_type || 'file'})`;
+          doc.text(attachmentText, 25, yPosition);
+          if (attachment.url) {
+            doc.setTextColor(accentBlue[0], accentBlue[1], accentBlue[2]);
+            doc.textWithLink('[View]', 180, yPosition, { url: attachment.url });
+            doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+          }
+          yPosition += 4;
         }
-        yPosition += 4;
-      });
+      }
     }
     
-    // Featured media
-    if (post.featured_media_url) {
-      yPosition += 3;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
-      doc.text(`[Featured Image: ${post.featured_media_url}]`, 20, yPosition);
-      yPosition += 5;
-    }
-    
-    // Comments section with improved formatting
+    // Comments section (unchanged)
     if (options.includeComments && post.comments && post.comments.length > 0) {
       yPosition += 5;
       
@@ -256,7 +336,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
       doc.line(20, yPosition, 190, yPosition);
       yPosition += 10;
     }
-  });
+  }
   
   // Add page numbers and footer to all pages
   const pageCount = doc.getNumberOfPages();
@@ -278,6 +358,187 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
   
   return doc;
 };
+
+// Helper function to add images to PDF
+async function addImageToPDF(
+  doc: jsPDF, 
+  imageUrl: string, 
+  x: number, 
+  y: number, 
+  maxWidth: number
+): Promise<{ success: boolean; newY: number }> {
+  try {
+    // Check cache first
+    let imageData = imageCache.get(imageUrl);
+    
+    if (!imageData) {
+      // Load image
+      const img = await loadImage(imageUrl);
+      if (!img) {
+        return { success: false, newY: y };
+      }
+      
+      // Calculate dimensions
+      const aspectRatio = img.height / img.width;
+      let width = Math.min(img.width, maxWidth);
+      let height = width * aspectRatio;
+      
+      // Limit height to prevent page overflow
+      const maxHeight = 100;
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height / aspectRatio;
+      }
+      
+      imageData = {
+        width,
+        height,
+        data: img.data
+      };
+      
+      // Cache the processed image
+      imageCache.set(imageUrl, imageData);
+    }
+    
+    // Add image to PDF
+    doc.addImage(imageData.data, 'JPEG', x, y, imageData.width, imageData.height);
+    
+    return { success: true, newY: y + imageData.height };
+  } catch (error) {
+    console.error('Failed to add image to PDF:', imageUrl, error);
+    return { success: false, newY: y };
+  }
+}
+
+// Helper function to load images
+async function loadImage(url: string): Promise<{ width: number; height: number; data: string } | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(null);
+        return;
+      }
+      
+      ctx.drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
+      resolve({
+        width: img.width,
+        height: img.height,
+        data: dataUrl
+      });
+    };
+    
+    img.onerror = () => {
+      console.error('Failed to load image:', url);
+      resolve(null);
+    };
+    
+    // Handle relative URLs and proxy if needed
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      // For external images, we might need a proxy to avoid CORS issues
+      // For now, try direct load with CORS
+      img.src = url;
+    } else {
+      // Relative URL - prepend base URL
+      img.src = url.startsWith('/') ? `${window.location.origin}${url}` : url;
+    }
+    
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      resolve(null);
+    }, 5000);
+  });
+}
+
+// Helper function to parse content and extract images
+async function parseContentWithImages(html: string): Promise<Array<{ type: 'text' | 'image'; content?: string; src?: string }>> {
+  const parts: Array<{ type: 'text' | 'image'; content?: string; src?: string }> = [];
+  
+  // Create a temporary div to parse HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Extract images and replace with placeholders
+  const images = tempDiv.querySelectorAll('img');
+  const imageMap = new Map<string, string>();
+  
+  images.forEach((img, index) => {
+    const placeholder = `__IMAGE_${index}__`;
+    const src = img.src || img.getAttribute('data-src') || img.getAttribute('src') || '';
+    if (src) {
+      imageMap.set(placeholder, src);
+      img.replaceWith(placeholder);
+    }
+  });
+  
+  // Get cleaned text content
+  const textContent = cleanHtmlContent(tempDiv.innerHTML);
+  
+  // Split text by image placeholders
+  const lines = textContent.split('\n');
+  
+  for (const line of lines) {
+    if (line.includes('__IMAGE_')) {
+      // Check if this line contains an image placeholder
+      const match = line.match(/__IMAGE_(\d+)__/);
+      if (match) {
+        const placeholder = match[0];
+        const src = imageMap.get(placeholder);
+        
+        // Add text before image if any
+        const beforeText = line.substring(0, match.index).trim();
+        if (beforeText) {
+          parts.push({ type: 'text', content: beforeText });
+        }
+        
+        // Add image
+        if (src) {
+          parts.push({ type: 'image', src });
+        }
+        
+        // Add text after image if any
+        const afterText = line.substring(match.index + placeholder.length).trim();
+        if (afterText) {
+          parts.push({ type: 'text', content: afterText });
+        }
+      } else {
+        parts.push({ type: 'text', content: line });
+      }
+    } else if (line.trim()) {
+      parts.push({ type: 'text', content: line });
+    }
+  }
+  
+  // Combine consecutive text parts
+  const combinedParts: Array<{ type: 'text' | 'image'; content?: string; src?: string }> = [];
+  let currentText = '';
+  
+  for (const part of parts) {
+    if (part.type === 'text') {
+      currentText += (currentText ? '\n' : '') + part.content;
+    } else {
+      if (currentText) {
+        combinedParts.push({ type: 'text', content: currentText });
+        currentText = '';
+      }
+      combinedParts.push(part);
+    }
+  }
+  
+  if (currentText) {
+    combinedParts.push({ type: 'text', content: currentText });
+  }
+  
+  return combinedParts;
+}
 
 // Helper function to add page header on new pages
 function addPageHeader(doc: jsPDF, black: [number, number, number], white: [number, number, number]) {
@@ -318,8 +579,8 @@ function cleanHtmlContent(html: string): string {
   return text;
 }
 
-export const downloadPDF = (posts: Post[], filename?: string, options?: { includeComments?: boolean; includeTags?: boolean }) => {
-  const doc = generatePDF(posts, options);
+export const downloadPDF = async (posts: Post[], filename?: string, options?: { includeComments?: boolean; includeTags?: boolean }) => {
+  const doc = await generatePDF(posts, options);
   const defaultFilename = `vector-export-${Date.now()}.pdf`;
   doc.save(filename || defaultFilename);
 };

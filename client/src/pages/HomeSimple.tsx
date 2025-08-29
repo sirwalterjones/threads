@@ -1698,8 +1698,8 @@ const HomeSimple: React.FC = () => {
                   // Dynamically import PDF export utility
                   const { downloadPDF } = await import('../utils/pdfExport');
                   
-                  // Generate and download PDF on client side
-                  downloadPDF(data.posts, undefined, {
+                  // Generate and download PDF on client side (now async)
+                  await downloadPDF(data.posts, undefined, {
                     includeComments: true,
                     includeTags: true
                   });
