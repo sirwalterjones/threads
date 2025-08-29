@@ -389,9 +389,11 @@ class BOLOService {
    * Get BOLO by public token
    */
   async getBOLOByPublicToken(token) {
+    // If someone has the share token, they should be able to view it
+    // regardless of is_public flag (the token IS the authorization)
     const result = await pool.query(
-      'SELECT id FROM bolos WHERE public_share_token = $1 AND is_public = true AND status = $2',
-      [token, 'active']
+      'SELECT id FROM bolos WHERE public_share_token = $1 AND status != $2',
+      [token, 'cancelled']
     );
     
     if (result.rows.length === 0) {
