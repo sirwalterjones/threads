@@ -21,13 +21,13 @@ interface Comment {
 export const generatePDF = (posts: Post[], options: { includeComments?: boolean; includeTags?: boolean } = {}) => {
   const doc = new jsPDF();
   
-  // Set up colors
-  const primaryColor = [102, 126, 234]; // Vector brand color
-  const textColor = [26, 26, 26];
-  const lightGray = [248, 249, 250];
+  // Set up colors - use as individual parameters instead of spread
+  const primaryColor: [number, number, number] = [102, 126, 234]; // Vector brand color
+  const textColor: [number, number, number] = [26, 26, 26];
+  const lightGray: [number, number, number] = [248, 249, 250];
   
   // Add header with gradient effect (simulated)
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(0, 0, 210, 40, 'F');
   
   // Add title
@@ -41,7 +41,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
   doc.text('Knowledge Sharing Platform', 105, 30, { align: 'center' });
   
   // Reset text color
-  doc.setTextColor(...textColor);
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   
   // Add export info
   let yPosition = 50;
@@ -85,7 +85,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
     }
     
     // Reset text color
-    doc.setTextColor(...textColor);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     
     // Post content
     doc.setFontSize(10);
@@ -118,7 +118,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
       doc.setTextColor(108, 117, 125);
       doc.text('... (content truncated)', 20, yPosition);
       yPosition += 5;
-      doc.setTextColor(...textColor);
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     }
     
     // Comments
@@ -144,7 +144,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
         yPosition += 4;
         
         // Comment content
-        doc.setTextColor(...textColor);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         const commentLines = doc.splitTextToSize(comment.content.slice(0, 200), 160);
         const maxCommentLines = Math.min(commentLines.length, 3);
         
@@ -158,7 +158,7 @@ export const generatePDF = (posts: Post[], options: { includeComments?: boolean;
       if (post.comments.length > 3) {
         doc.setTextColor(108, 117, 125);
         doc.text(`... and ${post.comments.length - 3} more comments`, 25, yPosition);
-        doc.setTextColor(...textColor);
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         yPosition += 5;
       }
     }
