@@ -31,7 +31,8 @@ import {
   DialogTitle,
   DialogContent,
   Badge,
-  Autocomplete
+  Autocomplete,
+  Checkbox
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -42,7 +43,12 @@ import {
   HelpOutline,
   Feed,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  FileDownload,
+  CheckBox,
+  CheckBoxOutlineBlank,
+  SelectAll,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { Post, Category, SearchFilters } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
@@ -91,6 +97,8 @@ const HomeSimple: React.FC = () => {
   const [helpOpen, setHelpOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [exportMode, setExportMode] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
 
   const categoryByName = useMemo(() => {
     const map = new Map<string, Category>();
@@ -1563,11 +1571,40 @@ const HomeSimple: React.FC = () => {
                 ))}
               </Box>
 
-              <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={(_, newMode) => newMode && setViewMode(newMode)}
-                size="small"
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button
+                  variant={exportMode ? 'contained' : 'outlined'}
+                  startIcon={<FileDownload />}
+                  onClick={() => {
+                    setExportMode(!exportMode);
+                    setSelectedPosts(new Set());
+                  }}
+                  size="small"
+                  sx={{
+                    borderRadius: '8px',
+                    borderColor: '#2F3336',
+                    color: exportMode ? '#ffffff' : '#E7E9EA',
+                    backgroundColor: exportMode ? '#1D9BF0' : 'transparent',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    px: 2,
+                    py: 1,
+                    textTransform: 'none',
+                    '&:hover': {
+                      borderColor: '#1D9BF0',
+                      backgroundColor: exportMode ? '#1a8cd8' : 'rgba(29, 155, 240, 0.1)',
+                      color: exportMode ? '#ffffff' : '#1D9BF0'
+                    }
+                  }}
+                >
+                  Export Mode
+                </Button>
+
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={(_, newMode) => newMode && setViewMode(newMode)}
+                  size="small"
                 sx={{
                   display: { xs: 'flex', sm: 'flex' },
                   '& .MuiToggleButton-root': {
@@ -1604,9 +1641,122 @@ const HomeSimple: React.FC = () => {
                   <Feed />
                 </ToggleButton>
               </ToggleButtonGroup>
+              </Box>
             </Box>
           </CardContent>
         </Card>
+
+        {/* Floating Export Toolbar */}
+        {exportMode && selectedPosts.size > 0 && (
+          <Paper
+            sx={{
+              position: 'fixed',
+              bottom: 24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1300,
+              backgroundColor: '#1F2937',
+              border: '1px solid #374151',
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+              {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
+            </Typography>
+            
+            <Button
+              variant="contained"
+              startIcon={<FileDownload />}
+              onClick={async () => {
+                try {
+                  const token = localStorage.getItem('token');
+                  const response = await fetch('/api/export/pdf', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      postIds: Array.from(selectedPosts),
+                      includeComments: true,
+                      includeTags: true
+                    })
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('Export failed');
+                  }
+                  
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `vector-threads-export-${Date.now()}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                  
+                  // Reset export mode
+                  setExportMode(false);
+                  setSelectedPosts(new Set());
+                } catch (error) {
+                  console.error('Export error:', error);
+                  alert('Failed to export posts. Please try again.');
+                }
+              }}
+              sx={{
+                backgroundColor: '#1D9BF0',
+                '&:hover': {
+                  backgroundColor: '#1a8cd8'
+                }
+              }}
+            >
+              Export PDF
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<SelectAll />}
+              onClick={() => {
+                const allPostIds = new Set(posts.map(p => p.id));
+                setSelectedPosts(allPostIds);
+              }}
+              sx={{
+                borderColor: '#374151',
+                color: '#9CA3AF',
+                '&:hover': {
+                  borderColor: '#6B7280',
+                  backgroundColor: 'rgba(156, 163, 175, 0.1)'
+                }
+              }}
+            >
+              Select All
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<ClearIcon />}
+              onClick={() => setSelectedPosts(new Set())}
+              sx={{
+                borderColor: '#374151',
+                color: '#9CA3AF',
+                '&:hover': {
+                  borderColor: '#6B7280',
+                  backgroundColor: 'rgba(156, 163, 175, 0.1)'
+                }
+              }}
+            >
+              Clear
+            </Button>
+          </Paper>
+        )}
 
         
 
@@ -1678,13 +1828,61 @@ const HomeSimple: React.FC = () => {
                       borderRadius: 2,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease-in-out',
+                      position: 'relative',
                       '&:hover': {
                         transform: 'translateY(-2px)',
                         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                       },
                     }}
-                    onClick={() => handlePostClick(post.id)}
+                    onClick={() => {
+                      if (exportMode) {
+                        const newSelected = new Set(selectedPosts);
+                        if (newSelected.has(post.id)) {
+                          newSelected.delete(post.id);
+                        } else {
+                          newSelected.add(post.id);
+                        }
+                        setSelectedPosts(newSelected);
+                      } else {
+                        handlePostClick(post.id);
+                      }
+                    }}
                   >
+                    {/* Export Mode Checkbox */}
+                    {exportMode && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 8,
+                          zIndex: 1,
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          borderRadius: 1,
+                          p: 0.5
+                        }}
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newSelected = new Set(selectedPosts);
+                            if (newSelected.has(post.id)) {
+                              newSelected.delete(post.id);
+                            } else {
+                              newSelected.add(post.id);
+                            }
+                            setSelectedPosts(newSelected);
+                          }}
+                          sx={{ p: 0 }}
+                        >
+                          {selectedPosts.has(post.id) ? (
+                            <CheckBox sx={{ color: '#1D9BF0' }} />
+                          ) : (
+                            <CheckBoxOutlineBlank sx={{ color: '#71767B' }} />
+                          )}
+                        </IconButton>
+                      </Box>
+                    )}
                     <CardContent>
                       {/* Media Gallery - prefer uploaded attachments; fallback to first image(s) in content */}
                       {post.attachments && post.attachments.length > 0 && (

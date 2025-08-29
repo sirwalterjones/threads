@@ -42,6 +42,7 @@ const intelReportsRoutes = require('./routes/intel-reports');
 const securityDashboardRoutes = require('./routes/security-dashboard');
 const incidentResponseRoutes = require('./routes/incident-response');
 const complianceGovernanceRoutes = require('./routes/compliance-governance');
+const exportRoutes = require('./routes/export');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -310,6 +311,7 @@ app.use('/api/intel-reports', intelReportsRoutes);
 app.use('/api/security-dashboard', securityDashboardRoutes);
 app.use('/api/incident-response', incidentResponseRoutes);
 app.use('/api/compliance-governance', complianceGovernanceRoutes);
+app.use('/api/export', exportRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
