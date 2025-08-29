@@ -35,19 +35,20 @@ const imageCache: Map<string, ImageInfo> = new Map();
 
 // Vector Intelligence color palette
 const colors = {
-  primary: [255, 255, 255],      // White for headers on black
-  secondary: [255, 255, 255],     // White for body text on black
+  primary: [20, 20, 20],         // Dark for main headers
+  secondary: [40, 40, 40],       // Dark gray for body text
   accent: [41, 98, 255],         // Bright blue for links
-  muted: [180, 180, 180],        // Light gray for metadata
-  light: [30, 30, 30],           // Dark gray for subtle backgrounds
-  border: [60, 60, 60],          // Dark border color
+  muted: [100, 100, 100],        // Medium gray for metadata
+  light: [245, 245, 245],        // Light gray for subtle backgrounds
+  border: [200, 200, 200],       // Light border color
   headerBg: [0, 0, 0],           // Black background for header
-  bodyBg: [10, 10, 10],          // Very dark background
+  headerText: [255, 255, 255],   // White text for header
+  bodyBg: [255, 255, 255],       // White background for body
   success: [34, 197, 94],        // Green for success
   warning: [251, 146, 60],       // Orange for warnings
   danger: [239, 68, 68],         // Red for critical
-  code: [200, 200, 200],         // Light gray for code
-  codeBg: [20, 20, 20],          // Dark background for code blocks
+  code: [50, 50, 50],            // Dark gray for code
+  codeBg: [248, 248, 248],       // Light background for code blocks
 };
 
 // Typography settings
@@ -352,13 +353,13 @@ export async function downloadPDF(
     // Title
     doc.setFont(fonts.heading, 'bold');
     doc.setFontSize(fontSizes.h4);
-    doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
     doc.text('VECTOR INTELLIGENCE', 18, 10);
     
     // Page number
     doc.setFont(fonts.body, 'normal');
     doc.setFontSize(fontSizes.small);
-    doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
+    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
     doc.text(`Page ${pageNum}`, 195, 10, { align: 'right' });
     
     // No separator line needed with black background
@@ -483,7 +484,13 @@ export async function downloadPDF(
         yPosition = 25;
       }
       
-      // Skip empty text segments
+      // Handle line breaks
+      if (segment.text === '\n') {
+        yPosition += 3; // Add space for line break
+        continue;
+      }
+      
+      // Skip completely empty text segments (but not line breaks)
       if (!segment.text.trim()) continue;
       
       // Set font styles based on formatting
