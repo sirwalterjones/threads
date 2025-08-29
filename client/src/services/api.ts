@@ -293,6 +293,23 @@ class ApiService {
     return response.data;
   }
 
+  async getExpiringIntelReports(filters: {
+    page?: number;
+    limit?: number;
+    daysUntilExpiry?: number;
+  }): Promise<{ reports: any[]; pagination: any }> {
+    const params = new URLSearchParams();
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const response = await axios.get(`${API_BASE_URL}/intel-reports/expiring?${params.toString()}`);
+    return response.data;
+  }
+
   async updatePostRetention(id: number, retentionDays: number): Promise<Post> {
     const response: AxiosResponse<Post> = await axios.put(
       `${API_BASE_URL}/admin/posts/${id}/retention`,

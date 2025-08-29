@@ -267,7 +267,7 @@ router.get('/users',
   async (req, res) => {
     try {
       const result = await pool.query(`
-        SELECT id, username, email, role, created_at, last_login, is_active, super_admin
+        SELECT id, username, email, role, created_at, last_login, is_active, super_admin, modules
         FROM users
         ORDER BY created_at DESC
       `);
@@ -314,21 +314,42 @@ router.delete('/users/:id',
         await client.query('BEGIN');
         
         // Delete related records first to avoid foreign key constraints
+        // Check if tables exist before deleting
+        
         // Delete audit logs
-        await client.query('DELETE FROM audit_log WHERE user_id = $1', [id]);
-        await client.query('DELETE FROM cjis_audit_log WHERE user_id = $1', [id]);
+        const auditLogExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'audit_log'
+          );
+        `);
+        if (auditLogExists.rows[0].exists) {
+          await client.query('DELETE FROM audit_log WHERE user_id = $1', [id]);
+        }
+        
+        const cjisAuditExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'cjis_audit_log'
+          );
+        `);
+        if (cjisAuditExists.rows[0].exists) {
+          await client.query('DELETE FROM cjis_audit_log WHERE user_id = $1', [id]);
+        }
         
         // Delete user sessions
-        await client.query('DELETE FROM user_sessions WHERE user_id = $1', [id]);
+        const sessionsExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'user_sessions'
+          );
+        `);
+        if (sessionsExists.rows[0].exists) {
+          await client.query('DELETE FROM user_sessions WHERE user_id = $1', [id]);
+        }
         
         // Delete user follows
         await client.query('DELETE FROM user_follows WHERE user_id = $1', [id]);
-        
-        // Delete password history
-        await client.query('DELETE FROM password_history WHERE user_id = $1', [id]);
-        
-        // Delete MFA data
-        await client.query('DELETE FROM user_mfa WHERE user_id = $1', [id]);
         
         // Delete comments
         await client.query('DELETE FROM comments WHERE user_id = $1', [id]);
@@ -475,7 +496,7 @@ router.put('/users/:id',
         UPDATE users 
         SET ${updateFields.join(', ')}
         WHERE id = $${paramIndex}
-        RETURNING id, username, email, role, is_active, updated_at
+        RETURNING id, username, email, role, is_active, updated_at, modules
       `, queryParams);
       
       if (result.rows.length === 0) {

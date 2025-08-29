@@ -21,6 +21,7 @@ import SecurityDashboard from './components/SecurityDashboard';
 import TagPosts from './pages/TagPosts';
 import BOLOFeed from './components/BOLO/BOLOFeed';
 import BOLOManagement from './components/BOLO/BOLOManagement';
+import BOLOCreateForm from './components/BOLO/BOLOCreateForm';
 import BOLOEditForm from './components/BOLO/BOLOEditForm';
 import BOLODetailStyled from './components/BOLO/BOLODetailStyled';
 import PublicBOLOViewStyled from './components/BOLO/PublicBOLOViewStyled';
@@ -115,6 +116,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/tags/:tagName" element={<TagPosts />} />
                 <Route path="/tables" element={<Home />} />
                 <Route path="/bolo" element={<BOLOFeed />} />
+                <Route path="/bolo/new" element={<BOLOCreateForm />} />
                 <Route path="/bolo/manage" element={<BOLOManagement />} />
                 <Route path="/bolo/edit/:id" element={<BOLOEditForm />} />
                 <Route path="/bolo/:id" element={<BOLODetailStyled />} />

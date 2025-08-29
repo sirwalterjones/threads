@@ -869,6 +869,98 @@ router.get('/stats/overview', authenticateToken, async (req, res) => {
   }
 });
 
+// Get expiring intel reports
+router.get('/expiring', authenticateToken, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 50, 
+      daysUntilExpiry = 30 
+    } = req.query;
+    
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Get Intel Reports and posts from Intel Report category that are expiring
+    const query = `
+      WITH all_intel AS (
+        -- Get Intel Reports
+        SELECT 
+          ir.id,
+          ir.intel_number as title,
+          ir.report_narrative as content,
+          ir.agent_name as author_name,
+          ir.created_at,
+          ir.expires_at as retention_date,
+          'intel_report' as type,
+          ir.classification as category_name
+        FROM intel_reports ir
+        WHERE ir.expires_at IS NOT NULL
+          AND ir.expires_at <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+          AND ir.expires_at > NOW()
+        
+        UNION ALL
+        
+        -- Get posts from Intel Report category
+        SELECT 
+          p.id,
+          p.title,
+          p.content,
+          p.author_name,
+          p.ingested_at as created_at,
+          p.retention_date,
+          'post' as type,
+          c.name as category_name
+        FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE c.name = 'Intel Report'
+          AND p.retention_date IS NOT NULL
+          AND p.retention_date <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+          AND p.retention_date > NOW()
+      )
+      SELECT * FROM all_intel
+      ORDER BY retention_date ASC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const countQuery = `
+      WITH all_intel AS (
+        SELECT ir.id FROM intel_reports ir
+        WHERE ir.expires_at IS NOT NULL
+          AND ir.expires_at <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+          AND ir.expires_at > NOW()
+        
+        UNION ALL
+        
+        SELECT p.id FROM posts p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE c.name = 'Intel Report'
+          AND p.retention_date IS NOT NULL
+          AND p.retention_date <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
+          AND p.retention_date > NOW()
+      )
+      SELECT COUNT(*) as total FROM all_intel
+    `;
+    
+    const [reportsResult, countResult] = await Promise.all([
+      pool.query(query, [parseInt(limit), offset]),
+      pool.query(countQuery)
+    ]);
+    
+    res.json({
+      reports: reportsResult.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: parseInt(countResult.rows[0].total),
+        pages: Math.ceil(parseInt(countResult.rows[0].total) / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching expiring intel reports:', error);
+    res.status(500).json({ error: 'Failed to fetch expiring intel reports' });
+  }
+});
+
 // Helper function to generate intel number
 async function generateIntelNumber() {
   const year = new Date().getFullYear();

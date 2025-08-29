@@ -45,15 +45,15 @@ import { Post } from '../types';
 import { format, addDays, differenceInDays, parseISO } from 'date-fns';
 
 const PostExpiration: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<any[]>([]);
   const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [authorFilter, setAuthorFilter] = useState('');
-  const [daysFilter, setDaysFilter] = useState('30'); // Show posts expiring in 30 days
+  const [daysFilter, setDaysFilter] = useState('30'); // Show intel reports expiring in 30 days
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(25);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
@@ -73,14 +73,14 @@ const PostExpiration: React.FC = () => {
   const loadExpiringPosts = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getExpiringPosts({
+      const response = await apiService.getExpiringIntelReports({
         page: 1,
         limit: 1000,
         daysUntilExpiry: parseInt(daysFilter)
       });
-      setPosts(response.posts || []);
+      setPosts(response.reports || []);
     } catch (e: any) {
-      setError(e?.response?.data?.error || 'Failed to load expiring posts');
+      setError(e?.response?.data?.error || 'Failed to load expiring intel reports');
     } finally {
       setLoading(false);
     }
@@ -91,11 +91,11 @@ const PostExpiration: React.FC = () => {
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(post =>
-        post.title?.toLowerCase().includes(query) ||
-        post.author_name?.toLowerCase().includes(query) ||
-        post.category_name?.toLowerCase().includes(query) ||
-        post.content?.toLowerCase().includes(query)
+      filtered = filtered.filter(report =>
+        report.title?.toLowerCase().includes(query) ||
+        report.author_name?.toLowerCase().includes(query) ||
+        report.category_name?.toLowerCase().includes(query) ||
+        report.content?.toLowerCase().includes(query)
       );
     }
 
