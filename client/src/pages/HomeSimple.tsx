@@ -1652,9 +1652,10 @@ const HomeSimple: React.FC = () => {
             sx={{
               position: 'fixed',
               bottom: 24,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 1300,
+              right: 24, // Move to right side to avoid pagination
+              left: 'auto',
+              transform: 'none',
+              zIndex: 1200, // Lower z-index to avoid overlapping modals
               backgroundColor: '#1F2937',
               border: '1px solid #374151',
               borderRadius: 2,
@@ -1701,7 +1702,8 @@ const HomeSimple: React.FC = () => {
                   // Generate and download PDF on client side (now async)
                   await downloadPDF(data.posts, undefined, {
                     includeComments: true,
-                    includeTags: true
+                    includeTags: true,
+                    user: data.user
                   });
                   
                   // Reset export mode
@@ -2335,6 +2337,7 @@ const HomeSimple: React.FC = () => {
                 display: 'flex', 
                 justifyContent: 'center', 
                 mt: { xs: 3, sm: 4 },
+                mb: exportMode && selectedPosts.size > 0 ? 10 : 0, // Add margin when floating bar is visible
                 px: { xs: 2, sm: 0 } // Add padding on mobile
               }}>
                 <Box sx={{ 

@@ -264,18 +264,84 @@ router.delete('/:id',
       
       // Check if comment exists and user owns it (or is admin)
       const commentCheck = await pool.query(`
-        SELECT user_id FROM comments WHERE id = $1
+        SELECT user_id, content, post_id FROM comments WHERE id = $1
       `, [id]);
       
       if (commentCheck.rows.length === 0) {
         return res.status(404).json({ error: 'Comment not found' });
       }
       
-      const commentUserId = commentCheck.rows[0].user_id;
+      const { user_id: commentUserId, content, post_id: postId } = commentCheck.rows[0];
       if (commentUserId !== userId && req.user.role !== 'admin') {
         return res.status(403).json({ error: 'You can only delete your own comments' });
       }
       
+      // Extract hashtags from the comment that will be deleted
+      const deletedTags = extractHashtags(content);
+      
+      if (deletedTags.length > 0 && postId) {
+        // Get current post tags
+        const postResult = await pool.query('SELECT tags FROM posts WHERE id = $1', [postId]);
+        
+        if (postResult.rows.length > 0) {
+          const currentTags = postResult.rows[0].tags || [];
+          
+          // Get all other comments for this post to check if tags are still used
+          const otherCommentsResult = await pool.query(`
+            SELECT content FROM comments 
+            WHERE post_id = $1 AND id != $2
+          `, [postId, id]);
+          
+          // Collect all hashtags from remaining comments
+          const remainingTags = new Set();
+          otherCommentsResult.rows.forEach(row => {
+            const tags = extractHashtags(row.content);
+            tags.forEach(tag => remainingTags.add(tag.toLowerCase()));
+          });
+          
+          // Filter out tags that no longer exist in any remaining comment
+          const updatedTags = currentTags.filter(tag => {
+            const tagLower = tag.toLowerCase();
+            // Keep tag if it wasn't in the deleted comment OR if it still exists in other comments
+            return !deletedTags.some(dt => dt.toLowerCase() === tagLower) || remainingTags.has(tagLower);
+          });
+          
+          // Update post tags if they changed
+          if (updatedTags.length !== currentTags.length) {
+            await pool.query(`
+              UPDATE posts 
+              SET tags = $1 
+              WHERE id = $2
+            `, [updatedTags.length > 0 ? updatedTags : null, postId]);
+            
+            // Also update normalized tags
+            const client = await pool.connect();
+            try {
+              await client.query('BEGIN');
+              
+              // Remove tag associations that are no longer needed
+              const tagsToRemove = currentTags.filter(tag => !updatedTags.includes(tag));
+              if (tagsToRemove.length > 0) {
+                await client.query(`
+                  DELETE FROM post_tags 
+                  WHERE post_id = $1 AND tag_id IN (
+                    SELECT id FROM tags WHERE name = ANY($2)
+                  )
+                `, [postId, tagsToRemove.map(t => t.replace('#', '').toLowerCase())]);
+              }
+              
+              await client.query('COMMIT');
+            } catch (error) {
+              await client.query('ROLLBACK');
+              console.error('Error updating normalized tags:', error);
+            } finally {
+              client.release();
+            }
+          }
+        }
+      }
+      
+      // Delete the comment
       await pool.query('DELETE FROM comments WHERE id = $1', [id]);
       
       res.json({ message: 'Comment deleted successfully' });
