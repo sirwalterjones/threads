@@ -597,16 +597,33 @@ export async function downloadPDF(
           doc.textWithLink(line, indent, yPosition, { url: segment.link });
           doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
         } else if (segment.header && segment.header <= 3) {
-          // Center h1, h2, h3 headers
-          doc.text(line, 105, yPosition, { align: 'center' });
+          // Check if this is an intel report field that should be left-aligned
+          const isIntelField = line.includes('Date of Report') || 
+                              line.includes('Time of Report') || 
+                              line.includes('Incident Location') || 
+                              line.includes('Report Title') || 
+                              line.includes('Narrative');
+          
+          if (isIntelField) {
+            // Left align intel report fields
+            doc.text(line, indent, yPosition);
+          } else {
+            // Center h1, h2, h3 headers
+            doc.text(line, 105, yPosition, { align: 'center' });
+          }
         } else if (!segment.code && !segment.listItem && line.length < 60 && 
+                   !line.includes('Date of Report') &&
+                   !line.includes('Time of Report') &&
+                   !line.includes('Incident Location') &&
+                   !line.includes('Report Title') &&
                    (line === line.toUpperCase() || // All caps
                     line.match(/^\d{2}-\d{4}-\d{2}-\d{2}$/) || // Case number format
                     line.match(/^[A-Z][a-z]+ [A-Z][a-z]+ /) || // Title case multi-word
                     line.includes('Narrative') || 
                     line.includes('Report') ||
                     line.includes('Squad'))) {
-          // Center text that looks like headers (all caps, case numbers, or title-like)
+          // Center text that looks like headers (all caps, case numbers, or title-like) 
+          // unless they are intel report fields
           doc.text(line, 105, yPosition, { align: 'center' });
         } else {
           doc.text(line, segment.code ? 15 : indent, yPosition);

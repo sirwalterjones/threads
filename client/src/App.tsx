@@ -21,8 +21,8 @@ import SecurityDashboard from './components/SecurityDashboard';
 import TagPosts from './pages/TagPosts';
 import BOLOFeed from './components/BOLO/BOLOFeed';
 import BOLOManagement from './components/BOLO/BOLOManagement';
-import BOLODetail from './components/BOLO/BOLODetail';
-import PublicBOLOView from './components/BOLO/PublicBOLOView';
+import BOLODetailStyled from './components/BOLO/BOLODetailStyled';
+import PublicBOLOViewStyled from './components/BOLO/PublicBOLOViewStyled';
 import { CircularProgress, Box } from '@mui/material';
 
 // Theme is now controlled by ThemeModeProvider
@@ -89,7 +89,7 @@ const AppRoutes: React.FC = () => {
       />
       <Route 
         path="/bolo/public/:token" 
-        element={<PublicBOLOView />} 
+        element={<PublicBOLOViewStyled />} 
       />
       <Route
         path="/*"
@@ -115,7 +115,7 @@ const AppRoutes: React.FC = () => {
                 <Route path="/tables" element={<Home />} />
                 <Route path="/bolo" element={<BOLOFeed />} />
                 <Route path="/bolo/manage" element={<BOLOManagement />} />
-                <Route path="/bolo/:id" element={<BOLODetail />} />
+                <Route path="/bolo/:id" element={<BOLODetailStyled />} />
               </Routes>
             </Layout>
           </ProtectedRoute>

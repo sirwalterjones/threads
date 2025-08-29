@@ -104,6 +104,7 @@ class BOLOService {
       const bolo = boloResult.rows[0];
       
       // Process uploaded files
+      let primaryMediaId = null;
       if (files && files.length > 0) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
@@ -113,16 +114,16 @@ class BOLOService {
           const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
           
           // TODO: In production, upload file.buffer to cloud storage (S3, Cloudinary, etc.)
-          // For now, we'll store a placeholder URL
+          // For now, we'll use a placeholder URL in production
           const fileUrl = process.env.NODE_ENV === 'production' 
-            ? `/api/placeholder-image.jpg` // Placeholder for production
+            ? `https://via.placeholder.com/400x300.png?text=BOLO+Image` // Placeholder for production
             : `/uploads/bolo/${filename}`;
           
           const mediaResult = await client.query(`
             INSERT INTO bolo_media (
-              bolo_id, type, filename, original_name, url,
+              bolo_id, type, filename, original_name, url, thumbnail_url,
               mime_type, size, uploaded_by, is_primary, display_order
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING id
           `, [
             bolo.id,
@@ -130,12 +131,18 @@ class BOLOService {
             filename,
             file.originalname,
             fileUrl,
+            fileUrl, // Use same URL for thumbnail for now
             file.mimetype,
             file.size,
             userId,
             i === 0, // First file is primary
             i
           ]);
+          
+          // Store the first media ID as primary
+          if (i === 0) {
+            primaryMediaId = mediaResult.rows[0].id;
+          }
           
           // Update primary image reference if first image
           if (i === 0 && this.getMediaType(file.mimetype) === 'image') {

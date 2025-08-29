@@ -22,7 +22,10 @@ import {
   Group,
   LocalFireDepartment,
   Comment as CommentIcon,
-  LocalFireDepartment as HotListIcon
+  LocalFireDepartment as HotListIcon,
+  StickyNote2 as NoteIcon,
+  Shield as ShieldIcon,
+  Campaign as MegaphoneIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
@@ -155,6 +158,28 @@ const RightSidebar: React.FC = () => {
     navigate(`/search?category=${categoryId}`);
   };
 
+  const getPostTypeIcon = (thread: Post) => {
+    // Check if it's an intel report (check title or category)
+    if (thread.title?.toLowerCase().includes('intel') || 
+        thread.category_name?.toLowerCase().includes('intel')) {
+      return <ShieldIcon sx={{ fontSize: 14, color: '#1D9BF0' }} />;
+    }
+    
+    // Check if it's a BOLO (check title or category)
+    if (thread.title?.toLowerCase().includes('bolo') || 
+        thread.category_name?.toLowerCase().includes('bolo')) {
+      return <MegaphoneIcon sx={{ fontSize: 14, color: '#FF6B6B' }} />;
+    }
+    
+    // Check if it's from WordPress (has wp_post_id)
+    if (thread.wp_post_id) {
+      return <NoteIcon sx={{ fontSize: 14, color: '#FFA502' }} />;
+    }
+    
+    // Default for manual threads
+    return <NoteIcon sx={{ fontSize: 14, color: '#71767B' }} />;
+  };
+
   return (
     <Box sx={{ 
       position: 'fixed', 
@@ -191,8 +216,8 @@ const RightSidebar: React.FC = () => {
         }}
       >
         <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {/* Add Thread Button - Subtle and above Recent Threads header */}
-          <Box sx={{ p: 1, pb: 0.5, display: 'flex', justifyContent: 'center' }}>
+          {/* Add New Content Buttons */}
+          <Box sx={{ p: 1, pb: 0.5, display: 'flex', justifyContent: 'center', gap: 0.5 }}>
             <Button
               variant="outlined"
               size="small"
@@ -200,6 +225,33 @@ const RightSidebar: React.FC = () => {
                 const evt = new CustomEvent('open-new-post-modal');
                 window.dispatchEvent(evt);
               }}
+              startIcon={<NoteIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#E7E9EA',
+                backgroundColor: 'rgba(255, 165, 2, 0.1)',
+                fontSize: '11px',
+                fontWeight: 500,
+                px: 1,
+                py: 0.5,
+                minWidth: 'auto',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#FFA502',
+                  backgroundColor: 'rgba(255, 165, 2, 0.2)',
+                  color: '#FFA502'
+                }
+              }}
+            >
+              Thread
+            </Button>
+            
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => navigate('/intel-reports/new')}
+              startIcon={<ShieldIcon sx={{ fontSize: 14 }} />}
               sx={{
                 borderRadius: '8px',
                 borderColor: '#2F3336',
@@ -207,7 +259,7 @@ const RightSidebar: React.FC = () => {
                 backgroundColor: 'rgba(29, 155, 240, 0.1)',
                 fontSize: '11px',
                 fontWeight: 500,
-                px: 1.5,
+                px: 1,
                 py: 0.5,
                 minWidth: 'auto',
                 textTransform: 'none',
@@ -218,7 +270,33 @@ const RightSidebar: React.FC = () => {
                 }
               }}
             >
-              + Add Thread
+              Intel
+            </Button>
+            
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => navigate('/bolo/manage')}
+              startIcon={<MegaphoneIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                borderRadius: '8px',
+                borderColor: '#2F3336',
+                color: '#E7E9EA',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                fontSize: '11px',
+                fontWeight: 500,
+                px: 1,
+                py: 0.5,
+                minWidth: 'auto',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: '#FF6B6B',
+                  backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                  color: '#FF6B6B'
+                }
+              }}
+            >
+              BOLO
             </Button>
           </Box>
           
@@ -312,18 +390,27 @@ const RightSidebar: React.FC = () => {
                         }
                       }}
                     >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                        {getPostTypeIcon(thread)}
+                      </Box>
                       <ListItemText
                         primary={
-                          <Typography sx={{ 
-                            color: '#E7E9EA', 
-                            fontWeight: 500, 
-                            fontSize: '13px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {thread.title}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Typography sx={{ 
+                              color: '#E7E9EA', 
+                              fontWeight: 500, 
+                              fontSize: '13px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flex: 1
+                            }}>
+                              {thread.title}
+                            </Typography>
+                            {hotListMatches.has(thread.id) && (
+                              <HotListIcon sx={{ fontSize: 14, color: '#FF6B6B' }} />
+                            )}
+                          </Box>
                         }
                         secondary={
                           <Typography sx={{ 

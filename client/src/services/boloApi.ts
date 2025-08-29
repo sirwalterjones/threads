@@ -165,7 +165,7 @@ class BOLOApiService {
   /**
    * Toggle save/unsave BOLO
    */
-  async toggleSaveBOLO(id: number): Promise<{ saved: boolean; message: string }> {
+  async toggleSaveBOLO(id: number): Promise<boolean> {
     const response = await axios.post(
       `${API_BASE_URL}/bolo/${id}/save`,
       {},
@@ -174,13 +174,13 @@ class BOLOApiService {
       }
     );
     
-    return response.data;
+    return response.data.saved;
   }
 
   /**
    * Get saved BOLOs
    */
-  async getSavedBOLOs(limit: number = 20, offset: number = 0): Promise<{ bolos: BOLO[]; total: number }> {
+  async getSavedBOLOs(limit: number = 20, offset: number = 0): Promise<BOLO[]> {
     const response = await axios.get(
       `${API_BASE_URL}/bolo/saved/list?limit=${limit}&offset=${offset}`,
       {
@@ -188,7 +188,7 @@ class BOLOApiService {
       }
     );
     
-    return response.data;
+    return response.data.bolos || [];
   }
 
   /**

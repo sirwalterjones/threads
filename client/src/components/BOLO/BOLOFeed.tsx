@@ -13,7 +13,19 @@ import {
   Select,
   MenuItem,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab,
+  Snackbar,
+  Alert,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -29,7 +41,11 @@ import {
   Warning as WarningIcon,
   DirectionsCar as VehicleIcon,
   Person as PersonIcon,
-  HomeWork as PropertyIcon
+  HomeWork as PropertyIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Share as ShareIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material';
 import { BOLO, BOLOFilters, BOLOFeedResponse } from '../../types/bolo';
 import boloApi from '../../services/boloApi';
@@ -41,7 +57,9 @@ const BOLOFeed: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [bolos, setBolos] = useState<BOLO[]>([]);
+  const [savedBolos, setSavedBolos] = useState<BOLO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tabValue, setTabValue] = useState(0); // 0 = All, 1 = Saved
   const [filters, setFilters] = useState<BOLOFilters>({
     status: 'active',
     sortBy: 'created_at',
@@ -51,12 +69,20 @@ const BOLOFeed: React.FC = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [selectedBolo, setSelectedBolo] = useState<BOLO | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const canCreateBOLO = user?.role === 'admin' || user?.role === 'edit';
 
   useEffect(() => {
-    loadBOLOs();
-  }, [filters]);
+    if (tabValue === 0) {
+      loadBOLOs();
+    } else {
+      loadSavedBOLOs();
+    }
+  }, [filters, tabValue]);
 
   const loadBOLOs = async () => {
     try {
@@ -69,6 +95,18 @@ const BOLOFeed: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading BOLOs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSavedBOLOs = async () => {
+    try {
+      setLoading(true);
+      const saved = await boloApi.getSavedBOLOs();
+      setSavedBolos(saved);
+    } catch (error) {
+      console.error('Error loading saved BOLOs:', error);
     } finally {
       setLoading(false);
     }
@@ -94,25 +132,101 @@ const BOLOFeed: React.FC = () => {
     e.stopPropagation();
     try {
       await boloApi.repostBOLO(bolo.id);
-      loadBOLOs();
-    } catch (error) {
+      // Update the BOLO in the list
+      const updateBolo = (boloList: BOLO[]) => 
+        boloList.map(b => b.id === bolo.id ? { ...b, is_reposted: true, repost_count: b.repost_count + 1 } : b);
+      
+      if (tabValue === 0) {
+        setBolos(updateBolo);
+      } else {
+        setSavedBolos(updateBolo);
+      }
+      setSnackbar({ open: true, message: 'BOLO reposted successfully', severity: 'success' });
+    } catch (error: any) {
       console.error('Error reposting:', error);
+      setSnackbar({ 
+        open: true, 
+        message: error.message === 'Already reposted this BOLO' ? 'You have already reposted this BOLO' : 'Failed to repost', 
+        severity: 'error' 
+      });
     }
   };
 
   const handleSave = async (e: React.MouseEvent, bolo: BOLO) => {
     e.stopPropagation();
     try {
-      await boloApi.toggleSaveBOLO(bolo.id);
-      loadBOLOs();
+      const saved = await boloApi.toggleSaveBOLO(bolo.id);
+      // Update the BOLO in the list
+      const updateBolo = (boloList: BOLO[]) => 
+        boloList.map(b => b.id === bolo.id ? { ...b, is_saved: saved } : b);
+      
+      setBolos(updateBolo);
+      
+      if (saved) {
+        // If saved, refresh saved list
+        loadSavedBOLOs();
+        setSnackbar({ open: true, message: 'BOLO saved to your dashboard', severity: 'success' });
+      } else {
+        // If unsaved, remove from saved list
+        setSavedBolos(prev => prev.filter(b => b.id !== bolo.id));
+        setSnackbar({ open: true, message: 'BOLO removed from saved items', severity: 'success' });
+      }
     } catch (error) {
       console.error('Error saving:', error);
+      setSnackbar({ open: true, message: 'Failed to save BOLO', severity: 'error' });
     }
   };
 
   const handleComment = (e: React.MouseEvent, bolo: BOLO) => {
     e.stopPropagation();
     navigate(`/bolo/${bolo.id}#comments`);
+  };
+
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, bolo: BOLO) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+    setSelectedBolo(bolo);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleEdit = () => {
+    if (selectedBolo) {
+      navigate(`/bolo/${selectedBolo.id}`);
+    }
+    handleMenuClose();
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBolo) return;
+    
+    try {
+      // You would need to add a deleteBOLO method to boloApi
+      // await boloApi.deleteBOLO(selectedBolo.id);
+      setSnackbar({ open: true, message: 'Delete functionality not yet implemented', severity: 'error' });
+      setDeleteDialogOpen(false);
+      handleMenuClose();
+      // Reload BOLOs after deletion
+      // loadBOLOs();
+    } catch (error) {
+      console.error('Error deleting BOLO:', error);
+      setSnackbar({ open: true, message: 'Failed to delete BOLO', severity: 'error' });
+    }
+  };
+
+  const handleShare = () => {
+    if (selectedBolo?.public_share_token) {
+      const link = boloApi.getShareableLink(selectedBolo);
+      navigator.clipboard.writeText(link);
+      setSnackbar({ open: true, message: 'Share link copied to clipboard', severity: 'success' });
+    }
+    handleMenuClose();
+  };
+
+  const canEditBolo = (bolo: BOLO) => {
+    return user && (user.role === 'admin' || (user.role === 'edit' && bolo.created_by === user.id));
   };
 
   const getTypeIcon = (type: BOLO['type']) => {
@@ -270,15 +384,19 @@ const BOLOFeed: React.FC = () => {
           {bolo.is_saved ? <SavedIcon fontSize="small" /> : <SaveIcon fontSize="small" />}
         </button>
         
-        <button 
+        <IconButton 
           className="action more"
           aria-label="More options"
+          onClick={(e) => handleMenuOpen(e, bolo)}
+          size="small"
         >
           <MoreIcon fontSize="small" />
-        </button>
+        </IconButton>
       </footer>
     </section>
   );
+
+  const displayBolos = tabValue === 0 ? bolos : savedBolos;
 
   return (
     <Box className="bolo-feed-page">
@@ -286,7 +404,7 @@ const BOLOFeed: React.FC = () => {
         {/* Header Controls */}
         <Box className="feed-controls">
           <Typography variant="h4" className="feed-title">
-            BOLO Feed
+            {tabValue === 0 ? 'BOLO Feed' : 'Saved BOLOs'}
           </Typography>
           
           <Box className="feed-actions">
@@ -370,25 +488,37 @@ const BOLOFeed: React.FC = () => {
           </Box>
         </Box>
 
+        {/* Tabs */}
+        <Tabs 
+          value={tabValue} 
+          onChange={(e, newValue) => setTabValue(newValue)}
+          sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="All BOLOs" />
+          <Tab label="Saved BOLOs" />
+        </Tabs>
+
         {/* Feed Content */}
         <Box className="feed-content">
-          {loading && bolos.length === 0 ? (
+          {loading && displayBolos.length === 0 ? (
             <Box className="loading-container">
               <CircularProgress />
             </Box>
-          ) : bolos.length === 0 ? (
+          ) : displayBolos.length === 0 ? (
             <Box className="empty-state">
-              <Typography variant="h6">No BOLOs found</Typography>
+              <Typography variant="h6">
+                {tabValue === 0 ? 'No BOLOs found' : 'No saved BOLOs'}
+              </Typography>
               <Typography variant="body2" color="textSecondary">
-                Adjust your filters or create a new BOLO
+                {tabValue === 0 ? 'Adjust your filters or create a new BOLO' : 'Save BOLOs to see them here'}
               </Typography>
             </Box>
           ) : (
             <>
-              {bolos.map(bolo => renderBOLOCard(bolo))}
+              {displayBolos.map(bolo => renderBOLOCard(bolo))}
               
-              {/* Load More */}
-              {!loading && bolos.length >= (filters.limit || 20) && (
+              {/* Load More - only for all BOLOs tab */}
+              {tabValue === 0 && !loading && bolos.length >= (filters.limit || 20) && (
                 <Box className="load-more">
                   <Button
                     variant="outlined"
@@ -406,6 +536,71 @@ const BOLOFeed: React.FC = () => {
             </>
           )}
         </Box>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+
+        {/* More Options Menu */}
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+          PaperProps={{
+            sx: {
+              backgroundColor: 'background.paper',
+              minWidth: 180
+            }
+          }}
+        >
+          <MenuItem onClick={() => { navigate(`/bolo/${selectedBolo?.id}`); handleMenuClose(); }}>
+            <ListItemIcon><ViewIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>View Details</ListItemText>
+          </MenuItem>
+          
+          {selectedBolo && canEditBolo(selectedBolo) && (
+            <MenuItem onClick={handleEdit}>
+              <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
+              <ListItemText>Edit</ListItemText>
+            </MenuItem>
+          )}
+          
+          <MenuItem onClick={handleShare}>
+            <ListItemIcon><ShareIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Share</ListItemText>
+          </MenuItem>
+          
+          {selectedBolo && canEditBolo(selectedBolo) && (
+            <MenuItem onClick={() => { setDeleteDialogOpen(true); handleMenuClose(); }} sx={{ color: 'error.main' }}>
+              <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
+              <ListItemText>Delete</ListItemText>
+            </MenuItem>
+          )}
+        </Menu>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        >
+          <DialogTitle>Delete BOLO</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this BOLO? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleDelete} color="error" variant="contained">Delete</Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );
