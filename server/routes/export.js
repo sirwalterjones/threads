@@ -21,9 +21,8 @@ router.post('/pdf', authenticateToken, async (req, res) => {
         p.tags,
         p.created_at,
         p.likes_count,
-        u.username as author_name
+        p.author_name
       FROM posts p
-      LEFT JOIN users u ON p.author_id = u.id
       WHERE 1=1
     `;
     
@@ -36,10 +35,9 @@ router.post('/pdf', authenticateToken, async (req, res) => {
       queryParams.push(postIds);
       paramIndex++;
     } else {
-      // Default to user's posts if no specific IDs provided
-      query += ` AND p.author_id = $${paramIndex}`;
-      queryParams.push(userId);
-      paramIndex++;
+      // Default to all posts if no specific IDs provided - we'll limit the results
+      // Since we don't have a direct user->post relationship in the current schema
+      query += ` AND p.id > 0`;  // Just a placeholder condition
     }
     
     // Add date range filter if provided
@@ -57,6 +55,11 @@ router.post('/pdf', authenticateToken, async (req, res) => {
     }
     
     query += ' ORDER BY p.created_at DESC';
+    
+    // Add a limit if no specific posts were requested
+    if (!postIds || postIds.length === 0) {
+      query += ' LIMIT 50';  // Limit to 50 most recent posts for performance
+    }
     
     // Fetch posts
     const postsResult = await client.query(query, queryParams);
@@ -77,7 +80,7 @@ router.post('/pdf', authenticateToken, async (req, res) => {
           c.created_at,
           u.username as author_name
         FROM comments c
-        LEFT JOIN users u ON c.author_id = u.id
+        LEFT JOIN users u ON c.user_id = u.id
         WHERE c.post_id = ANY($1::int[])
         ORDER BY c.created_at ASC`,
         [postIdsToFetch]
