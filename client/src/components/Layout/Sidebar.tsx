@@ -24,7 +24,8 @@ import {
   ExitToApp as LogoutIcon,
   Whatshot as HotListIcon,
   Security as IntelIcon,
-  Shield as SecurityIcon
+  Shield as SecurityIcon,
+  Campaign as BOLOIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -114,7 +115,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const mainPages = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
     { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
-    { text: 'Hot List', icon: <HotListIcon />, path: '/hotlist', roles: ['view', 'edit', 'admin'] }
+    { text: 'Hot List', icon: <HotListIcon />, path: '/hotlist', roles: ['view', 'edit', 'admin'] },
+    { text: 'BOLO', icon: <BOLOIcon />, path: '/bolo', roles: ['view', 'edit', 'admin'] }
   ];
 
   const contentPages = [
