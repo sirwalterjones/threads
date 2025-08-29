@@ -168,7 +168,7 @@ const RightSidebar: React.FC = () => {
       overflowY: 'auto', // Make entire sidebar scrollable
       backgroundColor: '#000000', // Ensure black background
       '&::-webkit-scrollbar': { width: '8px' },
-      '&::-webkit-scrollbar-track': { background: '#16181C' },
+      '&::-webkit-scrollbar-track': { background: 'transparent' },
       '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
       '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
     }}>
@@ -182,11 +182,12 @@ const RightSidebar: React.FC = () => {
       <Card 
         sx={{ 
           mb: 2, 
-          backgroundColor: '#16181C', 
+          backgroundColor: 'transparent', 
           border: 'none',
           borderRadius: 0,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          boxShadow: 'none'
         }}
       >
         <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -257,7 +258,7 @@ const RightSidebar: React.FC = () => {
             minHeight: 0,
             WebkitOverflowScrolling: 'touch',
             '&::-webkit-scrollbar': { width: '8px' },
-            '&::-webkit-scrollbar-track': { background: '#16181C' },
+            '&::-webkit-scrollbar-track': { background: 'transparent' },
             '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
             '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
           }}>
@@ -285,7 +286,7 @@ const RightSidebar: React.FC = () => {
                       pb: 0.5, 
                       position: 'sticky', 
                       top: 0, 
-                      backgroundColor: '#16181C', 
+                      backgroundColor: '#000000', 
                       zIndex: 1 
                     }}>
                       <Typography sx={{ 
