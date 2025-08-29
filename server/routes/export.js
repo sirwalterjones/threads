@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
-const pdfGenerator = require('../services/pdfGenerator');
 const { authenticateToken } = require('../middleware/auth');
 
-// Export posts to PDF
-router.post('/pdf', authenticateToken, async (req, res) => {
+// Export posts data for PDF generation
+router.post('/pdf-data', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -107,33 +106,23 @@ router.post('/pdf', authenticateToken, async (req, res) => {
     );
     const user = userResult.rows[0];
     
-    // Generate PDF
-    const pdfBuffer = await pdfGenerator.generatePostsPDF(posts, user, {
-      includeComments,
-      includeTags,
-      dateRange: dateRange ? `${dateRange.start || 'Start'} to ${dateRange.end || 'End'}` : null
-    });
-    
     // Log the export
-    const exportLogResult = await client.query(
+    await client.query(
       `INSERT INTO export_logs (
         user_id, 
         export_type, 
         post_ids, 
         post_count, 
-        file_size,
         ip_address,
         user_agent,
         export_options,
         status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         userId,
         'pdf',
         posts.map(p => p.id),
         posts.length,
-        pdfBuffer.length,
         req.ip,
         req.get('user-agent'),
         JSON.stringify({ includeComments, includeTags, dateRange }),
@@ -141,15 +130,19 @@ router.post('/pdf', authenticateToken, async (req, res) => {
       ]
     );
     
-    // Send PDF response
-    const fileName = `vector-threads-export-${new Date().getTime()}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.send(pdfBuffer);
+    // Return data for client-side PDF generation
+    res.json({
+      posts,
+      user,
+      exportOptions: {
+        includeComments,
+        includeTags,
+        dateRange: dateRange ? `${dateRange.start || 'Start'} to ${dateRange.end || 'End'}` : null
+      }
+    });
     
   } catch (error) {
-    console.error('PDF export error:', error);
+    console.error('Export data error:', error);
     
     // Log failed export attempt
     try {
@@ -175,7 +168,7 @@ router.post('/pdf', authenticateToken, async (req, res) => {
       console.error('Failed to log export error:', logError);
     }
     
-    res.status(500).json({ error: 'Failed to generate PDF export' });
+    res.status(500).json({ error: 'Failed to prepare export data' });
   } finally {
     client.release();
   }

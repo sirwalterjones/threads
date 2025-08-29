@@ -1676,7 +1676,7 @@ const HomeSimple: React.FC = () => {
               onClick={async () => {
                 try {
                   const token = localStorage.getItem('token');
-                  const response = await fetch('/api/export/pdf', {
+                  const response = await fetch('/api/export/pdf-data', {
                     method: 'POST',
                     headers: {
                       'Authorization': `Bearer ${token}`,
@@ -1693,15 +1693,16 @@ const HomeSimple: React.FC = () => {
                     throw new Error('Export failed');
                   }
                   
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `vector-threads-export-${Date.now()}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
+                  const data = await response.json();
+                  
+                  // Dynamically import PDF export utility
+                  const { downloadPDF } = await import('../utils/pdfExport');
+                  
+                  // Generate and download PDF on client side
+                  downloadPDF(data.posts, undefined, {
+                    includeComments: true,
+                    includeTags: true
+                  });
                   
                   // Reset export mode
                   setExportMode(false);
