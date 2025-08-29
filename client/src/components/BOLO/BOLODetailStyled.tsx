@@ -476,6 +476,66 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
               )}
             </div>
 
+            {/* Media Gallery Section */}
+            {(bolo.primary_image_url || (bolo.media && bolo.media.length > 0)) && (
+              <div className="media-gallery-section">
+                <h3 className="section-title">Media</h3>
+                <div className="media-gallery">
+                  {/* Primary Image */}
+                  {bolo.primary_image_url && (
+                    <div className="media-item primary">
+                      {bolo.primary_image_url.startsWith('data:') ? (
+                        <img 
+                          src={bolo.primary_image_url} 
+                          alt="Primary evidence" 
+                          className="media-image"
+                          style={{ maxWidth: '100%', height: 'auto' }}
+                        />
+                      ) : (
+                        <img 
+                          src={bolo.primary_image_url} 
+                          alt="Primary evidence" 
+                          className="media-image"
+                        />
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Additional Media */}
+                  {bolo.media && bolo.media.map((item, index) => (
+                    <div key={item.id || index} className="media-item">
+                      {item.type === 'image' ? (
+                        <img 
+                          src={item.url} 
+                          alt={item.caption || `Evidence ${index + 1}`}
+                          className="media-image"
+                          style={item.url.startsWith('data:') ? { maxWidth: '100%', height: 'auto' } : {}}
+                        />
+                      ) : item.type === 'video' ? (
+                        <video 
+                          controls 
+                          className="media-video"
+                          style={{ maxWidth: '100%', height: 'auto' }}
+                        >
+                          <source src={item.url} type={item.mime_type || 'video/mp4'} />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <div className="media-placeholder">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer">
+                            {item.caption || 'Download file'}
+                          </a>
+                        </div>
+                      )}
+                      {item.caption && (
+                        <p className="media-caption">{item.caption}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Subject Information */}
             {bolo.subject_name && (
               <div className="info-section">
