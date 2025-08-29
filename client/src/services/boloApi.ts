@@ -62,7 +62,7 @@ class BOLOApiService {
     
     Object.keys(filters).forEach(key => {
       const value = (filters as any)[key];
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && value !== '') {
         params.append(key, value.toString());
       }
     });

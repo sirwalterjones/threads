@@ -87,7 +87,8 @@ const BOLOManagement: React.FC = () => {
         limit: 100,
         offset: 0,
         sortBy: 'created_at',
-        sortOrder: 'DESC'
+        sortOrder: 'DESC',
+        status: undefined // Explicitly don't filter by status to get all BOLOs
       };
       
       const response: BOLOFeedResponse = await boloApi.getBOLOFeed(filters);
@@ -229,6 +230,13 @@ const BOLOManagement: React.FC = () => {
                 </IconButton>
                 <IconButton 
                   size="small" 
+                  onClick={() => navigate(`/bolo/edit/${bolo.id}`)}
+                  title="Edit BOLO"
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  size="small" 
                   onClick={() => {
                     setSelectedBolo(bolo);
                     setNewStatus(bolo.status);
@@ -236,7 +244,7 @@ const BOLOManagement: React.FC = () => {
                   }}
                   title="Change Status"
                 >
-                  <EditIcon />
+                  <DashboardIcon />
                 </IconButton>
               </TableCell>
             </TableRow>

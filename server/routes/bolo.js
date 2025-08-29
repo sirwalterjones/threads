@@ -97,7 +97,7 @@ router.get('/feed',
       const filters = {
         type: req.query.type,
         priority: req.query.priority,
-        status: req.query.status || 'active',
+        status: req.query.status, // Don't default to 'active' - show all if not specified
         search: req.query.search,
         limit: parseInt(req.query.limit) || 20,
         offset: parseInt(req.query.offset) || 0,

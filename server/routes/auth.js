@@ -348,20 +348,68 @@ router.delete('/users/:id',
           await client.query('DELETE FROM user_sessions WHERE user_id = $1', [id]);
         }
         
+        // Get admin user ID to reassign content
+        const adminUser = await client.query(
+          'SELECT id FROM users WHERE username = $1 LIMIT 1',
+          ['admin']
+        );
+        const adminId = adminUser.rows[0]?.id || 1; // Fallback to ID 1 if admin user not found
+        
+        // Reassign posts to admin
+        await client.query('UPDATE posts SET user_id = $1 WHERE user_id = $2', [adminId, id]);
+        
+        // Reassign BOLOs to admin
+        const bolosExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'bolos'
+          );
+        `);
+        if (bolosExists.rows[0].exists) {
+          await client.query('UPDATE bolos SET created_by = $1 WHERE created_by = $2', [adminId, id]);
+        }
+        
+        // Reassign intel reports to admin
+        const intelExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'intel_reports'
+          );
+        `);
+        if (intelExists.rows[0].exists) {
+          await client.query('UPDATE intel_reports SET created_by = $1 WHERE created_by = $2', [adminId, id]);
+        }
+        
         // Delete user follows
         await client.query('DELETE FROM user_follows WHERE user_id = $1', [id]);
         
-        // Delete comments
+        // Delete comments (or reassign if you prefer)
         await client.query('DELETE FROM comments WHERE user_id = $1', [id]);
         
         // Delete notifications
         await client.query('DELETE FROM notifications WHERE user_id = $1 OR from_user_id = $1', [id]);
         
-        // Delete search history
-        await client.query('DELETE FROM search_history WHERE user_id = $1', [id]);
+        // Check if search_history table exists before deleting
+        const searchHistoryExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'search_history'
+          );
+        `);
+        if (searchHistoryExists.rows[0].exists) {
+          await client.query('DELETE FROM search_history WHERE user_id = $1', [id]);
+        }
         
         // Delete hot list alerts
-        await client.query('DELETE FROM hot_list_alerts WHERE user_id = $1', [id]);
+        const hotListExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'hot_list_alerts'
+          );
+        `);
+        if (hotListExists.rows[0].exists) {
+          await client.query('DELETE FROM hot_list_alerts WHERE user_id = $1', [id]);
+        }
         
         // Now delete the user
         await client.query('DELETE FROM users WHERE id = $1', [id]);
