@@ -79,9 +79,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Find user in database
+    // Find user in database (including session_duration_hours)
     const result = await pool.query(
-      'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
+      'SELECT id, username, email, password_hash, role, is_active, session_duration_hours FROM users WHERE username = $1',
       [username]
     );
 
@@ -100,12 +100,13 @@ router.post('/login', async (req, res) => {
 
           // Try login again
           const newResult = await pool.query(
-            'SELECT id, username, email, password_hash, role, is_active FROM users WHERE username = $1',
+            'SELECT id, username, email, password_hash, role, is_active, session_duration_hours FROM users WHERE username = $1',
             [username]
           );
 
           if (newResult.rows.length > 0 && password === 'admin123456') {
             const user = newResult.rows[0];
+            const sessionHours = user.session_duration_hours || 24;
             const token = jwt.sign(
               { 
                 userId: user.id, 
@@ -113,7 +114,7 @@ router.post('/login', async (req, res) => {
                 role: user.role 
               },
               process.env.JWT_SECRET,
-              { expiresIn: '24h' }
+              { expiresIn: `${sessionHours}h` }
             );
 
             return res.json({
@@ -153,11 +154,14 @@ router.post('/login', async (req, res) => {
       [user.id]
     );
 
-    // Generate JWT token
+    // Use user's session duration preference (default to 24 hours if not set)
+    const sessionHours = user.session_duration_hours || 24;
+    
+    // Generate JWT token with configurable expiry
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: `${sessionHours}h` }
     );
 
     res.json({
@@ -180,7 +184,7 @@ router.post('/login', async (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email, role, created_at, last_login FROM users WHERE id = $1',
+      'SELECT id, username, email, role, created_at, last_login, session_duration_hours FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -198,7 +202,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 // Update user profile
 router.put('/profile', authenticateToken, async (req, res) => {
   try {
-    const { email, currentPassword, newPassword } = req.body;
+    const { email, currentPassword, newPassword, session_duration_hours } = req.body;
     const updateFields = [];
     const queryParams = [];
 
@@ -250,6 +254,18 @@ router.put('/profile', authenticateToken, async (req, res) => {
       
       updateFields.push('password_hash = $' + (queryParams.length + 1));
       queryParams.push(newPasswordHash);
+    }
+    
+    // Session duration update
+    if (session_duration_hours !== undefined) {
+      // Validate session duration (1 hour to 30 days)
+      const duration = parseInt(session_duration_hours);
+      if (isNaN(duration) || duration < 1 || duration > 720) {
+        return res.status(400).json({ error: 'Session duration must be between 1 and 720 hours' });
+      }
+      
+      updateFields.push('session_duration_hours = $' + (queryParams.length + 1));
+      queryParams.push(duration);
     }
 
     if (updateFields.length === 0) {

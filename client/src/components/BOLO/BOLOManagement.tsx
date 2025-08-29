@@ -37,13 +37,15 @@ import {
   Schedule as PendingIcon,
   Cancel as CancelIcon,
   Archive as ArchiveIcon,
-  CheckCircle
+  CheckCircle,
+  Dashboard as DashboardIcon
 } from '@mui/icons-material';
 import { BOLO, BOLOFilters, BOLOFeedResponse } from '../../types/bolo';
 import boloApi from '../../services/boloApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import BOLOCreateForm from './BOLOCreateForm';
+import './BOLOManagement.css';
 
 interface TabPanelProps {
   children?: React.ReactNode;

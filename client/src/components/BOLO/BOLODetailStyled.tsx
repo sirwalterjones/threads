@@ -60,6 +60,21 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
   const [repostDialogOpen, setRepostDialogOpen] = useState(false);
   const [repostMessage, setRepostMessage] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  
+  // Helper function to format comment text with mentions
+  const formatCommentWithMentions = (text: string) => {
+    const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return (
+          <span key={index} style={{ color: '#2fa9ff', fontWeight: 500 }}>
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
   const canEdit = user && (user.role === 'admin' || (user.role === 'edit' && bolo?.created_by === user.id));
 
@@ -162,14 +177,46 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
         summary: editData.summary,
         narrative: editData.narrative,
         priority: editData.priority,
-        officer_safety_info: editData.officer_safety_info,
-        approach_instructions: editData.approach_instructions,
+        status: editData.status,
+        type: editData.type,
+        
+        // Subject Information
+        subject_name: editData.subject_name,
         subject_aliases: Array.isArray(editData.subject_aliases) 
           ? editData.subject_aliases.join(', ') 
           : editData.subject_aliases,
+        subject_description: editData.subject_description,
+        date_of_birth: editData.date_of_birth,
+        age_range: editData.age_range,
+        height: editData.height,
+        weight: editData.weight,
+        hair_color: editData.hair_color,
+        eye_color: editData.eye_color,
+        distinguishing_features: editData.distinguishing_features,
+        last_seen_wearing: editData.last_seen_wearing,
+        armed_dangerous: editData.armed_dangerous,
+        armed_dangerous_details: editData.armed_dangerous_details,
+        
+        // Vehicle Information
+        vehicle_make: editData.vehicle_make,
+        vehicle_model: editData.vehicle_model,
         vehicle_year: editData.vehicle_year?.toString(),
-        // Status will be handled separately
-        status: editData.status
+        vehicle_color: editData.vehicle_color,
+        license_plate: editData.license_plate,
+        vehicle_vin: editData.vehicle_vin,
+        vehicle_features: editData.vehicle_features,
+        direction_of_travel: editData.direction_of_travel,
+        
+        // Incident Information
+        incident_date: editData.incident_date,
+        incident_location: editData.incident_location,
+        last_known_location: editData.last_known_location,
+        jurisdiction: editData.jurisdiction,
+        
+        // Safety & Instructions
+        officer_safety_info: editData.officer_safety_info,
+        approach_instructions: editData.approach_instructions,
+        contact_info: editData.contact_info
       };
       const updated = await boloApi.updateBOLO(bolo.id, formData);
       setBolo(updated);
@@ -232,6 +279,55 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
 
   return (
     <div className="bolo-detail-page">
+      {/* Vector Branding for Public View */}
+      {isPublic && (
+        <div style={{
+          backgroundColor: '#0b0d10',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          padding: '16px 0'
+        }}>
+          <div className="detail-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 'bold', 
+                  color: '#2fa9ff' 
+                }}>V</span>
+                <span style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 'bold', 
+                  color: 'white' 
+                }}>ECTOR</span>
+                <span style={{
+                  fontSize: '16px',
+                  color: '#a9b0b6',
+                  marginLeft: '12px',
+                  fontWeight: '500'
+                }}>INTELLIGENCE</span>
+              </div>
+              <div style={{
+                backgroundColor: 'rgba(47,169,255,0.2)',
+                color: '#2fa9ff',
+                padding: '4px 12px',
+                borderRadius: '16px',
+                fontSize: '12px',
+                fontWeight: '600',
+                border: '1px solid #2fa9ff'
+              }}>
+                PUBLIC BOLO
+              </div>
+            </div>
+            <div style={{ 
+              color: '#a9b0b6', 
+              fontSize: '14px' 
+            }}>
+              Cherokee Sheriff's Office
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="detail-container">
         {/* Header Bar */}
         {!isPublic && (
@@ -521,59 +617,68 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
             </div>
 
             {/* Comments Section */}
-            {!isPublic && (
-              <div className="comments-section">
-                <h3 className="comments-header">Comments ({bolo.comment_count || 0})</h3>
-                
-                <div className="comment-form">
-                  <input
-                    type="text"
-                    className="comment-input"
-                    placeholder="Add a comment..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                  />
-                  <button className="comment-submit" onClick={handleComment}>
-                    <SendIcon fontSize="small" />
-                  </button>
-                </div>
+            <div className="comments-section">
+              <h3 className="comments-header">
+                Comments ({isPublic ? bolo.comments?.filter(c => !c.is_internal).length || 0 : bolo.comment_count || 0})
+              </h3>
+              
+              {!isPublic && (
+                <>
+                  <div className="comment-form">
+                    <input
+                      type="text"
+                      className="comment-input"
+                      placeholder="Add a comment... (use @username to mention)"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+                    />
+                    <button className="comment-submit" onClick={handleComment}>
+                      <SendIcon fontSize="small" />
+                    </button>
+                  </div>
 
-                {canEdit && (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={isInternal}
-                        onChange={(e) => setIsInternal(e.target.checked)}
-                        size="small"
-                      />
-                    }
-                    label="Internal comment"
-                    style={{ marginTop: '8px', marginBottom: '16px' }}
-                  />
-                )}
+                  {canEdit && (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={isInternal}
+                          onChange={(e) => setIsInternal(e.target.checked)}
+                          size="small"
+                        />
+                      }
+                      label="Internal comment"
+                      style={{ marginTop: '8px', marginBottom: '16px' }}
+                    />
+                  )}
+                </>
+              )}
 
-                <div className="comments-list">
-                  {bolo.comments?.map((comment) => (
-                    <div key={comment.id} className="comment-item">
-                      <div className="comment-avatar">
-                        {comment.username?.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div className="comment-content">
-                        <div className="comment-header">
-                          <span className="comment-author">{comment.username}</span>
-                          {comment.is_internal && <span className="internal-badge">Internal</span>}
-                          <span className="comment-time">
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                        <div className="comment-text">{comment.content}</div>
-                      </div>
+              <div className="comments-list">
+                {(isPublic ? bolo.comments?.filter(c => !c.is_internal) : bolo.comments)?.map((comment) => (
+                  <div key={comment.id} className="comment-item">
+                    <div className="comment-avatar">
+                      {comment.username?.substring(0, 2).toUpperCase()}
                     </div>
-                  ))}
-                </div>
+                    <div className="comment-content">
+                      <div className="comment-header">
+                        <span className="comment-author">{comment.username}</span>
+                        {!isPublic && comment.is_internal && <span className="internal-badge">Internal</span>}
+                        <span className="comment-time">
+                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <div className="comment-text">{formatCommentWithMentions(comment.content)}</div>
+                    </div>
+                  </div>
+                ))}
+                {((isPublic ? bolo.comments?.filter(c => !c.is_internal) : bolo.comments)?.length === 0) && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: 'var(--detail-muted)' }}>
+                    {isPublic ? 'No public comments yet' : 'No comments yet'}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Quick Actions */}
             {!isPublic && canEdit && (
@@ -604,16 +709,78 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit BOLO</DialogTitle>
-        <DialogContent>
-          <div style={{ display: 'grid', gap: '16px', marginTop: '16px' }}>
-            <TextField
-              label="Title"
-              value={editData.title || ''}
-              onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-              fullWidth
-            />
+      <Dialog 
+        open={editDialogOpen} 
+        onClose={() => setEditDialogOpen(false)} 
+        maxWidth="lg" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181b',
+            color: 'white'
+          }
+        }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Edit BOLO</DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <div style={{ display: 'grid', gap: '20px' }}>
+            {/* Basic Information */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <TextField
+                label="Title"
+                value={editData.title || ''}
+                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                fullWidth
+                variant="outlined"
+                InputProps={{ sx: { color: 'white' } }}
+                InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+              />
+              <FormControl fullWidth>
+                <InputLabel sx={{ color: '#a9b0b6' }}>Type</InputLabel>
+                <Select
+                  value={editData.type || 'person'}
+                  onChange={(e) => setEditData({ ...editData, type: e.target.value as BOLO['type'] })}
+                  sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' } }}
+                >
+                  <MenuItem value="person">Person</MenuItem>
+                  <MenuItem value="vehicle">Vehicle</MenuItem>
+                  <MenuItem value="property">Property</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <FormControl fullWidth>
+                <InputLabel sx={{ color: '#a9b0b6' }}>Status</InputLabel>
+                <Select
+                  value={editData.status || 'active'}
+                  onChange={(e) => setEditData({ ...editData, status: e.target.value as BOLO['status'] })}
+                  sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' } }}
+                >
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="resolved">Resolved</MenuItem>
+                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                  <MenuItem value="expired">Expired</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel sx={{ color: '#a9b0b6' }}>Priority</InputLabel>
+                <Select
+                  value={editData.priority || 'medium'}
+                  onChange={(e) => setEditData({ ...editData, priority: e.target.value as BOLO['priority'] })}
+                  sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' } }}
+                >
+                  <MenuItem value="low">Low</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="high">High</MenuItem>
+                  <MenuItem value="immediate">Immediate</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+
             <TextField
               label="Summary"
               value={editData.summary || ''}
@@ -621,32 +788,271 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
               multiline
               rows={3}
               fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
             />
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={editData.status || 'active'}
-                onChange={(e) => setEditData({ ...editData, status: e.target.value as BOLO['status'] })}
-              >
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="resolved">Resolved</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
-                <MenuItem value="expired">Expired</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={editData.priority || 'medium'}
-                onChange={(e) => setEditData({ ...editData, priority: e.target.value as BOLO['priority'] })}
-              >
-                <MenuItem value="low">Low</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="high">High</MenuItem>
-                <MenuItem value="immediate">Immediate</MenuItem>
-              </Select>
-            </FormControl>
+
+            {/* Subject Information (show if type is person) */}
+            {editData.type === 'person' && (
+              <>
+                <div style={{ fontSize: '14px', color: '#a9b0b6', marginTop: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Subject Information</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <TextField
+                    label="Subject Name"
+                    value={editData.subject_name || ''}
+                    onChange={(e) => setEditData({ ...editData, subject_name: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Aliases"
+                    value={Array.isArray(editData.subject_aliases) ? editData.subject_aliases.join(', ') : editData.subject_aliases || ''}
+                    onChange={(e) => setEditData({ ...editData, subject_aliases: e.target.value.split(',').map(s => s.trim()) })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                  <TextField
+                    label="Date of Birth"
+                    type="date"
+                    value={editData.date_of_birth || ''}
+                    onChange={(e) => setEditData({ ...editData, date_of_birth: e.target.value })}
+                    fullWidth
+                    InputLabelProps={{ shrink: true, sx: { color: '#a9b0b6' } }}
+                    InputProps={{ sx: { color: 'white' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Age Range"
+                    value={editData.age_range || ''}
+                    onChange={(e) => setEditData({ ...editData, age_range: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Height"
+                    value={editData.height || ''}
+                    onChange={(e) => setEditData({ ...editData, height: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Weight"
+                    value={editData.weight || ''}
+                    onChange={(e) => setEditData({ ...editData, weight: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <TextField
+                    label="Hair Color"
+                    value={editData.hair_color || ''}
+                    onChange={(e) => setEditData({ ...editData, hair_color: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Eye Color"
+                    value={editData.eye_color || ''}
+                    onChange={(e) => setEditData({ ...editData, eye_color: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                </div>
+                <TextField
+                  label="Distinguishing Features"
+                  value={editData.distinguishing_features || ''}
+                  onChange={(e) => setEditData({ ...editData, distinguishing_features: e.target.value })}
+                  multiline
+                  rows={2}
+                  fullWidth
+                  InputProps={{ sx: { color: 'white' } }}
+                  InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                />
+                <TextField
+                  label="Last Seen Wearing"
+                  value={editData.last_seen_wearing || ''}
+                  onChange={(e) => setEditData({ ...editData, last_seen_wearing: e.target.value })}
+                  multiline
+                  rows={2}
+                  fullWidth
+                  InputProps={{ sx: { color: 'white' } }}
+                  InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={editData.armed_dangerous || false}
+                      onChange={(e) => setEditData({ ...editData, armed_dangerous: e.target.checked })}
+                      sx={{ color: '#a9b0b6' }}
+                    />
+                  }
+                  label="Armed & Dangerous"
+                  sx={{ color: '#a9b0b6' }}
+                />
+                {editData.armed_dangerous && (
+                  <TextField
+                    label="Armed & Dangerous Details"
+                    value={editData.armed_dangerous_details || ''}
+                    onChange={(e) => setEditData({ ...editData, armed_dangerous_details: e.target.value })}
+                    multiline
+                    rows={2}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                )}
+              </>
+            )}
+
+            {/* Vehicle Information (show if type is vehicle) */}
+            {editData.type === 'vehicle' && (
+              <>
+                <div style={{ fontSize: '14px', color: '#a9b0b6', marginTop: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Vehicle Information</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                  <TextField
+                    label="Make"
+                    value={editData.vehicle_make || ''}
+                    onChange={(e) => setEditData({ ...editData, vehicle_make: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Model"
+                    value={editData.vehicle_model || ''}
+                    onChange={(e) => setEditData({ ...editData, vehicle_model: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="Year"
+                    value={editData.vehicle_year || ''}
+                    onChange={(e) => setEditData({ ...editData, vehicle_year: parseInt(e.target.value) || undefined })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <TextField
+                    label="Color"
+                    value={editData.vehicle_color || ''}
+                    onChange={(e) => setEditData({ ...editData, vehicle_color: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                  <TextField
+                    label="License Plate"
+                    value={editData.license_plate || ''}
+                    onChange={(e) => setEditData({ ...editData, license_plate: e.target.value })}
+                    fullWidth
+                    InputProps={{ sx: { color: 'white' } }}
+                    InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                    sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                  />
+                </div>
+                <TextField
+                  label="VIN"
+                  value={editData.vehicle_vin || ''}
+                  onChange={(e) => setEditData({ ...editData, vehicle_vin: e.target.value })}
+                  fullWidth
+                  InputProps={{ sx: { color: 'white' } }}
+                  InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                />
+                <TextField
+                  label="Vehicle Features"
+                  value={editData.vehicle_features || ''}
+                  onChange={(e) => setEditData({ ...editData, vehicle_features: e.target.value })}
+                  multiline
+                  rows={2}
+                  fullWidth
+                  InputProps={{ sx: { color: 'white' } }}
+                  InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                />
+                <TextField
+                  label="Direction of Travel"
+                  value={editData.direction_of_travel || ''}
+                  onChange={(e) => setEditData({ ...editData, direction_of_travel: e.target.value })}
+                  fullWidth
+                  InputProps={{ sx: { color: 'white' } }}
+                  InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+                />
+              </>
+            )}
+
+            {/* Incident Information */}
+            <div style={{ fontSize: '14px', color: '#a9b0b6', marginTop: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Incident Information</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <TextField
+                label="Incident Date"
+                type="datetime-local"
+                value={editData.incident_date ? editData.incident_date.slice(0, 16) : ''}
+                onChange={(e) => setEditData({ ...editData, incident_date: e.target.value })}
+                fullWidth
+                InputLabelProps={{ shrink: true, sx: { color: '#a9b0b6' } }}
+                InputProps={{ sx: { color: 'white' } }}
+                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+              />
+              <TextField
+                label="Jurisdiction"
+                value={editData.jurisdiction || ''}
+                onChange={(e) => setEditData({ ...editData, jurisdiction: e.target.value })}
+                fullWidth
+                InputProps={{ sx: { color: 'white' } }}
+                InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+              />
+            </div>
+            <TextField
+              label="Incident Location"
+              value={editData.incident_location || ''}
+              onChange={(e) => setEditData({ ...editData, incident_location: e.target.value })}
+              fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+            />
+            <TextField
+              label="Last Known Location"
+              value={editData.last_known_location || ''}
+              onChange={(e) => setEditData({ ...editData, last_known_location: e.target.value })}
+              fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+            />
+
+            {/* Narrative and Safety Information */}
             <TextField
               label="Narrative"
               value={editData.narrative || ''}
@@ -654,6 +1060,9 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
               multiline
               rows={4}
               fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
             />
             <TextField
               label="Officer Safety Info"
@@ -662,6 +1071,9 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
               multiline
               rows={3}
               fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
             />
             <TextField
               label="Approach Instructions"
@@ -670,12 +1082,24 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
               multiline
               rows={3}
               fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
+            />
+            <TextField
+              label="Contact Information"
+              value={editData.contact_info || ''}
+              onChange={(e) => setEditData({ ...editData, contact_info: e.target.value })}
+              fullWidth
+              InputProps={{ sx: { color: 'white' } }}
+              InputLabelProps={{ sx: { color: '#a9b0b6' } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' } } }}
             />
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleUpdate} variant="contained">Save Changes</Button>
+        <DialogActions sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', p: 2 }}>
+          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#a9b0b6' }}>Cancel</Button>
+          <Button onClick={handleUpdate} variant="contained" sx={{ backgroundColor: '#2fa9ff', '&:hover': { backgroundColor: '#2090e0' } }}>Save Changes</Button>
         </DialogActions>
       </Dialog>
 

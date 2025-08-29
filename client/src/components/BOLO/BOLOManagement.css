@@ -1,0 +1,322 @@
+/* BOLO Management Dark Theme */
+:root {
+  --mgmt-bg: #0b0d10;
+  --mgmt-card: #16181b;
+  --mgmt-panel: #1f2226;
+  --mgmt-accent: #2fa9ff;
+  --mgmt-success: #28c76f;
+  --mgmt-warning: #ffa502;
+  --mgmt-danger: #ff4757;
+  --mgmt-text: #ffffff;
+  --mgmt-muted: #a9b0b6;
+  --mgmt-border: rgba(255, 255, 255, 0.1);
+}
+
+.bolo-management-page {
+  background-color: var(--mgmt-bg);
+  min-height: 100vh;
+  padding: 24px 0;
+}
+
+.management-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.management-header {
+  background-color: var(--mgmt-card);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.header-title {
+  color: var(--mgmt-text);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.header-subtitle {
+  color: var(--mgmt-muted);
+  font-size: 14px;
+}
+
+.management-tabs {
+  background-color: var(--mgmt-card);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.management-tabs .MuiTabs-root {
+  min-height: 56px;
+}
+
+.management-tabs .MuiTab-root {
+  color: var(--mgmt-muted);
+  font-weight: 600;
+  text-transform: none;
+  font-size: 15px;
+}
+
+.management-tabs .MuiTab-root.Mui-selected {
+  color: var(--mgmt-accent);
+}
+
+.management-tabs .MuiTabs-indicator {
+  background-color: var(--mgmt-accent);
+  height: 3px;
+}
+
+.table-container {
+  background-color: var(--mgmt-card);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.bolo-table {
+  background-color: transparent;
+}
+
+.bolo-table .MuiTableHead-root {
+  background-color: var(--mgmt-panel);
+}
+
+.bolo-table .MuiTableCell-head {
+  color: var(--mgmt-muted);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--mgmt-border);
+  padding: 16px;
+}
+
+.bolo-table .MuiTableCell-body {
+  color: var(--mgmt-text);
+  border-bottom: 1px solid var(--mgmt-border);
+  padding: 16px;
+}
+
+.bolo-table .MuiTableRow-root:hover {
+  background-color: rgba(47, 169, 255, 0.05);
+}
+
+.case-number-cell {
+  font-weight: 600;
+  color: var(--mgmt-accent);
+  cursor: pointer;
+}
+
+.case-number-cell:hover {
+  text-decoration: underline;
+}
+
+.priority-chip {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 12px;
+  padding: 4px 8px;
+}
+
+.priority-immediate {
+  background-color: rgba(255, 71, 87, 0.2);
+  color: var(--mgmt-danger);
+  border: 1px solid var(--mgmt-danger);
+}
+
+.priority-high {
+  background-color: rgba(255, 165, 2, 0.2);
+  color: var(--mgmt-warning);
+  border: 1px solid var(--mgmt-warning);
+}
+
+.priority-medium {
+  background-color: rgba(47, 169, 255, 0.2);
+  color: var(--mgmt-accent);
+  border: 1px solid var(--mgmt-accent);
+}
+
+.priority-low {
+  background-color: rgba(169, 176, 182, 0.2);
+  color: var(--mgmt-muted);
+  border: 1px solid var(--mgmt-muted);
+}
+
+.status-chip {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-active {
+  background-color: rgba(40, 199, 111, 0.2);
+  color: var(--mgmt-success);
+  border: 1px solid var(--mgmt-success);
+}
+
+.status-active::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--mgmt-success);
+  animation: pulse 2s infinite;
+}
+
+.status-pending {
+  background-color: rgba(255, 165, 2, 0.2);
+  color: var(--mgmt-warning);
+  border: 1px solid var(--mgmt-warning);
+}
+
+.status-resolved {
+  background-color: rgba(169, 176, 182, 0.2);
+  color: var(--mgmt-muted);
+  border: 1px solid var(--mgmt-muted);
+}
+
+.status-expired {
+  background-color: rgba(169, 176, 182, 0.2);
+  color: var(--mgmt-muted);
+  border: 1px solid var(--mgmt-muted);
+}
+
+.status-cancelled {
+  background-color: rgba(255, 71, 87, 0.2);
+  color: var(--mgmt-danger);
+  border: 1px solid var(--mgmt-danger);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  color: var(--mgmt-muted);
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.action-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--mgmt-text);
+}
+
+.action-button.view {
+  color: var(--mgmt-accent);
+}
+
+.action-button.edit {
+  color: var(--mgmt-warning);
+}
+
+.action-button.delete {
+  color: var(--mgmt-danger);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--mgmt-muted);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--mgmt-text);
+}
+
+.empty-subtitle {
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.create-button {
+  background-color: var(--mgmt-accent);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: none;
+  font-size: 15px;
+}
+
+.create-button:hover {
+  background-color: #2090e0;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background-color: var(--mgmt-card);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.stat-label {
+  color: var(--mgmt-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  color: var(--mgmt-text);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.stat-change {
+  color: var(--mgmt-success);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  color: var(--mgmt-accent);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(40, 199, 111, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 199, 111, 0);
+  }
+}

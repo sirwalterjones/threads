@@ -570,6 +570,61 @@ class BOLOService {
         [boloId]
       );
       
+      // Create notification for BOLO owner if commenter is not the owner
+      const boloResult = await client.query(
+        'SELECT created_by, title, case_number FROM bolos WHERE id = $1',
+        [boloId]
+      );
+      
+      if (boloResult.rows[0].created_by !== userId && !isInternal) {
+        // Create notification for BOLO owner
+        await client.query(`
+          INSERT INTO notifications (user_id, type, title, message, link, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          boloResult.rows[0].created_by,
+          'bolo_comment',
+          'New Comment on Your BOLO',
+          `${userResult.rows[0].username} commented on BOLO ${boloResult.rows[0].case_number}: "${content.substring(0, 100)}${content.length > 100 ? '...' : ''}"`,
+          `/bolo/${boloId}`,
+          JSON.stringify({ 
+            bolo_id: boloId, 
+            comment_id: commentResult.rows[0].id,
+            commenter: userResult.rows[0].username
+          })
+        ]);
+      }
+      
+      // Parse mentions in comment and create notifications
+      const mentions = content.match(/@([a-zA-Z0-9_]+)/g);
+      if (mentions && !isInternal) {
+        for (const mention of mentions) {
+          const username = mention.substring(1); // Remove @
+          const mentionedUser = await client.query(
+            'SELECT id FROM users WHERE username = $1 AND id != $2',
+            [username, userId]
+          );
+          
+          if (mentionedUser.rows.length > 0) {
+            await client.query(`
+              INSERT INTO notifications (user_id, type, title, message, link, metadata)
+              VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+              mentionedUser.rows[0].id,
+              'bolo_mention',
+              'You were mentioned in a BOLO comment',
+              `${userResult.rows[0].username} mentioned you in a comment on BOLO ${boloResult.rows[0].case_number}`,
+              `/bolo/${boloId}`,
+              JSON.stringify({ 
+                bolo_id: boloId, 
+                comment_id: commentResult.rows[0].id,
+                mentioner: userResult.rows[0].username
+              })
+            ]);
+          }
+        }
+      }
+      
       // Log activity
       await client.query(`
         INSERT INTO bolo_activity (bolo_id, user_id, action)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, TextField, Typography, Alert, Divider, Chip } from '@mui/material';
-import { Security, CheckCircle, Warning } from '@mui/icons-material';
+import { Box, Button, Card, CardContent, TextField, Typography, Alert, Divider, Chip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Security, CheckCircle, Warning, AccessTime } from '@mui/icons-material';
 import apiService from '../services/api';
 import { User } from '../types';
 
@@ -11,15 +11,32 @@ const Profile: React.FC = () => {
   const [error, setError] = useState('');
   const [twoFactorStatus, setTwoFactorStatus] = useState<{ enabled: boolean; required: boolean; backupCodesRemaining: number } | null>(null);
   const [loading2FA, setLoading2FA] = useState(false);
+  const [sessionDuration, setSessionDuration] = useState<number>(24);
 
   useEffect(() => { 
-    apiService.getProfile().then(u => { setUser(u); setEmail(u.email || ''); }).catch(()=>{});
+    apiService.getProfile().then(u => { 
+      setUser(u); 
+      setEmail(u.email || ''); 
+      // Set session duration from user profile
+      if ((u as any).session_duration_hours) {
+        setSessionDuration((u as any).session_duration_hours);
+      }
+    }).catch(()=>{});
     // Load 2FA status
     apiService.get2FAStatus().then(status => setTwoFactorStatus(status)).catch(() => {});
   }, []);
 
   const save = async () => {
-    try { setError(''); setMsg(''); const r = await apiService.updateProfile({ email }); setMsg('Profile updated'); }
+    try { 
+      setError(''); 
+      setMsg(''); 
+      // Update profile with email and session duration
+      const r = await apiService.updateProfile({ 
+        email, 
+        session_duration_hours: sessionDuration 
+      }); 
+      setMsg('Profile updated. You will need to log in again for session duration changes to take effect.'); 
+    }
     catch (e:any) { setError(e?.response?.data?.error || 'Update failed'); }
   };
 
@@ -110,6 +127,44 @@ const Profile: React.FC = () => {
               }
             }} 
           />
+          
+          {/* Session Duration Selection */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel sx={{ color: '#8B98A5', '&.Mui-focused': { color: '#E7E9EA' } }}>
+              Session Duration
+            </InputLabel>
+            <Select
+              value={sessionDuration}
+              onChange={(e) => setSessionDuration(e.target.value as number)}
+              label="Session Duration"
+              sx={{
+                color: '#E7E9EA',
+                backgroundColor: '#1A1A1A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4A4A4A' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
+                '& .MuiSelect-icon': { color: '#8B98A5' }
+              }}
+            >
+              <MenuItem value={1}>1 Hour</MenuItem>
+              <MenuItem value={2}>2 Hours</MenuItem>
+              <MenuItem value={4}>4 Hours</MenuItem>
+              <MenuItem value={8}>8 Hours</MenuItem>
+              <MenuItem value={12}>12 Hours</MenuItem>
+              <MenuItem value={24}>24 Hours (1 Day)</MenuItem>
+              <MenuItem value={48}>48 Hours (2 Days)</MenuItem>
+              <MenuItem value={72}>72 Hours (3 Days)</MenuItem>
+              <MenuItem value={168}>168 Hours (1 Week)</MenuItem>
+              <MenuItem value={336}>336 Hours (2 Weeks)</MenuItem>
+              <MenuItem value={720}>720 Hours (30 Days)</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <Typography variant="caption" sx={{ display: 'block', mb: 2, color: '#8B98A5' }}>
+            <AccessTime sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
+            Session duration determines how long you stay logged in. Shorter durations are more secure.
+          </Typography>
+          
           <Button 
             variant="contained" 
             onClick={save}
