@@ -61,7 +61,7 @@ const BOLOFeed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0); // 0 = All, 1 = Saved
   const [filters, setFilters] = useState<BOLOFilters>({
-    status: 'active',
+    // Don't filter by status to show all BOLOs including resolved
     sortBy: 'created_at',
     sortOrder: 'DESC',
     limit: 20,

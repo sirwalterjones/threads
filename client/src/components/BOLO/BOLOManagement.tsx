@@ -142,25 +142,27 @@ const BOLOManagement: React.FC = () => {
   };
 
   const renderBOLOTable = (boloList: BOLO[]) => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
+    <TableContainer component={Paper} className="table-container" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+      <Table className="bolo-table">
+        <TableHead sx={{ backgroundColor: '#1f2226' }}>
           <TableRow>
-            <TableCell>Case #</TableCell>
-            <TableCell>Title</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Priority</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell>Views</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Case #</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Title</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Type</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Priority</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Status</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Created</TableCell>
+            <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Views</TableCell>
+            <TableCell align="right" sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {boloList.map((bolo) => (
-            <TableRow key={bolo.id}>
-              <TableCell>{bolo.case_number}</TableCell>
-              <TableCell>
+            <TableRow key={bolo.id} sx={{ '&:hover': { backgroundColor: 'rgba(47,169,255,0.05)' } }}>
+              <TableCell sx={{ color: '#2fa9ff', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' }} onClick={() => navigate(`/bolo/${bolo.id}`)}>
+                {bolo.case_number}
+              </TableCell>
+              <TableCell sx={{ color: '#ffffff', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <Box display="flex" alignItems="center" gap={1}>
                   {bolo.armed_dangerous && (
                     <WarningIcon color="error" fontSize="small" />
@@ -168,27 +170,39 @@ const BOLOManagement: React.FC = () => {
                   <Typography variant="body2">{bolo.title}</Typography>
                 </Box>
               </TableCell>
-              <TableCell>
-                <Chip label={bolo.type} size="small" />
+              <TableCell sx={{ color: '#ffffff', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <Chip label={bolo.type} size="small" sx={{ backgroundColor: 'rgba(47,169,255,0.2)', color: '#2fa9ff' }} />
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <Chip 
                   label={bolo.priority} 
                   size="small" 
-                  color={getPriorityColor(bolo.priority)}
+                  className={`priority-${bolo.priority}`}
+                  sx={{ 
+                    backgroundColor: bolo.priority === 'immediate' ? 'rgba(255,71,87,0.2)' :
+                                    bolo.priority === 'high' ? 'rgba(255,165,2,0.2)' :
+                                    bolo.priority === 'medium' ? 'rgba(47,169,255,0.2)' : 'rgba(169,176,182,0.2)',
+                    color: bolo.priority === 'immediate' ? '#ff4757' :
+                           bolo.priority === 'high' ? '#ffa502' :
+                           bolo.priority === 'medium' ? '#2fa9ff' : '#a9b0b6',
+                    border: '1px solid',
+                    borderColor: bolo.priority === 'immediate' ? '#ff4757' :
+                                bolo.priority === 'high' ? '#ffa502' :
+                                bolo.priority === 'medium' ? '#2fa9ff' : '#a9b0b6'
+                  }}
                 />
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: '#ffffff', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <Box display="flex" alignItems="center" gap={0.5}>
                   {getStatusIcon(bolo.status)}
                   <Typography variant="body2">{bolo.status}</Typography>
                 </Box>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 {format(new Date(bolo.created_at), 'MM/dd/yyyy')}
               </TableCell>
-              <TableCell>{bolo.view_count}</TableCell>
-              <TableCell align="right">
+              <TableCell sx={{ color: '#ffffff', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{bolo.view_count}</TableCell>
+              <TableCell align="right" sx={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <IconButton 
                   size="small" 
                   onClick={() => navigate(`/bolo/${bolo.id}`)}
@@ -239,42 +253,72 @@ const BOLOManagement: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 3, mb: 5 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" component="h1">
-            BOLO Management
-          </Typography>
-          <Box display="flex" gap={2}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/bolo')}
-            >
-              View Feed
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setShowCreateForm(true)}
-            >
-              Create New BOLO
-            </Button>
+    <div className="bolo-management-page">
+      <Container maxWidth="lg" className="management-container">
+        <Paper className="management-header" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <div>
+              <Typography variant="h4" component="h1" className="header-title" sx={{ color: '#ffffff' }}>
+                BOLO Management
+              </Typography>
+              <Typography variant="body2" className="header-subtitle" sx={{ color: '#a9b0b6' }}>
+                Manage and track your Be On the Lookout bulletins
+              </Typography>
+            </div>
+            <Box display="flex" gap={2}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/bolo')}
+                sx={{ 
+                  borderColor: '#2fa9ff', 
+                  color: '#2fa9ff',
+                  '&:hover': { 
+                    borderColor: '#2090e0', 
+                    backgroundColor: 'rgba(47,169,255,0.1)' 
+                  }
+                }}
+              >
+                View Feed
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setShowCreateForm(true)}
+                className="create-button"
+                sx={{ 
+                  backgroundColor: '#2fa9ff',
+                  '&:hover': { backgroundColor: '#2090e0' }
+                }}
+              >
+                Create New BOLO
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </Paper>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" p={4}>
-            <CircularProgress />
+          <Box className="loading-container">
+            <CircularProgress className="loading-spinner" sx={{ color: '#2fa9ff' }} />
           </Box>
         ) : (
           <>
-            <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-              <Tab label={`Active (${getBolosByStatus('active').length})`} />
-              <Tab label={`Pending (${getBolosByStatus('pending').length})`} />
-              <Tab label={`Resolved (${getBolosByStatus('resolved').length})`} />
-              <Tab label={`Cancelled (${getBolosByStatus('cancelled').length})`} />
-              <Tab label={`Expired (${getBolosByStatus('expired').length})`} />
-            </Tabs>
+            <Paper className="management-tabs" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', mt: 3 }}>
+              <Tabs 
+                value={tabValue} 
+                onChange={(e, v) => setTabValue(v)}
+                sx={{
+                  '& .MuiTab-root': { color: '#a9b0b6' },
+                  '& .Mui-selected': { color: '#2fa9ff' },
+                  '& .MuiTabs-indicator': { backgroundColor: '#2fa9ff' }
+                }}
+              >
+                <Tab label={`Active (${getBolosByStatus('active').length})`} />
+                <Tab label={`Pending (${getBolosByStatus('pending').length})`} />
+                <Tab label={`Resolved (${getBolosByStatus('resolved').length})`} />
+                <Tab label={`Cancelled (${getBolosByStatus('cancelled').length})`} />
+                <Tab label={`Expired (${getBolosByStatus('expired').length})`} />
+              </Tabs>
+            </Paper>
 
             <TabPanel value={tabValue} index={0}>
               {renderBOLOTable(getBolosByStatus('active'))}
@@ -293,7 +337,26 @@ const BOLOManagement: React.FC = () => {
             </TabPanel>
 
             {/* Statistics */}
-            <Box mt={4} p={2} bgcolor="background.default" borderRadius={1}>
+            <Box mt={4} className="stats-row">
+              <div className="stat-card">
+                <div className="stat-label">Total BOLOs</div>
+                <div className="stat-value">{bolos.length}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Active</div>
+                <div className="stat-value">{getBolosByStatus('active').length}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Pending</div>
+                <div className="stat-value">{getBolosByStatus('pending').length}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Resolved</div>
+                <div className="stat-value">{getBolosByStatus('resolved').length}</div>
+              </div>
+            </Box>
+            {/* Old Statistics - Hidden */}
+            <Box mt={4} p={2} bgcolor="background.default" borderRadius={1} sx={{ display: 'none' }}>
               <Typography variant="h6" gutterBottom>
                 Statistics
               </Typography>
@@ -332,10 +395,19 @@ const BOLOManagement: React.FC = () => {
             </Box>
           </>
         )}
-      </Paper>
 
       {/* Status Change Dialog */}
-      <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>
+      <Dialog 
+        open={statusDialogOpen} 
+        onClose={() => setStatusDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181b',
+            color: '#ffffff',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+          }
+        }}
+      >
         <DialogTitle>Update BOLO Status</DialogTitle>
         <DialogContent>
           <Typography variant="body2" gutterBottom>
@@ -359,7 +431,8 @@ const BOLOManagement: React.FC = () => {
           <Button onClick={handleStatusChange} variant="contained">Update</Button>
         </DialogActions>
       </Dialog>
-    </Container>
+      </Container>
+    </div>
   );
 };
 

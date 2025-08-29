@@ -200,7 +200,7 @@ class BOLOService {
     const {
       type,
       priority,
-      status = 'active',
+      status, // Don't default to 'active' - show all BOLOs
       search,
       limit = 20,
       offset = 0,
