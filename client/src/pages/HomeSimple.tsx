@@ -128,8 +128,8 @@ const HomeSimple: React.FC = () => {
     try {
       setLoading(true);
       
-      // Use unified search if there's a search term without other filters
-      if (searchTerm && !authorFilter && !dateFromFilter && !dateToFilter && !selectedCategory && selectedTags.length === 0) {
+      // Use unified search if there's a search term
+      if (searchTerm) {
         const [unifiedResponse, categoriesResponse, authorsResponse, tagsResponse] = await Promise.all([
           apiService.unifiedSearch(searchTerm, page, 12),
           categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
