@@ -25,7 +25,8 @@ import {
   Edit as EditIcon,
   Security as SecurityIcon,
   LockReset as ResetIcon,
-  Shield as ShieldIcon 
+  Shield as ShieldIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import apiService from '../services/api';
 import auditService from '../services/auditService';
@@ -44,6 +45,8 @@ const UsersManage: React.FC = () => {
   const [editUser, setEditUser] = useState({ username: '', email: '', password: '', role: 'view' });
   const [editing, setEditing] = useState(false);
   const [force2FADialog, setForce2FADialog] = useState<{ open: boolean; user: any; setup?: any }>({ open: false, user: null });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     apiService.getUsers().then((data) => {
@@ -176,6 +179,29 @@ const UsersManage: React.FC = () => {
       setError(e?.response?.data?.error || 'Failed to update user');
     } finally {
       setEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteDialog.user) return;
+    
+    try {
+      setDeleting(true);
+      setError('');
+      await apiService.deleteUser(deleteDialog.user.id);
+      
+      // Remove user from state
+      setUsers(prev => prev.filter(u => u.id !== deleteDialog.user.id));
+      
+      // Track deletion
+      await auditService.trackUserDelete(deleteDialog.user.id, deleteDialog.user.username);
+      
+      setDeleteDialog({ open: false, user: null });
+      setSuccess(`User ${deleteDialog.user.username} deleted successfully`);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
     }
   };
 

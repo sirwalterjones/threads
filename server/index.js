@@ -299,6 +299,7 @@ app.use('/tinymce', express.static(tinymcePath));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postsRoutes);
+app.use('/api/search', require('./routes/search'));
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/admin', adminRoutes);

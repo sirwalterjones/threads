@@ -25,7 +25,8 @@ import {
   Whatshot as HotListIcon,
   Security as IntelIcon,
   Shield as SecurityIcon,
-  Campaign as BOLOIcon
+  Campaign as BOLOIcon,
+  Notes as NotesIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -116,13 +117,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: ['view', 'edit', 'admin'] },
     { text: 'Search', icon: <SearchIcon />, path: '/search', roles: ['view', 'edit', 'admin'] },
     { text: 'Hot List', icon: <HotListIcon />, path: '/hotlist', roles: ['view', 'edit', 'admin'] },
-    { text: 'BOLO', icon: <BOLOIcon />, path: '/bolo', roles: ['view', 'edit', 'admin'] }
+    { text: 'BOLO', icon: <BOLOIcon />, path: '/bolo', roles: ['view', 'edit', 'admin'] },
+    { text: 'Intel Reports', icon: <IntelIcon />, path: '/intel-reports', roles: ['view', 'edit', 'admin'] },
+    { text: 'My Threads', icon: <NotesIcon />, path: '/my-threads', roles: ['edit', 'admin'] }
   ];
 
   const contentPages = [
-            { text: 'My Threads', icon: <AddIcon />, path: '/my-threads', roles: ['edit', 'admin'] },
     { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
-    { text: 'Intel Reports', icon: <IntelIcon />, path: '/intel-reports', roles: ['edit', 'admin'] }
+    { text: 'Add Intel Report', icon: <IntelIcon />, path: '#new-intel', roles: ['edit', 'admin'] },
+    { text: 'Add BOLO', icon: <BOLOIcon />, path: '#new-bolo', roles: ['edit', 'admin'] }
   ];
 
   const systemAdminPages = [
@@ -138,6 +141,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     if (path === '#new') {
       const evt = new CustomEvent('open-new-post-modal');
       window.dispatchEvent(evt);
+    } else if (path === '#new-intel') {
+      const evt = new CustomEvent('open-new-intel-modal');
+      window.dispatchEvent(evt);
+    } else if (path === '#new-bolo') {
+      navigate('/bolo/create');
     } else {
       navigate(path);
     }

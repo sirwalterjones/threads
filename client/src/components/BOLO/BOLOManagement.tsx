@@ -92,18 +92,27 @@ const BOLOManagement: React.FC = () => {
       
       const response: BOLOFeedResponse = await boloApi.getBOLOFeed(filters);
       console.log('Management: Loaded BOLOs from API:', response.bolos.length);
-      console.log('Management: User role:', user?.role);
+      console.log('Management: Current user:', user?.username, 'ID:', user?.id, 'Role:', user?.role);
       console.log('Management: BOLOs by status:', response.bolos.reduce((acc, b) => {
         acc[b.status] = (acc[b.status] || 0) + 1;
         return acc;
       }, {} as Record<string, number>));
       
-      // Filter to only show BOLOs created by current user or all for admin
+      // For admins, show all BOLOs
+      // For other users, show only their BOLOs
       const myBolos = user?.role === 'admin' 
         ? response.bolos 
         : response.bolos.filter(b => b.created_by === user?.id);
       
-      console.log('Management: Filtered BOLOs:', myBolos.length);
+      console.log('Management: After filtering - showing', myBolos.length, 'BOLOs');
+      console.log('Management: Detailed status breakdown:', {
+        active: myBolos.filter(b => b.status === 'active').length,
+        pending: myBolos.filter(b => b.status === 'pending').length,
+        resolved: myBolos.filter(b => b.status === 'resolved').length,
+        cancelled: myBolos.filter(b => b.status === 'cancelled').length,
+        expired: myBolos.filter(b => b.status === 'expired').length
+      });
+      
       setBolos(myBolos);
     } catch (error) {
       console.error('Error loading BOLOs:', error);

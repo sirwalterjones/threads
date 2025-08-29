@@ -60,21 +60,21 @@ const fonts = {
 };
 
 const fontSizes = {
-  h1: 20,
+  h1: 18,
   h2: 16,
   h3: 14,
-  h4: 12,
-  h5: 11,
-  h6: 10,
-  body: 10,
-  small: 8,
-  tiny: 7,
-  code: 9,
+  h4: 13,
+  h5: 12,
+  h6: 11,
+  body: 11,
+  small: 9,
+  tiny: 8,
+  code: 10,
 };
 
 const lineHeights = {
-  heading: 1.3,
-  body: 1.5,
+  heading: 1.4,
+  body: 1.6,
   code: 1.4,
 };
 
@@ -100,22 +100,22 @@ function parseHtmlToFormattedText(html: string): FormattedText[] {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent;
       if (text) {
-        // Split text by line breaks to preserve formatting
-        const lines = text.split('\n');
-        lines.forEach((line, index) => {
-          if (line.trim()) {
-            formatted.push({ ...parentStyles, text: line });
-          }
-          // Add line break between lines (but not after the last one)
-          if (index < lines.length - 1) {
-            formatted.push({ text: '\n', ...parentStyles });
-          }
-        });
+        // Clean up the text - remove excessive whitespace but preserve intentional spacing
+        const cleanedText = text.replace(/\s+/g, ' ');
+        if (cleanedText.trim()) {
+          formatted.push({ ...parentStyles, text: cleanedText });
+        }
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
       const tagName = element.tagName.toLowerCase();
       let styles = { ...parentStyles };
+      
+      // Add paragraph break before block elements
+      const isBlockElement = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'pre'].includes(tagName);
+      if (isBlockElement && formatted.length > 0 && formatted[formatted.length - 1].text !== '\n\n') {
+        formatted.push({ text: '\n\n', ...parentStyles });
+      }
       
       // Handle different HTML elements
       switch (tagName) {
@@ -140,7 +140,6 @@ function parseHtmlToFormattedText(html: string): FormattedText[] {
         case 'strong':
         case 'b':
           styles.bold = true;
-          // Add line break after bold text if followed by a line break
           break;
         case 'em':
         case 'i':
@@ -497,9 +496,12 @@ export async function downloadPDF(
         yPosition = 25;
       }
       
-      // Handle line breaks
-      if (segment.text === '\n') {
-        yPosition += 1.5; // Minimal space for line break
+      // Handle line breaks - proper paragraph spacing
+      if (segment.text === '\n\n') {
+        yPosition += 6; // Full paragraph break (like Word)
+        continue;
+      } else if (segment.text === '\n') {
+        yPosition += 3; // Single line break
         continue;
       }
       
@@ -650,24 +652,24 @@ export async function downloadPDF(
           doc.text(line, segment.code ? 15 : indent, yPosition);
         }
         
-        // Compact line spacing
-        const lineSpacing = segment.header ? 4 :
-                          segment.code ? 3.5 :
-                          segment.blockquote ? 3.5 : 
-                          3.5;
+        // Professional line spacing (like Word document)
+        const lineSpacing = segment.header ? 7 :
+                          segment.code ? 4.5 :
+                          segment.blockquote ? 5 : 
+                          5;
         yPosition += lineSpacing;
       });
       
-      // Add minimal spacing after elements
+      // Add professional spacing after elements (like Word)
       if (segment.header) {
-        yPosition += segment.header <= 2 ? 1 : 0.5;
+        yPosition += segment.header <= 2 ? 3 : 2;
       } else if (segment.blockquote) {
-        yPosition += 1;
+        yPosition += 2;
       } else if (segment.code) {
-        yPosition += 1;
+        yPosition += 2;
       } else if (segment.bold && segment.text.trim().endsWith(':')) {
-        // Add small space after bold labels (like "Date of Report:")
-        yPosition += 0.5;
+        // Add space after bold labels (like "Date of Report:")
+        yPosition += 1;
       }
     }
     

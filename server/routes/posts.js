@@ -485,9 +485,13 @@ router.get('/following', authenticateToken, async (req, res) => {
     const schemaResult = await pool.query(schemaQuery);
     console.log('Available columns in posts table:', schemaResult.rows.map(r => r.column_name));
 
-    // Return the EXACT same data structure as the search page for consistent card rendering
+    // Get current user's username for matching their posts
+    const userResult = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+    const username = userResult.rows[0]?.username;
+    
+    // Return posts that are either followed OR created by the user
     const query = `
-      SELECT 
+      SELECT DISTINCT
         p.id, p.wp_post_id, p.title, p.content, p.excerpt, p.author_name,
         p.wp_published_date, p.ingested_at, p.retention_date, p.status,
         p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
@@ -511,17 +515,18 @@ router.get('/following', authenticateToken, async (req, res) => {
           (SELECT COUNT(*) FROM comments WHERE post_id = p.id),
           0
         ) as comment_count,
-        uf.created_at as followed_at
-      FROM user_follows uf
-      JOIN posts p ON uf.post_id = p.id
+        COALESCE(uf.created_at, p.ingested_at) as followed_at,
+        CASE WHEN p.author_name = $4 THEN true ELSE false END as is_own_post
+      FROM posts p
+      LEFT JOIN user_follows uf ON uf.post_id = p.id AND uf.user_id = $1
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE uf.user_id = $1
-      ORDER BY uf.created_at DESC
+      WHERE uf.user_id = $1 OR p.author_name = $4
+      ORDER BY COALESCE(uf.created_at, p.ingested_at) DESC
       LIMIT $2 OFFSET $3
     `;
 
-    console.log('Executing query with params:', [userId, limit, offset]);
-    const result = await pool.query(query, [userId, limit, offset]);
+    console.log('Executing query with params:', [userId, limit, offset, username]);
+    const result = await pool.query(query, [userId, limit, offset, username]);
     console.log('Query result rows:', result.rows.length);
     
     const posts = result.rows;
@@ -890,6 +895,13 @@ router.post('/',
             }
           }
         }
+
+        // Auto-follow the post for the creator
+        await client.query(
+          'INSERT INTO user_follows (user_id, post_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [req.user.id, post.id]
+        );
+        console.log(`✅ Auto-followed post ${post.id} for user ${req.user.username}`);
 
         await client.query('COMMIT');
         

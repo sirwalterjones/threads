@@ -175,6 +175,13 @@ class BOLOService {
         }
       }
       
+      // Auto-save the BOLO for the creator
+      await client.query(
+        'INSERT INTO bolo_saves (bolo_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [bolo.id, userId]
+      );
+      console.log(`✅ Auto-saved BOLO ${bolo.id} for user ${userId}`);
+      
       // Log activity
       await client.query(`
         INSERT INTO bolo_activity (bolo_id, user_id, action, metadata)

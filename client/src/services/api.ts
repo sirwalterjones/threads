@@ -105,6 +105,13 @@ class ApiService {
     return response.data;
   }
 
+  async deleteUser(id: number): Promise<{ message: string }> {
+    const response: AxiosResponse<{ message: string }> = await axios.delete(
+      `${API_BASE_URL}/auth/users/${id}`
+    );
+    return response.data;
+  }
+
   // Posts
   async getPosts(filters: SearchFilters & { page?: number; limit?: number }): Promise<PostsResponse> {
     const params = new URLSearchParams();
