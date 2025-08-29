@@ -83,7 +83,6 @@ class PDFGenerator {
           <div class="post-meta">
             <span class="author">${post.author_name || user.username}</span>
             <span class="date">${new Date(post.created_at).toLocaleDateString()}</span>
-            ${post.likes_count ? `<span class="likes">❤️ ${post.likes_count}</span>` : ''}
           </div>
           ${tagsHTML}
           <div class="post-content">${post.content}</div>

@@ -19,8 +19,7 @@ router.post('/pdf', authenticateToken, async (req, res) => {
         p.title,
         p.content,
         p.tags,
-        p.created_at,
-        p.likes_count,
+        COALESCE(p.wp_published_date, p.ingested_at) as created_at,
         p.author_name
       FROM posts p
       WHERE 1=1
@@ -43,18 +42,18 @@ router.post('/pdf', authenticateToken, async (req, res) => {
     // Add date range filter if provided
     if (dateRange) {
       if (dateRange.start) {
-        query += ` AND p.created_at >= $${paramIndex}`;
+        query += ` AND COALESCE(p.wp_published_date, p.ingested_at) >= $${paramIndex}`;
         queryParams.push(dateRange.start);
         paramIndex++;
       }
       if (dateRange.end) {
-        query += ` AND p.created_at <= $${paramIndex}`;
+        query += ` AND COALESCE(p.wp_published_date, p.ingested_at) <= $${paramIndex}`;
         queryParams.push(dateRange.end);
         paramIndex++;
       }
     }
     
-    query += ' ORDER BY p.created_at DESC';
+    query += ' ORDER BY COALESCE(p.wp_published_date, p.ingested_at) DESC';
     
     // Add a limit if no specific posts were requested
     if (!postIds || postIds.length === 0) {
