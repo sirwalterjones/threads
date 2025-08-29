@@ -1726,7 +1726,7 @@ const HomeSimple: React.FC = () => {
                     const data = await response.json();
                     
                     // Dynamically import optimized PDF export utility with HTML formatting
-                    const { downloadPDF } = await import('../utils/pdfExportOptimized');
+                    const { downloadPDF } = await import('../utils/pdfExportProfessional');
                     
                     // Generate and download PDF on client side (now async)
                     await downloadPDF(data.posts, undefined, {

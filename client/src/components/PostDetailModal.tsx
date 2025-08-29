@@ -285,8 +285,8 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                       
                       const data = await response.json();
                       
-                      // Dynamically import optimized PDF export utility
-                      const { downloadPDF } = await import('../utils/pdfExportOptimized');
+                      // Dynamically import professional PDF export utility
+                      const { downloadPDF } = await import('../utils/pdfExportProfessional');
                       
                       // Generate and download PDF
                       await downloadPDF(data.posts, `${post.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`, {
