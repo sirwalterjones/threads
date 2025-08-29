@@ -118,6 +118,40 @@ class BOLOApiService {
   }
 
   /**
+   * Update BOLO with files
+   */
+  async updateBOLOWithFiles(id: number, formData: BOLOFormData, files: File[]): Promise<BOLO> {
+    const data = new FormData();
+    
+    // Append BOLO data fields
+    Object.keys(formData).forEach(key => {
+      const value = (formData as any)[key];
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          data.append(key, JSON.stringify(value));
+        } else {
+          data.append(key, value.toString());
+        }
+      }
+    });
+    
+    // Append files
+    files.forEach(file => {
+      data.append('media', file);
+    });
+    
+    const response = await axios.put(
+      `${API_BASE_URL}/bolo/${id}`,
+      data,
+      {
+        headers: this.getMultipartHeaders()
+      }
+    );
+    
+    return response.data.bolo;
+  }
+
+  /**
    * Update BOLO status
    */
   async updateBOLOStatus(id: number, status: BOLO['status']): Promise<BOLO> {

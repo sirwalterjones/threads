@@ -222,13 +222,22 @@ const BOLOEditForm: React.FC = () => {
       setError(null);
 
       // Prepare form data for submission
-      const submitData: any = { ...formData };
+      const submitData: BOLOFormData = { ...formData };
       // Convert subject_aliases string to array for API
       if (submitData.subject_aliases && typeof submitData.subject_aliases === 'string') {
-        submitData.subject_aliases = submitData.subject_aliases.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+        submitData.subject_aliases = submitData.subject_aliases.split(',').map((s: string) => s.trim()).filter((s: string) => s).join(',');
       }
 
-      const updatedBOLO = await boloApi.updateBOLO(parseInt(id!), submitData);
+      // Use the method with files if files are present
+      const updatedBOLO = files.length > 0 
+        ? await boloApi.updateBOLOWithFiles(parseInt(id!), submitData, files)
+        : await boloApi.updateBOLO(parseInt(id!), submitData);
+      
+      // Clean up preview URLs
+      previewUrls.forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      
       navigate(`/bolo/${updatedBOLO.id}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update BOLO');

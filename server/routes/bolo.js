@@ -180,13 +180,15 @@ router.get('/public/:token',
 router.put('/:id',
   authenticateToken,
   authorizeRole(['edit', 'admin']),
+  upload.array('media', 10),
   async (req, res) => {
     try {
       const boloId = req.params.id;
       const updates = req.body;
       const userId = req.user.id;
+      const files = req.files || [];
       
-      const updatedBolo = await boloService.updateBOLO(boloId, updates, userId);
+      const updatedBolo = await boloService.updateBOLO(boloId, updates, userId, files);
       
       res.json({
         success: true,

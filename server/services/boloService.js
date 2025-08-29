@@ -383,7 +383,7 @@ class BOLOService {
   /**
    * Update BOLO
    */
-  async updateBOLO(boloId, updates, userId) {
+  async updateBOLO(boloId, updates, userId, files = []) {
     const client = await pool.connect();
     
     try {
@@ -445,11 +445,66 @@ class BOLOService {
         
         const result = await client.query(updateQuery, values);
         
+        // Process uploaded files if any
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // In production with memory storage, file.buffer contains the file data
+            // For now, we'll store metadata only and handle file storage later
+            const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+            
+            // TODO: In production, upload file.buffer to cloud storage (S3, Cloudinary, etc.)
+            // For now, we'll use a placeholder URL in production
+            const fileUrl = process.env.NODE_ENV === 'production' 
+              ? `https://via.placeholder.com/400x300.png?text=BOLO+Image` // Placeholder for production
+              : `/uploads/bolo/${filename}`;
+            
+            await client.query(`
+              INSERT INTO bolo_media (
+                bolo_id, type, filename, original_name, url, thumbnail_url,
+                mime_type, size, uploaded_by, is_primary, display_order
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+              RETURNING id
+            `, [
+              boloId,
+              this.getMediaType(file.mimetype),
+              filename,
+              file.originalname,
+              fileUrl,
+              fileUrl, // Use same URL for thumbnail for now
+              file.mimetype,
+              file.size,
+              userId,
+              i === 0, // First file is primary
+              i + 1
+            ]);
+          }
+          
+          // Update BOLO primary image if this is the first media being added
+          const existingMedia = await client.query(
+            'SELECT COUNT(*) as count FROM bolo_media WHERE bolo_id = $1 AND uploaded_at < NOW() - INTERVAL \'1 second\'',
+            [boloId]
+          );
+          
+          if (existingMedia.rows[0].count === 0) {
+            // This is the first media, set it as primary image
+            const fileUrl = process.env.NODE_ENV === 'production' 
+              ? `https://via.placeholder.com/400x300.png?text=BOLO+Image`
+              : `/uploads/bolo/${files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`}`;
+              
+            await client.query(
+              'UPDATE bolos SET primary_image_url = $1, primary_thumbnail_url = $2 WHERE id = $3',
+              [fileUrl, fileUrl, boloId]
+            );
+          }
+        }
+        
         // Log activity
         await client.query(`
           INSERT INTO bolo_activity (bolo_id, user_id, action, metadata)
           VALUES ($1, $2, 'updated', $3)
-        `, [boloId, userId, { fields: Object.keys(updates) }]);
+        `, [boloId, userId, { fields: Object.keys(updates), files_added: files.length }]);
         
         await client.query('COMMIT');
         
