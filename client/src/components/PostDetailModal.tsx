@@ -93,7 +93,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
       const postData = await apiService.getPost(id);
       setPost(postData);
     } catch (error: any) {
-      setError(error.response?.data?.error || 'Failed to load post details');
+      // Don't show error for 404s (post was likely deleted)
+      if (error.response?.status === 404) {
+        // Silently close the modal if the post doesn't exist
+        onClose();
+      } else {
+        setError(error.response?.data?.error || 'Failed to load post details');
+      }
     } finally {
       setLoading(false);
     }
