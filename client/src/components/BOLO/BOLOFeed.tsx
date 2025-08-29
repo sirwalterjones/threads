@@ -50,7 +50,7 @@ import {
 import { BOLO, BOLOFilters, BOLOFeedResponse } from '../../types/bolo';
 import boloApi from '../../services/boloApi';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import './BOLOFeed.css';
 
 const BOLOFeed: React.FC = () => {
@@ -295,11 +295,22 @@ const BOLOFeed: React.FC = () => {
 
       {/* Post Card */}
       <article 
-        className="post-card" 
+        className={`post-card ${bolo.status !== 'active' && bolo.status !== 'pending' ? 'status-overlay' : ''}`}
         role="article" 
         aria-labelledby={`post-title-${bolo.id}`}
         onClick={() => navigate(`/bolo/${bolo.id}`)}
       >
+        {/* Status Banner for resolved/cancelled/expired BOLOs */}
+        {(bolo.status === 'resolved' || bolo.status === 'cancelled' || bolo.status === 'expired') && (
+          <div className={`status-banner status-banner-${bolo.status}`}>
+            <Chip
+              label={bolo.status.toUpperCase()}
+              size="small"
+              className={`status-chip status-chip-${bolo.status}`}
+              icon={bolo.status === 'resolved' ? <VerifiedIcon /> : <WarningIcon />}
+            />
+          </div>
+        )}
         <div className="card-grid">
           <div className="card-content">
             <div className="priority-indicator" style={{ backgroundColor: getPriorityColor(bolo.priority) }} />
@@ -351,6 +362,16 @@ const BOLOFeed: React.FC = () => {
             <div className="status">
               <span className={`status-dot ${bolo.status}`} aria-hidden="true"></span>
               <span className="status-text">{getStatusLabel(bolo)}</span>
+            </div>
+            <div className="timestamp">
+              <span className="created-time">
+                {format(new Date(bolo.created_at), 'MMM d, h:mm a')}
+              </span>
+              {bolo.incident_date && (
+                <span className="incident-time">
+                  Incident: {format(new Date(bolo.incident_date), 'MMM d, yyyy')}
+                </span>
+              )}
             </div>
           </div>
         </div>

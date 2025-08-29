@@ -367,6 +367,25 @@
   color: var(--bolo-text-muted);
 }
 
+.timestamp {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: var(--bolo-text-muted);
+  margin-top: 4px;
+}
+
+.created-time {
+  font-weight: 500;
+  color: var(--bolo-text);
+}
+
+.incident-time {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--bolo-warning);
+}
+
 /* Post Actions */
 .post-actions {
   display: flex;
@@ -474,4 +493,50 @@
     justify-content: space-around;
     padding: 8px;
   }
+}
+
+/* Status Banner Styles */
+.status-banner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.status-chip-resolved {
+  background-color: rgba(76, 175, 80, 0.9) !important;
+  color: white !important;
+}
+
+.status-chip-cancelled {
+  background-color: rgba(244, 67, 54, 0.9) !important;
+  color: white !important;
+}
+
+.status-chip-expired {
+  background-color: rgba(255, 152, 0, 0.9) !important;
+  color: white !important;
+}
+
+/* Status Overlay Effect */
+.post-card.status-overlay {
+  position: relative;
+  opacity: 0.85;
+}
+
+.post-card.status-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.post-card.status-overlay .card-content {
+  position: relative;
+  z-index: 2;
 }

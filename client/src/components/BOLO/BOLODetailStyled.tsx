@@ -229,6 +229,83 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
     }
   };
 
+  const handleStatusUpdate = async (newStatus: 'resolved' | 'cancelled') => {
+    if (!bolo) return;
+    
+    try {
+      const statusData = { ...bolo, status: newStatus };
+      
+      // Convert to format for API, only including fields that exist in BOLOFormData
+      const formData: any = {
+        title: statusData.title,
+        summary: statusData.summary,
+        narrative: statusData.narrative,
+        priority: statusData.priority,
+        status: statusData.status,
+        type: statusData.type,
+        
+        // Subject Information
+        subject_name: statusData.subject_name,
+        subject_aliases: Array.isArray(statusData.subject_aliases) 
+          ? statusData.subject_aliases.join(', ') 
+          : statusData.subject_aliases,
+        subject_description: statusData.subject_description,
+        date_of_birth: statusData.date_of_birth,
+        age_range: statusData.age_range,
+        height: statusData.height,
+        weight: statusData.weight,
+        hair_color: statusData.hair_color,
+        eye_color: statusData.eye_color,
+        distinguishing_features: statusData.distinguishing_features,
+        last_seen_wearing: statusData.last_seen_wearing,
+        armed_dangerous: statusData.armed_dangerous,
+        armed_dangerous_details: statusData.armed_dangerous_details,
+        
+        // Vehicle Information
+        vehicle_make: statusData.vehicle_make,
+        vehicle_model: statusData.vehicle_model,
+        vehicle_year: statusData.vehicle_year?.toString(),
+        vehicle_color: statusData.vehicle_color,
+        license_plate: statusData.license_plate,
+        vehicle_vin: statusData.vehicle_vin,
+        vehicle_features: statusData.vehicle_features,
+        direction_of_travel: statusData.direction_of_travel,
+        
+        // Incident Information
+        incident_date: statusData.incident_date,
+        incident_location: statusData.incident_location,
+        last_known_location: statusData.last_known_location,
+        jurisdiction: statusData.jurisdiction,
+        
+        // Safety & Instructions
+        officer_safety_info: statusData.officer_safety_info,
+        approach_instructions: statusData.approach_instructions,
+        contact_info: statusData.contact_info
+      };
+
+      const updated = await boloApi.updateBOLO(bolo.id, formData);
+      setBolo(updated);
+      setEditData(updated);
+      
+      const statusMessage = newStatus === 'resolved' 
+        ? `BOLO #${bolo.case_number} marked as RESOLVED` 
+        : `BOLO #${bolo.case_number} has been CANCELLED`;
+        
+      setSnackbar({ 
+        open: true, 
+        message: statusMessage, 
+        severity: 'success' 
+      });
+    } catch (error) {
+      console.error('Error updating BOLO status:', error);
+      setSnackbar({ 
+        open: true, 
+        message: `Failed to ${newStatus === 'resolved' ? 'resolve' : 'cancel'} BOLO`, 
+        severity: 'error' 
+      });
+    }
+  };
+
   const handleShare = () => {
     if (bolo?.public_share_token) {
       setShareLink(boloApi.getShareableLink(bolo));
@@ -690,15 +767,13 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
                     <EditIcon />
                     <span>Edit BOLO Details</span>
                   </button>
-                  <button className="quick-action-btn" onClick={() => {
-                    setEditData({ ...bolo, status: 'resolved' });
-                    handleUpdate();
+                  <button className="quick-action-btn" onClick={async () => {
+                    await handleStatusUpdate('resolved');
                   }}>
                     <span>Mark as Resolved</span>
                   </button>
-                  <button className="quick-action-btn" onClick={() => {
-                    setEditData({ ...bolo, status: 'cancelled' });
-                    handleUpdate();
+                  <button className="quick-action-btn" onClick={async () => {
+                    await handleStatusUpdate('cancelled');
                   }}>
                     <span>Cancel BOLO</span>
                   </button>

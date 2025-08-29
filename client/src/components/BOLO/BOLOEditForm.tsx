@@ -101,7 +101,8 @@ const BOLOEditForm: React.FC = () => {
     'Subject/Vehicle Details',
     'Incident Information',
     'Officer Safety',
-    'Media & Review'
+    'Media Upload',
+    'Review & Submit'
   ];
 
   useEffect(() => {
@@ -172,6 +173,39 @@ const BOLOEditForm: React.FC = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (files.length + selectedFiles.length > 10) {
+      setError('Maximum 10 files allowed');
+      return;
+    }
+
+    const newFiles = [...files, ...selectedFiles];
+    setFiles(newFiles);
+
+    // Create preview URLs for images
+    const newPreviewUrls = newFiles.map(file => {
+      if (file.type.startsWith('image/')) {
+        return URL.createObjectURL(file);
+      }
+      return '';
+    });
+    setPreviewUrls(newPreviewUrls);
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = files.filter((_, i) => i !== index);
+    const newPreviewUrls = previewUrls.filter((_, i) => i !== index);
+    
+    // Clean up object URLs
+    if (previewUrls[index]) {
+      URL.revokeObjectURL(previewUrls[index]);
+    }
+    
+    setFiles(newFiles);
+    setPreviewUrls(newPreviewUrls);
   };
 
   const handleNext = () => {
@@ -614,9 +648,48 @@ const BOLOEditForm: React.FC = () => {
           <TextField
             fullWidth
             label="Last Known Location"
+            placeholder="Most recent sighting or known location"
             value={formData.last_known_location}
             onChange={handleChange('last_known_location')}
             sx={darkFormFieldSx}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <TextField
+            fullWidth
+            label="Contact Information"
+            placeholder="Phone, email, or radio for officers to report sightings"
+            value={formData.contact_info}
+            onChange={handleChange('contact_info')}
+            sx={darkFormFieldSx}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            label="Expires At"
+            type="datetime-local"
+            InputLabelProps={{ shrink: true }}
+            value={formData.expires_at}
+            onChange={handleChange('expires_at')}
+            helperText="When should this BOLO automatically expire?"
+            sx={darkFormFieldSx}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.is_public || false}
+                onChange={handleChange('is_public')}
+                sx={{ color: '#a9b0b6', '&.Mui-checked': { color: '#2fa9ff' } }}
+              />
+            }
+            label="Make this BOLO publicly viewable"
+            sx={{ '& .MuiFormControlLabel-label': { color: '#a9b0b6' } }}
           />
         </Grid>
       </Grid>
@@ -661,6 +734,102 @@ const BOLOEditForm: React.FC = () => {
     </Box>
   );
 
+  const renderMediaUpload = () => (
+    <Box>
+      <Typography variant="h6" gutterBottom sx={darkTypographySx}>
+        Media Upload
+      </Typography>
+      
+      <Box
+        className="file-upload-area"
+        sx={{
+          border: '2px dashed rgba(255, 255, 255, 0.2)',
+          borderRadius: 1,
+          p: 2,
+          mb: 2,
+          textAlign: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+          color: '#a9b0b6',
+          '&:hover': {
+            borderColor: 'rgba(47, 169, 255, 0.5)',
+            backgroundColor: 'rgba(47, 169, 255, 0.05)'
+          }
+        }}
+      >
+        <input
+          accept="image/*,video/*,.pdf,.doc,.docx"
+          style={{ display: 'none' }}
+          id="file-upload"
+          multiple
+          type="file"
+          onChange={handleFileSelect}
+        />
+        <label htmlFor="file-upload">
+          <Button
+            variant="outlined"
+            component="span"
+            startIcon={<UploadIcon />}
+            sx={{
+              color: '#a9b0b6',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              '&:hover': {
+                borderColor: 'rgba(47, 169, 255, 0.5)',
+                backgroundColor: 'rgba(47, 169, 255, 0.05)'
+              }
+            }}
+          >
+            Upload Files (Max 10)
+          </Button>
+        </label>
+        <Typography variant="caption" display="block" sx={{ mt: 1, color: '#a9b0b6' }}>
+          Supported: Images, Videos, PDFs, Documents (Max 50MB each)
+        </Typography>
+      </Box>
+
+      {files.length > 0 && (
+        <Grid container spacing={1}>
+          {files.map((file, index) => (
+            <Grid size={{ xs: 6, md: 3 }} key={index}>
+              <Card sx={{ backgroundColor: '#1f2226', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                {file.type.startsWith('image/') && previewUrls[index] ? (
+                  <CardMedia
+                    component="img"
+                    height="120"
+                    image={previewUrls[index]}
+                    alt={file.name}
+                  />
+                ) : (
+                  <Box 
+                    sx={{ 
+                      height: 120, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      color: '#a9b0b6'
+                    }}
+                  >
+                    <Typography variant="caption" align="center">
+                      {file.name}
+                    </Typography>
+                  </Box>
+                )}
+                <CardActions sx={{ justifyContent: 'space-between', px: 1, py: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#a9b0b6', fontSize: '0.7rem' }}>
+                    {(file.size / 1024 / 1024).toFixed(1)}MB
+                  </Typography>
+                  <IconButton size="small" onClick={() => removeFile(index)} sx={{ color: '#a9b0b6' }}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
+  );
+
   const renderMediaReview = () => (
     <Box>
       <Typography variant="h6" gutterBottom sx={darkTypographySx}>
@@ -699,6 +868,8 @@ const BOLOEditForm: React.FC = () => {
       case 3:
         return renderOfficerSafety();
       case 4:
+        return renderMediaUpload();
+      case 5:
         return renderMediaReview();
       default:
         return null;
