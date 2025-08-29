@@ -1644,99 +1644,121 @@ const HomeSimple: React.FC = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>
-
-            <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
-              {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
-            </Typography>
-            
-            <Button
-              variant="contained"
-              startIcon={<FileDownload />}
-              onClick={async () => {
-                try {
-                  const token = localStorage.getItem('token');
-                  const response = await fetch('/api/export/pdf-data', {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      postIds: Array.from(selectedPosts),
+          
+          {/* Export Toolbar - Integrated below action buttons */}
+          {exportMode && (
+            <Box sx={{ 
+              px: 3, 
+              py: 2, 
+              backgroundColor: 'rgba(29, 155, 240, 0.05)',
+              borderTop: '1px solid #2F3336',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+                  {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
+                </Typography>
+                
+                <Button
+                  variant="text"
+                  size="small"
+                  startIcon={<SelectAll />}
+                  onClick={() => {
+                    const allPostIds = new Set(posts.map(p => p.id));
+                    setSelectedPosts(allPostIds);
+                  }}
+                  sx={{
+                    color: '#1D9BF0',
+                    '&:hover': {
+                      backgroundColor: 'rgba(29, 155, 240, 0.1)'
+                    }
+                  }}
+                >
+                  Select All
+                </Button>
+                
+                <Button
+                  variant="text"
+                  size="small"
+                  startIcon={<ClearIcon />}
+                  onClick={() => {
+                    setSelectedPosts(new Set());
+                  }}
+                  sx={{
+                    color: '#9CA3AF',
+                    '&:hover': {
+                      backgroundColor: 'rgba(156, 163, 175, 0.1)'
+                    }
+                  }}
+                >
+                  Clear
+                </Button>
+              </Box>
+              
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<FileDownload />}
+                disabled={selectedPosts.size === 0}
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('/api/export/pdf-data', {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        postIds: Array.from(selectedPosts),
+                        includeComments: true,
+                        includeTags: true
+                      })
+                    });
+                    
+                    if (!response.ok) {
+                      throw new Error('Export failed');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Dynamically import PDF export utility
+                    const { downloadPDF } = await import('../utils/pdfExport');
+                    
+                    // Generate and download PDF on client side (now async)
+                    await downloadPDF(data.posts, undefined, {
                       includeComments: true,
-                      includeTags: true
-                    })
-                  });
-                  
-                  if (!response.ok) {
-                    throw new Error('Export failed');
+                      includeTags: true,
+                      user: data.user
+                    });
+                    
+                    // Reset export mode
+                    setExportMode(false);
+                    setSelectedPosts(new Set());
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                    alert('Failed to export posts');
                   }
-                  
-                  const data = await response.json();
-                  
-                  // Dynamically import PDF export utility
-                  const { downloadPDF } = await import('../utils/pdfExport');
-                  
-                  // Generate and download PDF on client side (now async)
-                  await downloadPDF(data.posts, undefined, {
-                    includeComments: true,
-                    includeTags: true,
-                    user: data.user
-                  });
-                  
-                  // Reset export mode
-                  setExportMode(false);
-                  setSelectedPosts(new Set());
-                } catch (error) {
-                  console.error('Export error:', error);
-                  alert('Failed to export posts. Please try again.');
-                }
-              }}
-              sx={{
-                backgroundColor: '#1D9BF0',
-                '&:hover': {
-                  backgroundColor: '#1a8cd8'
-                }
-              }}
-            >
-              Export PDF
-            </Button>
-            
-            <Button
-              variant="outlined"
-              startIcon={<SelectAll />}
-              onClick={() => {
-                const allPostIds = new Set(posts.map(p => p.id));
-                setSelectedPosts(allPostIds);
-              }}
-              sx={{
-                borderColor: '#374151',
-                color: '#9CA3AF',
-                '&:hover': {
-                  borderColor: '#6B7280',
-                  backgroundColor: 'rgba(156, 163, 175, 0.1)'
-                }
-              }}
-            >
-              Select All
-            </Button>
-            
-            <Button
-              variant="outlined"
-              startIcon={<ClearIcon />}
-              onClick={() => setSelectedPosts(new Set())}
-              sx={{
-                borderColor: '#374151',
-                color: '#9CA3AF',
-                '&:hover': {
-                  borderColor: '#6B7280',
-                  backgroundColor: 'rgba(156, 163, 175, 0.1)'
-                }
-              }}
-            >
-              Clear
-            </Button>
+                }}
+                sx={{
+                  backgroundColor: '#10B981',
+                  '&:hover': {
+                    backgroundColor: '#059669'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#374151',
+                    color: '#6B7280'
+                  }
+                }}
+              >
+                Export to PDF
+              </Button>
+            </Box>
+          )}
+        </Card>
 
         
 
@@ -2314,7 +2336,6 @@ const HomeSimple: React.FC = () => {
                 display: 'flex', 
                 justifyContent: 'center', 
                 mt: { xs: 3, sm: 4 },
-                mb: exportMode && selectedPosts.size > 0 ? 10 : 0, // Add margin when floating bar is visible
                 px: { xs: 2, sm: 0 } // Add padding on mobile
               }}>
                 <Box sx={{ 
@@ -2358,125 +2379,6 @@ const HomeSimple: React.FC = () => {
                     Next
                   </Button>
                 </Box>
-              </Box>
-            )}
-            
-            {/* Export Toolbar - positioned after pagination */}
-            {exportMode && selectedPosts.size > 0 && (
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                mt: 3,
-                mb: 3,
-                px: { xs: 2, sm: 0 }
-              }}>
-                <Paper
-                  sx={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1.5,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-                  }}
-                >
-                  <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
-                    {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
-                  </Typography>
-                  
-                  <Button
-                    variant="contained"
-                    startIcon={<FileDownload />}
-                    onClick={async () => {
-                      try {
-                        const token = localStorage.getItem('token');
-                        const response = await fetch('/api/export/pdf-data', {
-                          method: 'POST',
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify({
-                            postIds: Array.from(selectedPosts),
-                            includeComments: true,
-                            includeTags: true
-                          })
-                        });
-                        
-                        if (!response.ok) {
-                          throw new Error('Export failed');
-                        }
-                        
-                        const data = await response.json();
-                        
-                        // Dynamically import PDF export utility
-                        const { downloadPDF } = await import('../utils/pdfExport');
-                        
-                        // Generate and download PDF on client side (now async)
-                        await downloadPDF(data.posts, undefined, {
-                          includeComments: true,
-                          includeTags: true,
-                          user: data.user
-                        });
-                        
-                        // Reset export mode
-                        setExportMode(false);
-                        setSelectedPosts(new Set());
-                      } catch (error) {
-                        console.error('Export failed:', error);
-                        alert('Failed to export posts');
-                      }
-                    }}
-                    sx={{
-                      backgroundColor: '#10B981',
-                      '&:hover': {
-                        backgroundColor: '#059669'
-                      }
-                    }}
-                  >
-                    Export to PDF
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    startIcon={<SelectAll />}
-                    onClick={() => {
-                      const allPostIds = new Set(posts.map(p => p.id));
-                      setSelectedPosts(allPostIds);
-                    }}
-                    sx={{
-                      borderColor: '#374151',
-                      color: '#9CA3AF',
-                      '&:hover': {
-                        borderColor: '#6B7280',
-                        backgroundColor: 'rgba(156, 163, 175, 0.1)'
-                      }
-                    }}
-                  >
-                    Select All
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    startIcon={<ClearIcon />}
-                    onClick={() => {
-                      setSelectedPosts(new Set());
-                    }}
-                    sx={{
-                      borderColor: '#374151',
-                      color: '#9CA3AF',
-                      '&:hover': {
-                        borderColor: '#6B7280',
-                        backgroundColor: 'rgba(156, 163, 175, 0.1)'
-                      }
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </Paper>
               </Box>
             )}
           </>
