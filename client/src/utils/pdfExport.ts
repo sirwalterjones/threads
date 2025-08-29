@@ -175,7 +175,7 @@ export const generatePDF = async (posts: Post[], options: { includeComments?: bo
     const contentParts = await parseContentWithImages(post.content || '');
     
     for (const part of contentParts) {
-      if (part.type === 'text') {
+      if (part.type === 'text' && part.content) {
         const contentLines = doc.splitTextToSize(part.content, 170);
         contentLines.forEach((line: string) => {
           if (yPosition > 270) {
@@ -186,7 +186,7 @@ export const generatePDF = async (posts: Post[], options: { includeComments?: bo
           doc.text(line, 20, yPosition);
           yPosition += 5;
         });
-      } else if (part.type === 'image') {
+      } else if (part.type === 'image' && part.src) {
         // Check if we need a new page for the image
         if (yPosition > 200) {
           doc.addPage();
