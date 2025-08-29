@@ -91,11 +91,19 @@ const BOLOManagement: React.FC = () => {
       };
       
       const response: BOLOFeedResponse = await boloApi.getBOLOFeed(filters);
+      console.log('Management: Loaded BOLOs from API:', response.bolos.length);
+      console.log('Management: User role:', user?.role);
+      console.log('Management: BOLOs by status:', response.bolos.reduce((acc, b) => {
+        acc[b.status] = (acc[b.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>));
+      
       // Filter to only show BOLOs created by current user or all for admin
       const myBolos = user?.role === 'admin' 
         ? response.bolos 
         : response.bolos.filter(b => b.created_by === user?.id);
       
+      console.log('Management: Filtered BOLOs:', myBolos.length);
       setBolos(myBolos);
     } catch (error) {
       console.error('Error loading BOLOs:', error);

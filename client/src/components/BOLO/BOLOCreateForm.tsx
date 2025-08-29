@@ -228,6 +228,33 @@ const BOLOCreateForm: React.FC = () => {
           </FormControl>
         </Grid>
 
+        <Grid size={{ xs: 12, md: 6 }}>
+          <FormControl fullWidth required sx={darkFormFieldSx}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={formData.status || 'active'}
+              label="Status"
+              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+            >
+              <MenuItem value="active">
+                <Chip label="Active" color="success" size="small" />
+              </MenuItem>
+              <MenuItem value="pending">
+                <Chip label="Pending" color="warning" size="small" />
+              </MenuItem>
+              <MenuItem value="resolved">
+                <Chip label="Resolved" color="default" size="small" />
+              </MenuItem>
+              <MenuItem value="expired">
+                <Chip label="Expired" color="default" size="small" />
+              </MenuItem>
+              <MenuItem value="cancelled">
+                <Chip label="Cancelled" color="error" size="small" />
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
         <Grid size={12}>
           <TextField
             fullWidth
@@ -729,6 +756,9 @@ const BOLOCreateForm: React.FC = () => {
           </Typography>
           <Typography variant="subtitle2" gutterBottom>
             <strong>Priority:</strong> {formData.priority}
+          </Typography>
+          <Typography variant="subtitle2" gutterBottom>
+            <strong>Status:</strong> {formData.status || 'active'}
           </Typography>
           <Typography variant="subtitle2" gutterBottom>
             <strong>Title:</strong> {formData.title}

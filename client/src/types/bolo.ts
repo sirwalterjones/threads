@@ -138,6 +138,7 @@ export interface BOLOFeedResponse {
 export interface BOLOFormData {
   type: 'person' | 'vehicle' | 'property' | 'other';
   priority: 'immediate' | 'high' | 'medium' | 'low';
+  status?: 'pending' | 'active' | 'resolved' | 'expired' | 'cancelled';
   
   // Subject fields (for person type)
   subject_name?: string;

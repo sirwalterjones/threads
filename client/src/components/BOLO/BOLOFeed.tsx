@@ -420,7 +420,7 @@ const BOLOFeed: React.FC = () => {
   const displayBolos = tabValue === 0 ? bolos : savedBolos;
 
   return (
-    <Box className="bolo-feed-page">
+    <Box className="bolo-feed-page" sx={{ backgroundColor: '#0b0d10', minHeight: '100vh' }}>
       <Container maxWidth="lg">
         {/* Header Controls */}
         <Box className="feed-controls">
