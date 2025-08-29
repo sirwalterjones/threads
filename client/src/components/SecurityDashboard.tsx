@@ -38,6 +38,7 @@ import {
 import Grid from '@mui/material/GridLegacy';
 import axios from 'axios';
 import { API_BASE_URL } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SecurityMetrics {
   events_today: number;
@@ -84,6 +85,7 @@ interface SecurityAlert {
 }
 
 const SecurityDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<SecurityMetrics | null>(null);
   const [complianceScore, setComplianceScore] = useState<ComplianceScore | null>(null);
   const [incidents, setIncidents] = useState<IncidentStatistics | null>(null);
@@ -92,6 +94,18 @@ const SecurityDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Restrict access to wrjones only
+  if (user?.username !== 'wrjones') {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          <AlertTitle>Access Denied</AlertTitle>
+          You do not have permission to view the Security Dashboard.
+        </Alert>
+      </Box>
+    );
+  }
 
   useEffect(() => {
     fetchDashboardData();
