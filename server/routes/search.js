@@ -69,7 +69,9 @@ router.get('/unified', authenticateToken, async (req, res) => {
         b.subject_description ILIKE $1 OR
         b.incident_location ILIKE $1 OR
         b.case_number ILIKE $1 OR
-        b.vehicle_description ILIKE $1
+        b.vehicle_make ILIKE $1 OR
+        b.vehicle_model ILIKE $1 OR
+        b.vehicle_color ILIKE $1
       )
       ORDER BY b.created_at DESC
       LIMIT $2 OFFSET $3
@@ -116,7 +118,8 @@ router.get('/unified', authenticateToken, async (req, res) => {
         `SELECT COUNT(*) as count FROM bolos b 
          WHERE b.status NOT IN ('cancelled', 'expired') AND (
            b.title ILIKE $1 OR b.subject_name ILIKE $1 OR b.subject_description ILIKE $1 OR 
-           b.incident_location ILIKE $1 OR b.case_number ILIKE $1 OR b.vehicle_description ILIKE $1
+           b.incident_location ILIKE $1 OR b.case_number ILIKE $1 OR b.vehicle_make ILIKE $1 OR
+           b.vehicle_model ILIKE $1 OR b.vehicle_color ILIKE $1
          )`,
         [searchPattern]
       ),
