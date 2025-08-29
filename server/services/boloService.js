@@ -113,10 +113,17 @@ class BOLOService {
           // For now, we'll store metadata only and handle file storage later
           const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
           
-          // Save file to disk in all environments
-          // In production, we'll write file.buffer to disk
-          // TODO: Later upgrade to cloud storage (S3, Cloudinary, etc.)
+          // Save file to disk - use /tmp in serverless environments
           if (process.env.NODE_ENV === 'production' && file.buffer) {
+            const fs = require('fs').promises;
+            const path = require('path');
+            // Use /tmp directory in serverless environments like AWS Lambda
+            const uploadDir = path.join('/tmp', 'uploads', 'bolo');
+            await fs.mkdir(uploadDir, { recursive: true });
+            const filePath = path.join(uploadDir, filename);
+            await fs.writeFile(filePath, file.buffer);
+          } else if (file.buffer) {
+            // Development - save to local uploads
             const fs = require('fs').promises;
             const path = require('path');
             const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
@@ -124,7 +131,14 @@ class BOLOService {
             const filePath = path.join(uploadDir, filename);
             await fs.writeFile(filePath, file.buffer);
           }
-          const fileUrl = `/uploads/bolo/${filename}`;
+          
+          // In production serverless, files are temporary so use cloud storage URL
+          // For now, we'll use a data URI or external service
+          const fileUrl = process.env.NODE_ENV === 'production' 
+            ? file.buffer 
+              ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+              : `/uploads/bolo/${filename}`
+            : `/uploads/bolo/${filename}`;
           
           const mediaResult = await client.query(`
             INSERT INTO bolo_media (
@@ -461,10 +475,17 @@ class BOLOService {
             // For now, we'll store metadata only and handle file storage later
             const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
             
-            // Save file to disk in all environments
-            // In production, we'll write file.buffer to disk
-            // TODO: Later upgrade to cloud storage (S3, Cloudinary, etc.)
+            // Save file to disk - use /tmp in serverless environments
             if (process.env.NODE_ENV === 'production' && file.buffer) {
+              const fs = require('fs').promises;
+              const path = require('path');
+              // Use /tmp directory in serverless environments like AWS Lambda
+              const uploadDir = path.join('/tmp', 'uploads', 'bolo');
+              await fs.mkdir(uploadDir, { recursive: true });
+              const filePath = path.join(uploadDir, filename);
+              await fs.writeFile(filePath, file.buffer);
+            } else if (file.buffer) {
+              // Development - save to local uploads
               const fs = require('fs').promises;
               const path = require('path');
               const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
@@ -472,7 +493,13 @@ class BOLOService {
               const filePath = path.join(uploadDir, filename);
               await fs.writeFile(filePath, file.buffer);
             }
-            const fileUrl = `/uploads/bolo/${filename}`;
+            
+            // In production serverless, files are temporary so use data URI
+            const fileUrl = process.env.NODE_ENV === 'production' 
+              ? file.buffer 
+                ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+                : `/uploads/bolo/${filename}`
+              : `/uploads/bolo/${filename}`;
             
             await client.query(`
               INSERT INTO bolo_media (
@@ -504,7 +531,11 @@ class BOLOService {
           if (existingMedia.rows[0].count === 0) {
             // This is the first media, set it as primary image
             const firstFilename = files[0].filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(files[0].originalname)}`;
-            const fileUrl = `/uploads/bolo/${firstFilename}`;
+            const fileUrl = process.env.NODE_ENV === 'production' 
+              ? files[0].buffer 
+                ? `data:${files[0].mimetype};base64,${files[0].buffer.toString('base64')}`
+                : `/uploads/bolo/${firstFilename}`
+              : `/uploads/bolo/${firstFilename}`;
               
             await client.query(
               'UPDATE bolos SET primary_image_url = $1, primary_thumbnail_url = $2 WHERE id = $3',
