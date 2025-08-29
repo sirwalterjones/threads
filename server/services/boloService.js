@@ -437,9 +437,9 @@ class BOLOService {
       const values = [];
       let paramIndex = 1;
       
-      // Status can only be: pending, active, cancelled
-      if (updates.status && !['pending', 'active', 'cancelled'].includes(updates.status)) {
-        throw new Error('Invalid status. Must be: pending, active, or cancelled');
+      // Status can be: pending, active, cancelled, resolved, expired
+      if (updates.status && !['pending', 'active', 'cancelled', 'resolved', 'expired'].includes(updates.status)) {
+        throw new Error('Invalid status. Must be: pending, active, cancelled, resolved, or expired');
       }
       
       const allowedFields = [

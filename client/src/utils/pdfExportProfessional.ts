@@ -33,22 +33,23 @@ interface ImageInfo {
 // Cache for loaded images
 const imageCache: Map<string, ImageInfo> = new Map();
 
-// Vector Intelligence color palette
+// Vector Intelligence dark theme color palette
 const colors = {
-  primary: [20, 20, 20],         // Dark for main headers
-  secondary: [40, 40, 40],       // Dark gray for body text
+  primary: [255, 255, 255],      // White for main headers on dark bg
+  secondary: [200, 200, 200],    // Light gray for body text on dark bg
   accent: [41, 98, 255],         // Bright blue for links
-  muted: [100, 100, 100],        // Medium gray for metadata
-  light: [245, 245, 245],        // Light gray for subtle backgrounds
-  border: [200, 200, 200],       // Light border color
+  muted: [150, 150, 150],        // Medium gray for metadata
+  light: [30, 30, 30],           // Dark gray for subtle backgrounds
+  border: [60, 60, 60],          // Dark border color
   headerBg: [0, 0, 0],           // Black background for header
   headerText: [255, 255, 255],   // White text for header
-  bodyBg: [255, 255, 255],       // White background for body
+  bodyBg: [20, 20, 20],          // Dark background for body
+  fieldBg: [35, 35, 35],         // Slightly lighter dark for field backgrounds
   success: [34, 197, 94],        // Green for success
   warning: [251, 146, 60],       // Orange for warnings
   danger: [239, 68, 68],         // Red for critical
-  code: [50, 50, 50],            // Dark gray for code
-  codeBg: [248, 248, 248],       // Light background for code blocks
+  code: [200, 200, 200],         // Light gray for code on dark bg
+  codeBg: [40, 40, 40],          // Dark background for code blocks
 };
 
 // Typography settings
