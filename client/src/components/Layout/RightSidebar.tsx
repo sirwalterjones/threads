@@ -174,7 +174,7 @@ const RightSidebar: React.FC = () => {
     }}>
       {/* Tag Cloud */}
       <Box sx={{ mb: 2, px: 2 }}>
-        <TagCloud limit={20} title="Trending Tags" />
+        <TagCloud limit={20} title="Tags" />
       </Box>
 
       {/* Recent Threads */}
