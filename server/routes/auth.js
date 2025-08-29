@@ -379,7 +379,7 @@ router.delete('/users/:id',
           await client.query('UPDATE bolos SET created_by = $1 WHERE created_by = $2', [adminId, id]);
         }
         
-        // Reassign intel reports to admin
+        // Reassign intel reports to admin (uses agent_id column)
         const intelExists = await client.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -387,17 +387,78 @@ router.delete('/users/:id',
           );
         `);
         if (intelExists.rows[0].exists) {
-          await client.query('UPDATE intel_reports SET created_by = $1 WHERE created_by = $2', [adminId, id]);
+          await client.query('UPDATE intel_reports SET agent_id = $1 WHERE agent_id = $2', [adminId, id]);
         }
         
-        // Delete user follows
+        // Delete or reassign from all tables with user references
+        // BOLO-related tables
+        await client.query('DELETE FROM bolo_activity WHERE user_id = $1', [id]);
+        await client.query('DELETE FROM bolo_comments WHERE user_id = $1', [id]);
+        await client.query('DELETE FROM bolo_notifications WHERE user_id = $1', [id]);
+        await client.query('DELETE FROM bolo_saves WHERE user_id = $1', [id]);
+        
+        // Comments and follows
+        await client.query('DELETE FROM comments WHERE user_id = $1', [id]);
         await client.query('DELETE FROM user_follows WHERE user_id = $1', [id]);
         
-        // Delete comments (or reassign if you prefer)
-        await client.query('DELETE FROM comments WHERE user_id = $1', [id]);
-        
-        // Delete notifications
+        // Notifications
         await client.query('DELETE FROM notifications WHERE user_id = $1 OR from_user_id = $1', [id]);
+        
+        // Security and compliance tables
+        const securityTables = [
+          'compliance_assessments',
+          'configuration_baseline',
+          'evidence_backups',
+          'export_logs',
+          'formal_audits',
+          'hot_lists',
+          'incident_responders',
+          'mobile_devices',
+          'password_breach_monitoring',
+          'personnel_security',
+          'policy_acknowledgments',
+          'security_training',
+          'user_password_history'
+        ];
+        
+        for (const tableName of securityTables) {
+          const tableExists = await client.query(`
+            SELECT EXISTS (
+              SELECT FROM information_schema.tables 
+              WHERE table_name = $1
+            );
+          `, [tableName]);
+          
+          if (tableExists.rows[0].exists) {
+            // Determine the column name
+            let columnName = 'user_id';
+            if (tableName === 'configuration_baseline' || 
+                tableName === 'evidence_backups' || 
+                tableName === 'formal_audits') {
+              columnName = 'created_by';
+            }
+            
+            await client.query(`DELETE FROM ${tableName} WHERE ${columnName} = $1`, [id]);
+          }
+        }
+        
+        // Handle security_incidents table specially (has both created_by and affected_user_ids)
+        const incidentsExists = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'security_incidents'
+          );
+        `);
+        if (incidentsExists.rows[0].exists) {
+          // Update created_by to admin
+          await client.query('UPDATE security_incidents SET created_by = $1 WHERE created_by = $2', [adminId, id]);
+          // Remove from affected_user_ids array
+          await client.query(`
+            UPDATE security_incidents 
+            SET affected_user_ids = array_remove(affected_user_ids, $1) 
+            WHERE $1 = ANY(affected_user_ids)
+          `, [id]);
+        }
         
         // Check if search_history table exists before deleting
         const searchHistoryExists = await client.query(`
@@ -410,14 +471,14 @@ router.delete('/users/:id',
           await client.query('DELETE FROM search_history WHERE user_id = $1', [id]);
         }
         
-        // Delete hot list alerts
-        const hotListExists = await client.query(`
+        // Check if hot_list_alerts table exists (different from hot_lists)
+        const hotListAlertsExists = await client.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_name = 'hot_list_alerts'
           );
         `);
-        if (hotListExists.rows[0].exists) {
+        if (hotListAlertsExists.rows[0].exists) {
           await client.query('DELETE FROM hot_list_alerts WHERE user_id = $1', [id]);
         }
         
