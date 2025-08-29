@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
 import { Post, Category } from '../../types';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import TagCloud from '../TagCloud';
 
 const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
@@ -164,10 +165,19 @@ const RightSidebar: React.FC = () => {
       zIndex: 1200,
       pt: 1.5,
       maxHeight: '100vh',
-      overflow: 'visible',
-      backgroundColor: '#000000' // Ensure black background
+      overflowY: 'auto', // Make entire sidebar scrollable
+      backgroundColor: '#000000', // Ensure black background
+      '&::-webkit-scrollbar': { width: '8px' },
+      '&::-webkit-scrollbar-track': { background: '#16181C' },
+      '&::-webkit-scrollbar-thumb': { background: '#2F3336', borderRadius: '4px' },
+      '&::-webkit-scrollbar-thumb:hover': { background: '#3F4144' }
     }}>
-      {/* Recent Threads - Full Height */}
+      {/* Tag Cloud */}
+      <Box sx={{ mb: 2, px: 2 }}>
+        <TagCloud limit={20} title="Trending Tags" />
+      </Box>
+
+      {/* Recent Threads */}
       {!loading && recentThreads.length > 0 && (
       <Card 
         sx={{ 
@@ -175,7 +185,6 @@ const RightSidebar: React.FC = () => {
           backgroundColor: '#16181C', 
           border: 'none',
           borderRadius: 0,
-          height: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column'
         }}
@@ -243,7 +252,7 @@ const RightSidebar: React.FC = () => {
             py: 0, 
             flex: 1, 
             overflowY: 'auto', 
-            maxHeight: '100%', 
+            maxHeight: '400px', // Fixed height for recent threads list
             pr: 1, 
             minHeight: 0,
             WebkitOverflowScrolling: 'touch',

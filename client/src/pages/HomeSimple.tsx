@@ -40,7 +40,9 @@ import {
   ViewList,
   Person,
   HelpOutline,
-  Feed
+  Feed,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { Post, Category, SearchFilters } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
@@ -1856,16 +1858,17 @@ const HomeSimple: React.FC = () => {
                       <Box sx={{ 
                         display: 'flex', 
                         justifyContent: 'center', 
-                        gap: { xs: 0.5, sm: 1 }, 
+                        gap: 1, 
                         mt: 'auto', 
                         pt: 1,
-                        flexDirection: { xs: 'column', sm: 'row' }
+                        flexDirection: 'row'
                       }}>
                         {/* Follow Button */}
                         <FollowButton
                           postId={post.id}
                           variant="icon"
                           size="small"
+                          showTooltip={false}
                           onFollowChange={(isFollowing) => {
                             console.log(`Post ${post.id} ${isFollowing ? 'followed' : 'unfollowed'}`);
                           }}
@@ -1886,100 +1889,76 @@ const HomeSimple: React.FC = () => {
                         
                         {showCount ? (
                           <Badge badgeContent={contentCount} color="secondary">
-                            <Button
-                              startIcon={<Visibility />}
-                              size={window.innerWidth < 600 ? "medium" : "small"}
-                              variant="contained"
-                              fullWidth={window.innerWidth < 600}
+                            <IconButton
+                              size="small"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handlePostClick(post.id);
                               }}
                               sx={{
-                                backgroundColor: '#000000',
-                                color: '#ffffff',
-                                fontSize: { xs: '14px', sm: '12px' },
-                                px: { xs: 3, sm: 2 },
-                                py: { xs: 1, sm: 0.5 },
+                                color: '#71767B',
                                 '&:hover': {
-                                  backgroundColor: '#1a1a1a'
+                                  color: '#1D9BF0',
+                                  backgroundColor: 'rgba(29, 155, 240, 0.1)'
                                 }
                               }}
                             >
-                              View Details
-                            </Button>
+                              <Visibility sx={{ fontSize: '1.2rem' }} />
+                            </IconButton>
                           </Badge>
                         ) : (
-                          <Button
-                            startIcon={<Visibility />}
-                            size={window.innerWidth < 600 ? "medium" : "small"}
-                            variant="contained"
-                            fullWidth={window.innerWidth < 600}
+                          <IconButton
+                            size="small"
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePostClick(post.id);
                             }}
                             sx={{
-                              backgroundColor: '#000000',
-                              color: '#ffffff',
-                              fontSize: { xs: '14px', sm: '12px' },
-                              px: { xs: 3, sm: 2 },
-                              py: { xs: 1, sm: 0.5 },
+                              color: '#71767B',
                               '&:hover': {
-                                backgroundColor: '#1a1a1a'
+                                color: '#1D9BF0',
+                                backgroundColor: 'rgba(29, 155, 240, 0.1)'
                               }
                             }}
                           >
-                            View Details
-                          </Button>
+                            <Visibility sx={{ fontSize: '1.2rem' }} />
+                          </IconButton>
                         )}
 
                         {/* Edit/Delete for manual posts authored by current user (server still enforces) */}
                         {!post.wp_post_id && (
-                          <Button
-                            size={window.innerWidth < 600 ? "medium" : "small"}
-                            variant="outlined"
-                            fullWidth={window.innerWidth < 600}
+                          <IconButton
+                            size="small"
                             onClick={(e) => {
                               e.stopPropagation();
                               const evt = new CustomEvent('open-new-post-modal', { detail: { postId: post.id } });
                               window.dispatchEvent(evt);
                             }}
                             sx={{
-                              borderColor: '#2F3336',
-                              color: '#E7E9EA',
-                              fontSize: { xs: '14px', sm: '12px' },
-                              px: { xs: 3, sm: 2 },
-                              py: { xs: 1, sm: 0.5 },
+                              color: '#71767B',
                               '&:hover': {
-                                borderColor: '#1D9BF0',
+                                color: '#1D9BF0',
                                 backgroundColor: 'rgba(29, 155, 240, 0.1)'
                               }
                             }}
                           >
-                            Edit
-                          </Button>
+                            <EditIcon sx={{ fontSize: '1.2rem' }} />
+                          </IconButton>
                         )}
                         {!post.wp_post_id && (
-                          <Button
-                            size={window.innerWidth < 600 ? "medium" : "small"}
-                            color="error"
-                            variant="outlined"
-                            fullWidth={window.innerWidth < 600}
+                          <IconButton
+                            size="small"
                             onClick={(e)=>{ e.stopPropagation(); handleDelete(post.id); }}
                             sx={{
-                              borderColor: '#dc2626',
                               color: '#dc2626',
-                              fontSize: { xs: '14px', sm: '12px' },
-                              px: { xs: 3, sm: 2 },
-                              py: { xs: 1, sm: 0.5 },
                               '&:hover': {
+                                color: '#ef4444',
                                 backgroundColor: 'rgba(220, 38, 38, 0.1)'
                               }
                             }}
                           >
-                            Delete
-                          </Button>
+                            <DeleteIcon sx={{ fontSize: '1.2rem' }} />
+                          </IconButton>
                         )}
                       </Box>
                     </CardContent>
@@ -2116,6 +2095,7 @@ const HomeSimple: React.FC = () => {
                               postId={post.id}
                               variant="icon"
                               size="small"
+                              showTooltip={false}
                               onFollowChange={(isFollowing) => {
                                 console.log(`Post ${post.id} ${isFollowing ? 'followed' : 'unfollowed'}`);
                               }}
