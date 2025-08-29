@@ -1646,27 +1646,6 @@ const HomeSimple: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Floating Export Toolbar */}
-        {exportMode && selectedPosts.size > 0 && (
-          <Paper
-            sx={{
-              position: 'fixed',
-              bottom: 24,
-              right: 24, // Move to right side to avoid pagination
-              left: 'auto',
-              transform: 'none',
-              zIndex: 1200, // Lower z-index to avoid overlapping modals
-              backgroundColor: '#1F2937',
-              border: '1px solid #374151',
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-            }}
-          >
             <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
               {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
             </Typography>
@@ -1758,8 +1737,6 @@ const HomeSimple: React.FC = () => {
             >
               Clear
             </Button>
-          </Paper>
-        )}
 
         
 
@@ -2381,6 +2358,125 @@ const HomeSimple: React.FC = () => {
                     Next
                   </Button>
                 </Box>
+              </Box>
+            )}
+            
+            {/* Export Toolbar - positioned after pagination */}
+            {exportMode && selectedPosts.size > 0 && (
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                mt: 3,
+                mb: 3,
+                px: { xs: 2, sm: 0 }
+              }}>
+                <Paper
+                  sx={{
+                    backgroundColor: '#1F2937',
+                    border: '1px solid #374151',
+                    borderRadius: 2,
+                    px: 3,
+                    py: 1.5,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                  }}
+                >
+                  <Typography sx={{ color: '#E7E9EA', fontWeight: 500 }}>
+                    {selectedPosts.size} {selectedPosts.size === 1 ? 'post' : 'posts'} selected
+                  </Typography>
+                  
+                  <Button
+                    variant="contained"
+                    startIcon={<FileDownload />}
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const response = await fetch('/api/export/pdf-data', {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            postIds: Array.from(selectedPosts),
+                            includeComments: true,
+                            includeTags: true
+                          })
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error('Export failed');
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Dynamically import PDF export utility
+                        const { downloadPDF } = await import('../utils/pdfExport');
+                        
+                        // Generate and download PDF on client side (now async)
+                        await downloadPDF(data.posts, undefined, {
+                          includeComments: true,
+                          includeTags: true,
+                          user: data.user
+                        });
+                        
+                        // Reset export mode
+                        setExportMode(false);
+                        setSelectedPosts(new Set());
+                      } catch (error) {
+                        console.error('Export failed:', error);
+                        alert('Failed to export posts');
+                      }
+                    }}
+                    sx={{
+                      backgroundColor: '#10B981',
+                      '&:hover': {
+                        backgroundColor: '#059669'
+                      }
+                    }}
+                  >
+                    Export to PDF
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<SelectAll />}
+                    onClick={() => {
+                      const allPostIds = new Set(posts.map(p => p.id));
+                      setSelectedPosts(allPostIds);
+                    }}
+                    sx={{
+                      borderColor: '#374151',
+                      color: '#9CA3AF',
+                      '&:hover': {
+                        borderColor: '#6B7280',
+                        backgroundColor: 'rgba(156, 163, 175, 0.1)'
+                      }
+                    }}
+                  >
+                    Select All
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<ClearIcon />}
+                    onClick={() => {
+                      setSelectedPosts(new Set());
+                    }}
+                    sx={{
+                      borderColor: '#374151',
+                      color: '#9CA3AF',
+                      '&:hover': {
+                        borderColor: '#6B7280',
+                        backgroundColor: 'rgba(156, 163, 175, 0.1)'
+                      }
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </Paper>
               </Box>
             )}
           </>
