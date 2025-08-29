@@ -35,7 +35,26 @@ const TagCloud: React.FC<TagCloudProps> = ({
   const loadPopularTags = async () => {
     try {
       setLoading(true);
-      const popularTags = await apiService.getPopularTags(limit);
+      const response = await apiService.getPopularTags(limit);
+      console.log('Popular tags response:', response);
+      
+      // Handle both array and object responses
+      let popularTags: TagWithCount[] = [];
+      if (Array.isArray(response)) {
+        popularTags = response;
+      } else if (response && typeof response === 'object') {
+        // If it's an object with a tags property
+        const responseObj = response as any;
+        if (responseObj.tags && Array.isArray(responseObj.tags)) {
+          popularTags = responseObj.tags;
+        } else if (responseObj.popularTags && Array.isArray(responseObj.popularTags)) {
+          popularTags = responseObj.popularTags;
+        } else {
+          console.warn('Unexpected response format for popular tags:', response);
+          popularTags = [];
+        }
+      }
+      
       setTags(popularTags);
     } catch (error) {
       console.error('Failed to load popular tags:', error);
