@@ -105,10 +105,22 @@ class ApiService {
     return response.data;
   }
 
-  async deleteUser(id: number): Promise<{ message: string }> {
-    const response: AxiosResponse<{ message: string }> = await axios.delete(
-      `${API_BASE_URL}/auth/users/${id}`
-    );
+
+  // Unified Search
+  async unifiedSearch(query: string, page: number = 1, limit: number = 20): Promise<{
+    posts: any[];
+    bolos: any[];
+    intelReports: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    const response = await axios.get(`${API_BASE_URL}/search/unified`, {
+      params: { q: query, page, limit }
+    });
     return response.data;
   }
 
@@ -616,6 +628,11 @@ class ApiService {
     expiring_soon_reports: number;
   }> {
     const response = await axios.get(`${API_BASE_URL}/intel-reports/stats/overview`);
+    return response.data;
+  }
+
+  async deleteUser(userId: number): Promise<{ message: string; username: string }> {
+    const response = await axios.delete(`${API_BASE_URL}/auth/users/${userId}`);
     return response.data;
   }
 }

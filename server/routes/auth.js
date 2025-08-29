@@ -61,7 +61,7 @@ router.post('/register',
   auditLog('create_user', 'users'),
   async (req, res) => {
     try {
-      const { username, email, password, role = 'view' } = req.body;
+      const { username, email, password, role = 'view', modules } = req.body;
 
       // Validation
       if (!username || !email || !password) {
@@ -94,13 +94,21 @@ router.post('/register',
       // Hash password
       const saltRounds = 12;
       const passwordHash = await bcrypt.hash(password, saltRounds);
+      
+      // Default modules if not provided
+      const userModules = modules || {
+        search: true,
+        hotlist: true,
+        bolo: true,
+        intel: true
+      };
 
-      // Create user with CJIS password security fields
+      // Create user with CJIS password security fields and modules
       const result = await pool.query(`
-        INSERT INTO users (username, email, password_hash, role, last_password_change, password_strength_score)
-        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5)
-        RETURNING id, username, email, role, created_at
-      `, [username, email, passwordHash, role, req.passwordValidation?.strength?.score || 0]);
+        INSERT INTO users (username, email, password_hash, role, last_password_change, password_strength_score, modules)
+        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)
+        RETURNING id, username, email, role, created_at, modules
+      `, [username, email, passwordHash, role, req.passwordValidation?.strength?.score || 0, JSON.stringify(userModules)]);
 
       const user = result.rows[0];
 
@@ -268,6 +276,48 @@ router.get('/users',
     } catch (error) {
       console.error('Users fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  }
+);
+
+// Delete user (admin only)
+router.delete('/users/:id',
+  authenticateToken,
+  authorizeRole(['admin']),
+  auditLog('delete_user', 'users'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Prevent deleting your own account
+      if (parseInt(id) === req.user.id) {
+        return res.status(400).json({ error: 'Cannot delete your own account' });
+      }
+      
+      // Check if user exists and is not a super admin
+      const userCheck = await pool.query(
+        'SELECT id, username, super_admin FROM users WHERE id = $1',
+        [id]
+      );
+      
+      if (userCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      if (userCheck.rows[0].super_admin) {
+        return res.status(403).json({ error: 'Cannot delete super admin accounts' });
+      }
+      
+      // Delete the user
+      await pool.query('DELETE FROM users WHERE id = $1', [id]);
+      
+      res.json({
+        message: 'User deleted successfully',
+        username: userCheck.rows[0].username
+      });
+    } catch (error) {
+      console.error('User deletion error:', error);
+      res.status(500).json({ error: 'Failed to delete user' });
     }
   }
 );

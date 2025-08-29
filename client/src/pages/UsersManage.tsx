@@ -19,7 +19,8 @@ import {
   InputLabel,
   Switch,
   FormControlLabel,
-  IconButton
+  IconButton,
+  Checkbox
 } from '@mui/material';
 import { 
   Edit as EditIcon,
@@ -37,7 +38,18 @@ const UsersManage: React.FC = () => {
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState<number | null>(null);
   const [openNew, setOpenNew] = useState(false);
-  const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: 'view' });
+  const [newUser, setNewUser] = useState({ 
+    username: '', 
+    email: '', 
+    password: '', 
+    role: 'view',
+    modules: {
+      search: true,
+      hotlist: true,
+      bolo: true,
+      intel: true
+    }
+  });
   const [require2FA, setRequire2FA] = useState<boolean>(false);
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
@@ -64,7 +76,8 @@ const UsersManage: React.FC = () => {
         username: newUser.username.trim(),
         email: newUser.email.trim(),
         password: newUser.password,
-        role: newUser.role
+        role: newUser.role,
+        modules: newUser.modules
       };
       const res = await apiService.register(payload as any);
       // If admin opted to require 2FA at setup, toggle it on the new user
@@ -83,7 +96,18 @@ const UsersManage: React.FC = () => {
       });
       
       setOpenNew(false);
-      setNewUser({ username: '', email: '', password: '', role: 'view' });
+      setNewUser({ 
+        username: '', 
+        email: '', 
+        password: '', 
+        role: 'view',
+        modules: {
+          search: true,
+          hotlist: true,
+          bolo: true,
+          intel: true
+        }
+      });
       setRequire2FA(false);
       setSuccess('User created');
     } catch (e:any) {
@@ -294,6 +318,15 @@ const UsersManage: React.FC = () => {
                     <IconButton size="small" onClick={() => openEditDialog(u)} sx={{ color: '#8B98A5' }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
+                    {!u.super_admin && (
+                      <IconButton 
+                        size="small" 
+                        onClick={() => setDeleteDialog({ open: true, user: u })} 
+                        sx={{ color: '#ff4757' }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </Stack>
                   <Chip label={role.toUpperCase()} size="small" sx={{ bgcolor: '#2F3336', color: '#E7E9EA' }} />
                 </Stack>
@@ -496,6 +529,82 @@ const UsersManage: React.FC = () => {
             <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
             <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
           </TextField>
+          
+          {/* Module Access */}
+          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, color: '#E7E9EA' }}>
+            Module Access
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newUser.modules.search}
+                  onChange={(e) => setNewUser(s => ({ 
+                    ...s, 
+                    modules: { ...s.modules, search: e.target.checked }
+                  }))}
+                  sx={{ 
+                    color: '#8B98A5',
+                    '&.Mui-checked': { color: '#1D9BF0' }
+                  }}
+                />
+              }
+              label="Search"
+              sx={{ color: '#E7E9EA' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newUser.modules.hotlist}
+                  onChange={(e) => setNewUser(s => ({ 
+                    ...s, 
+                    modules: { ...s.modules, hotlist: e.target.checked }
+                  }))}
+                  sx={{ 
+                    color: '#8B98A5',
+                    '&.Mui-checked': { color: '#1D9BF0' }
+                  }}
+                />
+              }
+              label="Hot List"
+              sx={{ color: '#E7E9EA' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newUser.modules.bolo}
+                  onChange={(e) => setNewUser(s => ({ 
+                    ...s, 
+                    modules: { ...s.modules, bolo: e.target.checked }
+                  }))}
+                  sx={{ 
+                    color: '#8B98A5',
+                    '&.Mui-checked': { color: '#1D9BF0' }
+                  }}
+                />
+              }
+              label="BOLO"
+              sx={{ color: '#E7E9EA' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={newUser.modules.intel}
+                  onChange={(e) => setNewUser(s => ({ 
+                    ...s, 
+                    modules: { ...s.modules, intel: e.target.checked }
+                  }))}
+                  sx={{ 
+                    color: '#8B98A5',
+                    '&.Mui-checked': { color: '#1D9BF0' }
+                  }}
+                />
+              }
+              label="Intel Reports"
+              sx={{ color: '#E7E9EA' }}
+            />
+          </Box>
+          
           <Box sx={{ mt: 2 }}>
             <FormControlLabel
               control={<Switch checked={require2FA} onChange={(e)=> setRequire2FA(e.target.checked)} />}
@@ -741,6 +850,47 @@ const UsersManage: React.FC = () => {
             sx={{ color: '#E7E9EA' }}
           >
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, user: null })}
+        PaperProps={{ sx: { bgcolor: '#16202A', color: '#E7E9EA' } }}
+      >
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>
+          Confirm Delete User
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: '#16202A' }}>
+          <Alert severity="warning" sx={{ mb: 2, bgcolor: '#ff9800', color: '#000' }}>
+            Are you sure you want to delete user <strong>{deleteDialog.user?.username}</strong>? This action cannot be undone.
+          </Alert>
+          {deleteDialog.user?.super_admin && (
+            <Alert severity="error" sx={{ bgcolor: '#f44336', color: '#fff' }}>
+              Super admin accounts cannot be deleted.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+          <Button 
+            onClick={() => setDeleteDialog({ open: false, user: null })} 
+            sx={{ color: '#E7E9EA' }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDelete}
+            disabled={deleting || deleteDialog.user?.super_admin}
+            sx={{ 
+              bgcolor: '#ff4757', 
+              color: '#fff',
+              '&:hover': { bgcolor: '#ff3838' },
+              '&:disabled': { bgcolor: '#444', color: '#888' }
+            }}
+          >
+            {deleting ? 'Deleting...' : 'Delete User'}
           </Button>
         </DialogActions>
       </Dialog>

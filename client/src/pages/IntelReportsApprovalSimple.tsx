@@ -44,7 +44,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
-import IntelReportEditForm from '../components/IntelReport/IntelReportEditForm';
+import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 import auditService from '../services/auditService';
 
@@ -82,6 +82,7 @@ interface IntelReport {
 const IntelReportsApprovalSimple: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
   const { user } = useAuth();
   
   const [reports, setReports] = useState<IntelReport[]>([]);
@@ -91,8 +92,6 @@ const IntelReportsApprovalSimple: React.FC = () => {
   const [reviewComments, setReviewComments] = useState('');
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingReport, setEditingReport] = useState<IntelReport | null>(null);
 
   const classificationColors: Record<string, string> = {
     'Sensitive': '#ff9800',
@@ -234,9 +233,8 @@ const IntelReportsApprovalSimple: React.FC = () => {
   };
 
   const handleEditReport = (report: IntelReport) => {
-    setEditingReport(report);
-    setEditModalOpen(true);
-    setSelectedReport(null); // Close the view modal
+    // Navigate to the edit page instead of opening a modal
+    navigate(`/intel-reports/${report.id}/edit`);
   };
 
   const handleReviewAction = (action: 'approve' | 'reject') => {
@@ -941,7 +939,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                   variant="outlined"
                   onClick={() => {
                     setSelectedReport(null);
-                    window.location.href = `/intel-reports/${selectedReport.id}/edit`;
+                    navigate(`/intel-reports/${selectedReport.id}/edit`);
                   }}
                   startIcon={<EditIcon />}
                   sx={{ 
@@ -988,30 +986,6 @@ const IntelReportsApprovalSimple: React.FC = () => {
         )}
       </Dialog>
 
-      {/* Edit Report Modal */}
-      {editModalOpen && editingReport && (
-        <IntelReportEditForm
-          report={editingReport}
-          open={editModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          onSave={(updatedReport) => {
-            // Update the local state with the edited report
-            setReports(prev => prev.map(report => 
-              report.id === updatedReport.id ? {
-                ...report,
-                ...updatedReport,
-                // Ensure required fields are preserved
-                submittedAt: report.submittedAt,
-                subjects: report.subjects,
-                organizations: report.organizations,
-                filesCount: report.filesCount
-              } : report
-            ));
-            setEditModalOpen(false);
-            setEditingReport(null);
-          }}
-        />
-      )}
 
       {/* Review Action Dialog */}
       <Dialog 

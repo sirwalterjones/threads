@@ -7,6 +7,12 @@ export interface User {
   createdAt?: string;
   lastLogin?: string;
   isActive?: boolean;
+  modules?: {
+    search: boolean;
+    hotlist: boolean;
+    bolo: boolean;
+    intel: boolean;
+  };
 }
 
 export interface MediaFile {
@@ -40,7 +46,7 @@ export interface Post {
   metadata?: any;
   rank?: number;
   comment_count?: number;
-  result_type?: 'post' | 'intel_report';
+  result_type?: 'post' | 'intel_report' | 'bolo';
   tags?: string[];
   // Intel report specific fields (when result_type is 'intel_report')
   intel_number?: string;

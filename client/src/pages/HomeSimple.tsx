@@ -61,15 +61,18 @@ import MediaGallery from '../components/MediaGallery';
 import FollowButton from '../components/FollowButton';
 import DeletePostButton from '../components/DeletePostButton';
 import IntelReportCard from '../components/IntelReportCard';
+import BOLOSearchCard from '../components/BOLOSearchCard';
 import TwitterStylePostCard from '../components/TwitterStylePostCard';
 import TagDisplay from '../components/TagDisplay';
 import TagFilter from '../components/TagFilter';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const HomeSimple: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -124,36 +127,68 @@ const HomeSimple: React.FC = () => {
   const loadData = async (page = 1, filters: SearchFilters = {}) => {
     try {
       setLoading(true);
-      const [postsResponse, categoriesResponse, authorsResponse, tagsResponse] = await Promise.all([
-        apiService.getPosts({
-          page,
-          limit: 12,
-          search: searchTerm,
-          author: authorFilter,
-          dateFrom: dateFromFilter,
-          dateTo: dateToFilter,
-          sortBy,
-          sortOrder,
-          ...filters,
-          ...(origin !== 'all' ? { origin } as any : {}),
-          ...(mineOnly ? { mine: true } as any : {}),
-          ...(selectedTags.length > 0 ? { tags: selectedTags.join(',') } as any : {})
-        }),
-        categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
-        authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors }),
-        availableTags.length === 0 ? apiService.getTags().catch(() => []) : Promise.resolve(availableTags)
-      ]);
+      
+      // Use unified search if there's a search term without other filters
+      if (searchTerm && !authorFilter && !dateFromFilter && !dateToFilter && !selectedCategory && selectedTags.length === 0) {
+        const [unifiedResponse, categoriesResponse, authorsResponse, tagsResponse] = await Promise.all([
+          apiService.unifiedSearch(searchTerm, page, 12),
+          categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
+          authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors }),
+          availableTags.length === 0 ? apiService.getTags().catch(() => []) : Promise.resolve(availableTags)
+        ]);
+        
+        // Combine all results into posts array
+        const combinedResults = [
+          ...unifiedResponse.posts.map((p: any) => ({ ...p, result_type: 'post' })),
+          ...unifiedResponse.bolos.map((b: any) => ({ ...b, result_type: 'bolo' })),
+          ...unifiedResponse.intelReports.map((i: any) => ({ ...i, result_type: 'intel_report' }))
+        ];
+        
+        setPosts(combinedResults);
+        setTotalPages(unifiedResponse.pagination.pages);
+        
+        if (categories.length === 0) {
+          setCategories(categoriesResponse as Category[]);
+        }
+        if (authors.length === 0) {
+          setAuthors(authorsResponse.authors);
+        }
+        if (availableTags.length === 0 && Array.isArray(tagsResponse)) {
+          setAvailableTags(tagsResponse);
+        }
+      } else {
+        // Use regular posts search for filtered queries
+        const [postsResponse, categoriesResponse, authorsResponse, tagsResponse] = await Promise.all([
+          apiService.getPosts({
+            page,
+            limit: 12,
+            search: searchTerm,
+            author: authorFilter,
+            dateFrom: dateFromFilter,
+            dateTo: dateToFilter,
+            sortBy,
+            sortOrder,
+            ...filters,
+            ...(origin !== 'all' ? { origin } as any : {}),
+            ...(mineOnly ? { mine: true } as any : {}),
+            ...(selectedTags.length > 0 ? { tags: selectedTags.join(',') } as any : {})
+          }),
+          categories.length === 0 ? apiService.getCategories() : Promise.resolve(categories),
+          authors.length === 0 ? apiService.getAuthors().catch(() => ({ authors: [] })) : Promise.resolve({ authors }),
+          availableTags.length === 0 ? apiService.getTags().catch(() => []) : Promise.resolve(availableTags)
+        ]);
 
-      setPosts(postsResponse.posts);
-      setTotalPages(postsResponse.pagination.pages);
-      if (categories.length === 0) {
-        setCategories(categoriesResponse as Category[]);
-      }
-      if (authors.length === 0) {
-        setAuthors(authorsResponse.authors);
-      }
-      if (availableTags.length === 0 && Array.isArray(tagsResponse)) {
-        setAvailableTags(tagsResponse);
+        setPosts(postsResponse.posts);
+        setTotalPages(postsResponse.pagination.pages);
+        if (categories.length === 0) {
+          setCategories(categoriesResponse as Category[]);
+        }
+        if (authors.length === 0) {
+          setAuthors(authorsResponse.authors);
+        }
+        if (availableTags.length === 0 && Array.isArray(tagsResponse)) {
+          setAvailableTags(tagsResponse);
+        }
       }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Failed to load data');
@@ -1814,6 +1849,18 @@ const HomeSimple: React.FC = () => {
                         key={`intel_${post.id}`}
                         report={post}
                         onClick={handleIntelReportClick}
+                        highlightText={highlightText}
+                      />
+                    );
+                  }
+                  
+                  // Check if this is a BOLO and render BOLO card with blue border
+                  if (post.result_type === 'bolo') {
+                    return (
+                      <BOLOSearchCard
+                        key={`bolo_${post.id}`}
+                        bolo={post}
+                        onClick={(bolo) => navigate(`/bolo/${bolo.id}`)}
                         highlightText={highlightText}
                       />
                     );

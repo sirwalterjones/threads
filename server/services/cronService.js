@@ -322,9 +322,22 @@ class CronService {
           AND ir.classification != 'Classified'
         ORDER BY ir.created_at DESC
       `);
+      
+      // Get BOLOs from the last 2 minutes to check against hot lists
+      const recentBOLOsResult = await pool.query(`
+        SELECT b.id, b.case_number, b.title, 
+               COALESCE(b.subject_description || ' ' || b.vehicle_description || ' ' || b.incident_location, '') as content,
+               b.subject_name as excerpt, u.username as author_name, 'bolo' as result_type,
+               b.status, b.priority
+        FROM bolos b
+        LEFT JOIN users u ON b.created_by = u.id
+        WHERE b.created_at > NOW() - INTERVAL '2 minutes'
+          AND b.status IN ('active', 'pending')
+        ORDER BY b.created_at DESC
+      `);
 
-      // Combine posts and intel reports
-      const recentItems = [...recentPostsResult.rows, ...recentIntelResult.rows];
+      // Combine posts, intel reports, and BOLOs
+      const recentItems = [...recentPostsResult.rows, ...recentIntelResult.rows, ...recentBOLOsResult.rows];
       
       if (recentItems.length === 0) {
         console.log('📝 No recent posts or intel reports to check');
