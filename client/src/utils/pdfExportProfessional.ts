@@ -349,9 +349,9 @@ export async function downloadPDF(
     doc.setTextColor(41, 98, 255);
     doc.text('V', 10, 11);
     
-    // ECTOR in white
+    // ECTOR in white (moved closer to V)
     doc.setTextColor(255, 255, 255);
-    doc.text('ECTOR', 16, 11);
+    doc.text('ECTOR', 14.5, 11);
     
     // INTELLIGENCE in white (smaller)
     doc.setFontSize(10);
@@ -364,7 +364,7 @@ export async function downloadPDF(
     doc.text(`Page ${pageNum}`, 195, 10, { align: 'right' });
   };
 
-  // Add footer with subtle branding
+  // Add footer with law enforcement notice
   const addFooter = () => {
     doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
     doc.setLineWidth(0.3);
@@ -373,7 +373,12 @@ export async function downloadPDF(
     doc.setFont(fonts.body, 'normal');
     doc.setFontSize(fontSizes.tiny);
     doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-    doc.text('Confidential - Internal Use Only', 105, 290, { align: 'center' });
+    
+    // Left/Center: Law Enforcement notice
+    doc.text('Law Enforcement Sensitive - Do Not Release Without Consent', 10, 290);
+    
+    // Right: Cherokee Sheriff's Office
+    doc.text('Cherokee Sheriff\'s Office - Criminal Intelligence Division', 200, 290, { align: 'right' });
   };
 
   // Start with first post immediately - no title page or table of contents
@@ -591,6 +596,18 @@ export async function downloadPDF(
           doc.setTextColor(colors.accent[0], colors.accent[1], colors.accent[2]);
           doc.textWithLink(line, indent, yPosition, { url: segment.link });
           doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+        } else if (segment.header && segment.header <= 3) {
+          // Center h1, h2, h3 headers
+          doc.text(line, 105, yPosition, { align: 'center' });
+        } else if (!segment.code && !segment.listItem && line.length < 60 && 
+                   (line === line.toUpperCase() || // All caps
+                    line.match(/^\d{2}-\d{4}-\d{2}-\d{2}$/) || // Case number format
+                    line.match(/^[A-Z][a-z]+ [A-Z][a-z]+ /) || // Title case multi-word
+                    line.includes('Narrative') || 
+                    line.includes('Report') ||
+                    line.includes('Squad'))) {
+          // Center text that looks like headers (all caps, case numbers, or title-like)
+          doc.text(line, 105, yPosition, { align: 'center' });
         } else {
           doc.text(line, segment.code ? 15 : indent, yPosition);
         }
