@@ -149,8 +149,30 @@ class TagService {
    * Get popular tags
    */
   static async getPopularTags(limit = 10) {
+    // First try to get tags from the posts.tags column directly
     const result = await pool.query(
-      `SELECT name, slug, usage_count 
+      `SELECT 
+         UNNEST(tags) as tag,
+         COUNT(*) as count
+       FROM posts 
+       WHERE tags IS NOT NULL 
+         AND array_length(tags, 1) > 0
+       GROUP BY tag
+       ORDER BY count DESC
+       LIMIT $1`,
+      [limit]
+    );
+    
+    // If we have results from posts.tags, return them
+    if (result.rows.length > 0) {
+      return result.rows;
+    }
+    
+    // Fallback to tags table but format correctly
+    const tagsResult = await pool.query(
+      `SELECT 
+         name as tag, 
+         usage_count as count
        FROM tags 
        WHERE usage_count > 0
        ORDER BY usage_count DESC 
@@ -158,7 +180,7 @@ class TagService {
       [limit]
     );
     
-    return result.rows;
+    return tagsResult.rows;
   }
 
   /**

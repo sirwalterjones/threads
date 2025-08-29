@@ -1874,19 +1874,6 @@ const HomeSimple: React.FC = () => {
                           }}
                         />
                         
-                        {/* Super Admin Delete Button - Shows for all posts */}
-                        <DeletePostButton
-                          postId={post.id}
-                          postTitle={post.title}
-                          variant="icon"
-                          size="small"
-                          onDelete={(deletedPostId) => {
-                            console.log(`Post ${deletedPostId} deleted from search results`);
-                            // Remove the deleted post from the current list
-                            setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
-                          }}
-                        />
-                        
                         {showCount ? (
                           <Badge badgeContent={contentCount} color="secondary">
                             <IconButton
@@ -1925,7 +1912,7 @@ const HomeSimple: React.FC = () => {
                           </IconButton>
                         )}
 
-                        {/* Edit/Delete for manual posts authored by current user (server still enforces) */}
+                        {/* Edit button for manual posts */}
                         {!post.wp_post_id && (
                           <IconButton
                             size="small"
@@ -1945,21 +1932,19 @@ const HomeSimple: React.FC = () => {
                             <EditIcon sx={{ fontSize: '1.2rem' }} />
                           </IconButton>
                         )}
-                        {!post.wp_post_id && (
-                          <IconButton
-                            size="small"
-                            onClick={(e)=>{ e.stopPropagation(); handleDelete(post.id); }}
-                            sx={{
-                              color: '#dc2626',
-                              '&:hover': {
-                                color: '#ef4444',
-                                backgroundColor: 'rgba(220, 38, 38, 0.1)'
-                              }
-                            }}
-                          >
-                            <DeleteIcon sx={{ fontSize: '1.2rem' }} />
-                          </IconButton>
-                        )}
+                        
+                        {/* Delete Button - using DeletePostButton component which handles permissions */}
+                        <DeletePostButton
+                          postId={post.id}
+                          postTitle={post.title}
+                          variant="icon"
+                          size="small"
+                          onDelete={(deletedPostId) => {
+                            console.log(`Post ${deletedPostId} deleted from search results`);
+                            // Remove the deleted post from the current list
+                            setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
+                          }}
+                        />
                       </Box>
                     </CardContent>
                   </Card>
@@ -2101,7 +2086,7 @@ const HomeSimple: React.FC = () => {
                               }}
                             />
                             
-                            {/* Super Admin Delete Button */}
+                            {/* Delete Button */}
                             <DeletePostButton
                               postId={post.id}
                               postTitle={post.title}
@@ -2109,7 +2094,6 @@ const HomeSimple: React.FC = () => {
                               size="small"
                               onDelete={(deletedPostId) => {
                                 console.log(`Post ${deletedPostId} deleted from table view`);
-                                // Remove the deleted post from the current list
                                 setPosts(prevPosts => prevPosts.filter(p => p.id !== deletedPostId));
                               }}
                             />
