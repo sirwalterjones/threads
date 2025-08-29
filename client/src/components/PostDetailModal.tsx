@@ -17,7 +17,8 @@ import {
   Person,
   DateRange,
   Category as CategoryIcon,
-  Schedule
+  Schedule,
+  FileDownload as ExportIcon
 } from '@mui/icons-material';
 import { Post } from '../types';
 import apiService, { API_BASE_URL } from '../services/api';
@@ -27,17 +28,21 @@ import FollowButton from './FollowButton';
 import DeletePostButton from './DeletePostButton';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PostDetailModalProps {
   open: boolean;
   onClose: () => void;
   postId: number | null;
   highlightTerms?: string[]; // optional terms to highlight
+  onPostUpdated?: (postId: number) => void; // callback when post is updated (e.g., comment added)
 }
 
-const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId, highlightTerms: termsProp }) => {
+const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId, highlightTerms: termsProp, onPostUpdated }) => {
+  const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [attachmentOpen, setAttachmentOpen] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState<{ url: string; mime_type?: string | null; title?: string | null } | null>(null);
@@ -253,6 +258,63 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
                   // Optionally refresh the post data or update UI state
                 }}
               />
+              
+              {/* Export Button - Only visible to edit and admin roles */}
+              {user && (user.role === 'edit' || user.role === 'admin' || user.super_admin) && (
+                <IconButton
+                  onClick={async () => {
+                    try {
+                      setExporting(true);
+                      const token = localStorage.getItem('token');
+                      const response = await fetch('/api/export/pdf-data', {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          postIds: [post.id],
+                          includeComments: true,
+                          includeTags: true
+                        })
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error('Export failed');
+                      }
+                      
+                      const data = await response.json();
+                      
+                      // Dynamically import optimized PDF export utility
+                      const { downloadPDF } = await import('../utils/pdfExportOptimized');
+                      
+                      // Generate and download PDF
+                      await downloadPDF(data.posts, `${post.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`, {
+                        includeComments: true,
+                        includeTags: true,
+                        user: data.user
+                      });
+                    } catch (error) {
+                      console.error('Export failed:', error);
+                      alert('Failed to export post');
+                    } finally {
+                      setExporting(false);
+                    }
+                  }}
+                  disabled={exporting}
+                  size="large"
+                  sx={{
+                    color: exporting ? '#6B7280' : '#10B981',
+                    '&:hover': {
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      color: '#059669'
+                    }
+                  }}
+                  title="Export to PDF"
+                >
+                  {exporting ? <CircularProgress size={20} /> : <ExportIcon />}
+                </IconButton>
+              )}
               
               {/* Delete Button - Only visible to super admin */}
               <DeletePostButton
@@ -585,7 +647,29 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ open, onClose, postId
             )}
 
             {/* Comments Section */}
-            <Comments postId={post.id} />
+            <Comments 
+              postId={post.id}
+              onCommentAdded={() => {
+                // Reload the post to get updated tags
+                loadPost(post.id);
+                // Trigger a global tag cloud refresh event
+                window.dispatchEvent(new CustomEvent('refreshTagCloud'));
+                // Call the parent callback if provided
+                if (onPostUpdated) {
+                  onPostUpdated(post.id);
+                }
+              }}
+              onCommentDeleted={() => {
+                // Reload the post to get updated tags
+                loadPost(post.id);
+                // Trigger a global tag cloud refresh event
+                window.dispatchEvent(new CustomEvent('refreshTagCloud'));
+                // Call the parent callback if provided
+                if (onPostUpdated) {
+                  onPostUpdated(post.id);
+                }
+              }}
+            />
           </Box>
         )}
       </DialogContent>

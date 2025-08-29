@@ -30,6 +30,18 @@ const TagCloud: React.FC<TagCloudProps> = ({
 
   useEffect(() => {
     loadPopularTags();
+    
+    // Listen for refresh events
+    const handleRefresh = () => {
+      console.log('Tag cloud refresh event received');
+      loadPopularTags();
+    };
+    
+    window.addEventListener('refreshTagCloud', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('refreshTagCloud', handleRefresh);
+    };
   }, [limit]);
 
   const loadPopularTags = async () => {

@@ -1725,8 +1725,8 @@ const HomeSimple: React.FC = () => {
                     
                     const data = await response.json();
                     
-                    // Dynamically import compact PDF export utility
-                    const { downloadPDF } = await import('../utils/pdfExportCompact');
+                    // Dynamically import optimized PDF export utility with HTML formatting
+                    const { downloadPDF } = await import('../utils/pdfExportOptimized');
                     
                     // Generate and download PDF on client side (now async)
                     await downloadPDF(data.posts, undefined, {
@@ -2390,6 +2390,17 @@ const HomeSimple: React.FC = () => {
           onClose={handleModalClose}
           postId={selectedPostId}
           highlightTerms={highlightTerms}
+          onPostUpdated={async (updatedPostId) => {
+            try {
+              // Refresh the specific post in the list if it's a followed post
+              const updatedPost = await apiService.getPost(updatedPostId);
+              setPosts(prevPosts => 
+                prevPosts.map(p => p.id === updatedPostId ? updatedPost : p)
+              );
+            } catch (error) {
+              console.error('Failed to refresh post:', error);
+            }
+          }}
         />
 
         {/* Intel Report Detail Modal */}

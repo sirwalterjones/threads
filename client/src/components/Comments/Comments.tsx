@@ -31,9 +31,11 @@ import { useAuth } from '../../contexts/AuthContext';
 
 interface CommentsProps {
   postId: number;
+  onCommentAdded?: () => void;
+  onCommentDeleted?: () => void;
 }
 
-const Comments: React.FC<CommentsProps> = ({ postId }) => {
+const Comments: React.FC<CommentsProps> = ({ postId, onCommentAdded, onCommentDeleted }) => {
   const [comments, setComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,6 +80,14 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
       const response = await apiService.createComment(postId, newComment.trim());
       setComments(prev => [...prev, response.comment]);
       setNewComment('');
+      
+      // Call the callback if a hashtag was added
+      if (onCommentAdded) {
+        const hashtags = extractHashtags(newComment);
+        if (hashtags.length > 0) {
+          onCommentAdded();
+        }
+      }
     } catch (error: any) {
       console.error('Failed to create comment:', error);
       setError(error.response?.data?.error || 'Failed to create comment');
@@ -110,8 +120,18 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
     try {
       setSubmitting(true);
       setError('');
+      
+      // Get the comment content before deleting to check for hashtags
+      const commentToDelete = comments.find(c => c.id === commentId);
+      const hadHashtags = commentToDelete ? extractHashtags(commentToDelete.content).length > 0 : false;
+      
       await apiService.deleteComment(commentId);
       setComments(prev => prev.filter(c => c.id !== commentId));
+      
+      // Call the callback if the deleted comment had hashtags
+      if (onCommentDeleted && hadHashtags) {
+        onCommentDeleted();
+      }
     } catch (error: any) {
       console.error('Failed to delete comment:', error);
       setError(error.response?.data?.error || 'Failed to delete comment');
@@ -136,6 +156,17 @@ const Comments: React.FC<CommentsProps> = ({ postId }) => {
 
   const canDeleteComment = (comment: PostComment) => {
     return user && (user.id === comment.user_id || user.role === 'admin');
+  };
+
+  // Helper function to extract hashtags from text
+  const extractHashtags = (text: string): string[] => {
+    const hashtagRegex = /#(\w+)/g;
+    const hashtags: string[] = [];
+    let match;
+    while ((match = hashtagRegex.exec(text)) !== null) {
+      hashtags.push('#' + match[1].toLowerCase());
+    }
+    return Array.from(new Set(hashtags)); // Remove duplicates
   };
 
   // @ mention handling
