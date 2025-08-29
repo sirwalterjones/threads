@@ -278,6 +278,7 @@ router.delete('/:id',
       
       // Extract hashtags from the comment that will be deleted
       const deletedTags = extractHashtags(content);
+      console.log('Deleting comment with tags:', deletedTags);
       
       if (deletedTags.length > 0 && postId) {
         // Get current post tags
@@ -302,12 +303,24 @@ router.delete('/:id',
           // Filter out tags that no longer exist in any remaining comment
           const updatedTags = currentTags.filter(tag => {
             const tagLower = tag.toLowerCase();
-            // Keep tag if it wasn't in the deleted comment OR if it still exists in other comments
-            return !deletedTags.some(dt => dt.toLowerCase() === tagLower) || remainingTags.has(tagLower);
+            // Check if this tag was in the deleted comment
+            const wasInDeletedComment = deletedTags.some(dt => dt.toLowerCase() === tagLower);
+            
+            // If it wasn't in the deleted comment, keep it
+            if (!wasInDeletedComment) {
+              return true;
+            }
+            
+            // If it was in the deleted comment, only keep it if it's still in other comments
+            return remainingTags.has(tagLower);
           });
           
           // Update post tags if they changed
           if (updatedTags.length !== currentTags.length) {
+            console.log('Current tags:', currentTags);
+            console.log('Remaining tags from comments:', Array.from(remainingTags));
+            console.log('Updated tags:', updatedTags);
+            
             await pool.query(`
               UPDATE posts 
               SET tags = $1 
