@@ -537,21 +537,32 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
             )}
 
             {/* Subject Information */}
-            {bolo.subject_name && (
+            {(bolo.subject_name || bolo.subject_aliases || bolo.subject_description || 
+              bolo.date_of_birth || bolo.age_range || bolo.height || bolo.weight || 
+              bolo.hair_color || bolo.eye_color || bolo.distinguishing_features || 
+              bolo.last_seen_wearing || bolo.armed_dangerous) && (
               <div className="info-section">
                 <h2 className="section-title">
                   <PersonIcon />
                   Subject Information
                 </h2>
                 <div className="info-grid">
-                  <div className="info-item">
-                    <span className="info-label">Name</span>
-                    <span className="info-value">{bolo.subject_name}</span>
-                  </div>
+                  {bolo.subject_name && (
+                    <div className="info-item">
+                      <span className="info-label">Name</span>
+                      <span className="info-value">{bolo.subject_name}</span>
+                    </div>
+                  )}
                   {bolo.subject_aliases && bolo.subject_aliases.length > 0 && (
                     <div className="info-item">
                       <span className="info-label">Aliases</span>
                       <span className="info-value">{bolo.subject_aliases.join(', ')}</span>
+                    </div>
+                  )}
+                  {bolo.subject_description && (
+                    <div className="info-item">
+                      <span className="info-label">Description</span>
+                      <span className="info-value">{bolo.subject_description}</span>
                     </div>
                   )}
                   {bolo.date_of_birth && (
@@ -602,12 +613,20 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
                       <span className="info-value">{bolo.last_seen_wearing}</span>
                     </div>
                   )}
+                  {bolo.armed_dangerous && (
+                    <div className="info-item" style={{ gridColumn: 'span 2' }}>
+                      <span className="info-label" style={{ color: 'var(--detail-danger)' }}>⚠️ ARMED & DANGEROUS</span>
+                      <span className="info-value">{bolo.armed_dangerous_details || 'Subject is considered armed and dangerous'}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Vehicle Information */}
-            {bolo.vehicle_make && (
+            {(bolo.vehicle_make || bolo.vehicle_model || bolo.vehicle_year || 
+              bolo.vehicle_color || bolo.license_plate || bolo.vehicle_vin || 
+              bolo.vehicle_features || bolo.direction_of_travel) && (
               <div className="info-section">
                 <h2 className="section-title">
                   <VehicleIcon />
