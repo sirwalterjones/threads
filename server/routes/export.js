@@ -11,7 +11,7 @@ router.post('/pdf-data', authenticateToken, async (req, res) => {
     const { postIds, includeComments = true, includeTags = true, dateRange } = req.body;
     const userId = req.user.id;
     
-    // Build query to fetch posts
+    // Build query to fetch posts with all content including attachments
     let query = `
       SELECT 
         p.id,
@@ -19,7 +19,11 @@ router.post('/pdf-data', authenticateToken, async (req, res) => {
         p.content,
         p.tags,
         COALESCE(p.wp_published_date, p.ingested_at) as created_at,
-        p.author_name
+        p.author_name,
+        p.attachments,
+        p.featured_media_url,
+        p.excerpt,
+        p.metadata
       FROM posts p
       WHERE 1=1
     `;
