@@ -93,17 +93,29 @@ class BOLOService {
       if (files && files.length > 0) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
+          
+          // In production with memory storage, file.buffer contains the file data
+          // For now, we'll store metadata only and handle file storage later
+          const filename = file.filename || `bolo-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+          
+          // TODO: In production, upload file.buffer to cloud storage (S3, Cloudinary, etc.)
+          // For now, we'll store a placeholder URL
+          const fileUrl = process.env.NODE_ENV === 'production' 
+            ? `/api/placeholder-image.jpg` // Placeholder for production
+            : `/uploads/bolo/${filename}`;
+          
           const mediaResult = await client.query(`
             INSERT INTO bolo_media (
-              bolo_id, type, filename, original_name,
+              bolo_id, type, filename, original_name, url,
               mime_type, size, uploaded_by, is_primary, display_order
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id
           `, [
             bolo.id,
             this.getMediaType(file.mimetype),
-            file.filename,
+            filename,
             file.originalname,
+            fileUrl,
             file.mimetype,
             file.size,
             userId,

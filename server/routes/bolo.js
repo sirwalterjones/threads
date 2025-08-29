@@ -7,21 +7,24 @@ const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const boloService = require('../services/boloService');
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error, null);
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'bolo-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Use memory storage in production, disk storage in development
+const storage = process.env.NODE_ENV === 'production' 
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: async (req, file, cb) => {
+        const uploadDir = path.join(__dirname, '..', 'uploads', 'bolo');
+        try {
+          await fs.mkdir(uploadDir, { recursive: true });
+          cb(null, uploadDir);
+        } catch (error) {
+          cb(error, null);
+        }
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'bolo-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
 
 const upload = multer({
   storage: storage,

@@ -19,8 +19,8 @@ import IntelReportsApprovalSimple from './pages/IntelReportsApprovalSimple';
 import IntelReportFormSimple from './components/IntelReport/IntelReportFormSimple';
 import SecurityDashboard from './components/SecurityDashboard';
 import TagPosts from './pages/TagPosts';
-import BOLODashboard from './components/BOLO/BOLODashboard';
-import BOLOCreateForm from './components/BOLO/BOLOCreateForm';
+import BOLOFeed from './components/BOLO/BOLOFeed';
+import BOLOManagement from './components/BOLO/BOLOManagement';
 import BOLODetail from './components/BOLO/BOLODetail';
 import PublicBOLOView from './components/BOLO/PublicBOLOView';
 import { CircularProgress, Box } from '@mui/material';
@@ -113,8 +113,8 @@ const AppRoutes: React.FC = () => {
                 <Route path="/security" element={<SecurityDashboard />} />
                 <Route path="/tags/:tagName" element={<TagPosts />} />
                 <Route path="/tables" element={<Home />} />
-                <Route path="/bolo" element={<BOLODashboard />} />
-                <Route path="/bolo/create" element={<BOLOCreateForm />} />
+                <Route path="/bolo" element={<BOLOFeed />} />
+                <Route path="/bolo/manage" element={<BOLOManagement />} />
                 <Route path="/bolo/:id" element={<BOLODetail />} />
               </Routes>
             </Layout>

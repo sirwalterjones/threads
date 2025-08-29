@@ -1,0 +1,477 @@
+/* CSS Variables for Dark Theme */
+:root {
+  --bolo-bg: #0b0d10;
+  --bolo-card: #16181b;
+  --bolo-panel: #1f2226;
+  --bolo-text-primary: #ffffff;
+  --bolo-text-muted: #a9b0b6;
+  --bolo-muted-2: #7d8388;
+  --bolo-accent: #2fa9ff;
+  --bolo-success: #28c76f;
+  --bolo-warning: #ffa502;
+  --bolo-danger: #ff4757;
+  --bolo-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --bolo-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.65);
+  --bolo-radius: 12px;
+}
+
+/* Main Feed Container */
+.bolo-feed-page {
+  background-color: var(--bolo-bg);
+  min-height: 100vh;
+  padding: 24px 0;
+}
+
+/* Header Controls */
+.feed-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.feed-title {
+  color: var(--bolo-text-primary);
+  font-weight: 700;
+  font-size: clamp(24px, 3vw, 32px);
+}
+
+.feed-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.feed-search {
+  min-width: 280px;
+}
+
+.feed-search .MuiOutlinedInput-root {
+  background-color: var(--bolo-panel);
+  border-radius: 8px;
+  color: var(--bolo-text-primary);
+}
+
+.feed-search .MuiOutlinedInput-notchedOutline {
+  border-color: transparent;
+}
+
+.feed-search .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--bolo-muted-2);
+}
+
+.feed-search .MuiInputAdornment-root svg {
+  color: var(--bolo-text-muted);
+}
+
+.feed-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-select .MuiOutlinedInput-root {
+  background-color: var(--bolo-panel);
+  color: var(--bolo-text-primary);
+  border-radius: 8px;
+  min-width: 120px;
+}
+
+.filter-select .MuiOutlinedInput-notchedOutline {
+  border-color: transparent;
+}
+
+.filter-select .MuiSelect-icon {
+  color: var(--bolo-text-muted);
+}
+
+.icon-action {
+  color: var(--bolo-text-muted);
+  background-color: var(--bolo-panel);
+  border-radius: 8px;
+}
+
+.icon-action:hover {
+  background-color: var(--bolo-card);
+}
+
+.create-btn {
+  background-color: var(--bolo-accent);
+  color: white;
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  padding: 8px 20px;
+}
+
+.create-btn:hover {
+  background-color: #2090e0;
+}
+
+/* Feed Content */
+.feed-content {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+/* BOLO Feed Item */
+.bolo-feed-item {
+  margin-bottom: 24px;
+}
+
+/* Organization Header */
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 12px;
+}
+
+.org {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.org-logo {
+  flex-shrink: 0;
+}
+
+.org-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.org-name {
+  color: var(--bolo-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.verified {
+  color: var(--bolo-accent);
+  font-size: 16px;
+}
+
+.org-sub {
+  color: var(--bolo-text-muted);
+  font-size: 12px;
+}
+
+.danger-chip {
+  background-color: rgba(255, 71, 87, 0.1);
+  border: 1px solid var(--bolo-danger);
+}
+
+/* Post Card */
+.post-card {
+  background-color: var(--bolo-card);
+  border-radius: var(--bolo-radius);
+  padding: 16px;
+  box-shadow: var(--bolo-shadow);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: visible;
+}
+
+.post-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--bolo-shadow-hover);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-thumb {
+    order: -1;
+    margin-bottom: 12px;
+  }
+}
+
+.card-content {
+  position: relative;
+  padding-left: 4px;
+}
+
+.priority-indicator {
+  position: absolute;
+  left: -16px;
+  top: 8px;
+  width: 3px;
+  height: 40px;
+  border-radius: 0 2px 2px 0;
+}
+
+.post-title {
+  color: var(--bolo-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 8px 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.post-excerpt {
+  color: var(--bolo-text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.key-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.detail-item {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.detail-label {
+  color: var(--bolo-muted-2);
+  font-weight: 500;
+}
+
+.detail-value {
+  color: var(--bolo-text-muted);
+}
+
+.card-thumb {
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background-color: var(--bolo-panel);
+}
+
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Author Pill */
+.author-pill {
+  background-color: var(--bolo-panel);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-top: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  gap: 12px;
+}
+
+.case-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bolo-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bolo-text-muted);
+  flex-shrink: 0;
+}
+
+.author-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.author-name {
+  color: var(--bolo-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.dept {
+  color: var(--bolo-text-muted);
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.active {
+  background-color: var(--bolo-success);
+  animation: pulse 2s infinite;
+}
+
+.status-dot.pending {
+  background-color: var(--bolo-warning);
+}
+
+.status-dot.resolved {
+  background-color: var(--bolo-muted-2);
+}
+
+.status-dot.cancelled,
+.status-dot.expired {
+  background-color: var(--bolo-danger);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(40, 199, 111, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 199, 111, 0);
+  }
+}
+
+.status-text {
+  color: var(--bolo-text-muted);
+}
+
+/* Post Actions */
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 16px;
+  margin-top: 8px;
+}
+
+.action {
+  background: none;
+  border: none;
+  color: var(--bolo-muted-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.action:hover {
+  color: var(--bolo-text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.action.active {
+  color: var(--bolo-accent);
+}
+
+.action.repost.active {
+  color: var(--bolo-success);
+}
+
+.action span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Loading & Empty States */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--bolo-text-muted);
+}
+
+.empty-state h6 {
+  color: var(--bolo-text-primary);
+  margin-bottom: 8px;
+}
+
+.load-more {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.load-more button {
+  color: var(--bolo-text-muted);
+  border-color: var(--bolo-muted-2);
+  text-transform: none;
+  padding: 8px 24px;
+}
+
+.load-more button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--bolo-text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .feed-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .feed-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .feed-search {
+    width: 100%;
+  }
+
+  .feed-filters {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .author-pill {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .post-actions {
+    justify-content: space-around;
+    padding: 8px;
+  }
+}
