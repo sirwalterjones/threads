@@ -80,8 +80,8 @@ const TagCloud: React.FC<TagCloudProps> = ({
 
   // Calculate font size based on count (tag cloud effect)
   const getFontSize = (count: number, maxCount: number) => {
-    const minSize = 1.0;
-    const maxSize = 1.8;
+    const minSize = 0.75;
+    const maxSize = 1.0;
     const ratio = count / maxCount;
     return minSize + (maxSize - minSize) * ratio;
   };
@@ -139,7 +139,7 @@ const TagCloud: React.FC<TagCloudProps> = ({
                   variant="caption" 
                   sx={{ 
                     color: 'rgba(255,255,255,0.5)',
-                    fontSize: '0.75rem'
+                    fontSize: '0.65rem'
                   }}
                 >
                   ({tagItem.count})
@@ -162,9 +162,9 @@ const TagCloud: React.FC<TagCloudProps> = ({
                 borderColor: '#1D9BF0',
               },
               '& .MuiChip-label': {
-                px: 1,
-                py: 0.5,
-                fontWeight: tagItem.count > maxCount * 0.5 ? 600 : 400,
+                px: 0.75,
+                py: 0.25,
+                fontWeight: tagItem.count > maxCount * 0.5 ? 500 : 400,
               },
             }}
           />
