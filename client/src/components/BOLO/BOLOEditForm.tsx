@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -23,7 +23,8 @@ import {
   Card,
   CardMedia,
   CardActions,
-  LinearProgress
+  LinearProgress,
+  CircularProgress
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
@@ -37,16 +38,18 @@ import {
   Category as OtherIcon,
   Warning as WarningIcon
 } from '@mui/icons-material';
-import { BOLOFormData } from '../../types/bolo';
+import { BOLOFormData, BOLO } from '../../types/bolo';
 import boloApi from '../../services/boloApi';
 import { useAuth } from '../../contexts/AuthContext';
 import './BOLOCreateForm.css';
 
-const BOLOCreateForm: React.FC = () => {
+const BOLOEditForm: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadingBOLO, setLoadingBOLO] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -58,6 +61,8 @@ const BOLOCreateForm: React.FC = () => {
     summary: '',
     is_public: false
   });
+
+  const [originalBOLO, setOriginalBOLO] = useState<BOLO | null>(null);
 
   // Dark theme form field styles
   const darkFormFieldSx = {
@@ -99,6 +104,66 @@ const BOLOCreateForm: React.FC = () => {
     'Media & Review'
   ];
 
+  useEffect(() => {
+    if (id) {
+      loadBOLO();
+    }
+  }, [id]);
+
+  const loadBOLO = async () => {
+    try {
+      setLoadingBOLO(true);
+      const bolo = await boloApi.getBOLOById(parseInt(id!));
+      setOriginalBOLO(bolo);
+      
+      // Convert BOLO to form data
+      const boloFormData: BOLOFormData = {
+        type: bolo.type,
+        priority: bolo.priority,
+        title: bolo.title,
+        summary: bolo.summary,
+        narrative: bolo.narrative,
+        subject_name: bolo.subject_name,
+        subject_aliases: Array.isArray(bolo.subject_aliases) ? bolo.subject_aliases.join(', ') : bolo.subject_aliases,
+        subject_description: bolo.subject_description,
+        date_of_birth: bolo.date_of_birth,
+        age_range: bolo.age_range,
+        height: bolo.height,
+        weight: bolo.weight,
+        hair_color: bolo.hair_color,
+        eye_color: bolo.eye_color,
+        distinguishing_features: bolo.distinguishing_features,
+        last_seen_wearing: bolo.last_seen_wearing,
+        armed_dangerous: bolo.armed_dangerous,
+        armed_dangerous_details: bolo.armed_dangerous_details,
+        vehicle_make: bolo.vehicle_make,
+        vehicle_model: bolo.vehicle_model,
+        vehicle_year: bolo.vehicle_year?.toString(),
+        vehicle_color: bolo.vehicle_color,
+        license_plate: bolo.license_plate,
+        vehicle_vin: bolo.vehicle_vin,
+        vehicle_features: bolo.vehicle_features,
+        direction_of_travel: bolo.direction_of_travel,
+        incident_date: bolo.incident_date,
+        incident_location: bolo.incident_location,
+        last_known_location: bolo.last_known_location,
+        jurisdiction: bolo.jurisdiction,
+        officer_safety_info: bolo.officer_safety_info,
+        approach_instructions: bolo.approach_instructions,
+        contact_info: bolo.contact_info,
+        is_public: bolo.is_public,
+        expires_at: bolo.expires_at
+      };
+      
+      setFormData(boloFormData);
+    } catch (error) {
+      console.error('Error loading BOLO:', error);
+      setError('Failed to load BOLO for editing');
+    } finally {
+      setLoadingBOLO(false);
+    }
+  };
+
   const handleChange = (field: keyof BOLOFormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
   ) => {
@@ -109,45 +174,12 @@ const BOLOCreateForm: React.FC = () => {
     }));
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    if (files.length + selectedFiles.length > 10) {
-      setError('Maximum 10 files allowed');
-      return;
-    }
-
-    const newFiles = [...files, ...selectedFiles];
-    setFiles(newFiles);
-
-    // Create preview URLs for images
-    const newPreviewUrls = newFiles.map(file => {
-      if (file.type.startsWith('image/')) {
-        return URL.createObjectURL(file);
-      }
-      return '';
-    });
-    setPreviewUrls(newPreviewUrls);
-  };
-
-  const removeFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    const newPreviewUrls = previewUrls.filter((_, i) => i !== index);
-    
-    // Clean up object URLs
-    if (previewUrls[index]) {
-      URL.revokeObjectURL(previewUrls[index]);
-    }
-    
-    setFiles(newFiles);
-    setPreviewUrls(newPreviewUrls);
-  };
-
   const handleNext = () => {
-    setActiveStep(prev => prev + 1);
+    setActiveStep(prevActiveStep => prevActiveStep + 1);
   };
 
   const handleBack = () => {
-    setActiveStep(prev => prev - 1);
+    setActiveStep(prevActiveStep => prevActiveStep - 1);
   };
 
   const handleSubmit = async () => {
@@ -155,20 +187,22 @@ const BOLOCreateForm: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const bolo = await boloApi.createBOLO(formData, files);
-      
-      // Clean up preview URLs
-      previewUrls.forEach(url => {
-        if (url) URL.revokeObjectURL(url);
-      });
+      // Prepare form data for submission
+      const submitData: any = { ...formData };
+      // Convert subject_aliases string to array for API
+      if (submitData.subject_aliases && typeof submitData.subject_aliases === 'string') {
+        submitData.subject_aliases = submitData.subject_aliases.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+      }
 
-      navigate(`/bolo/${bolo.id}`);
+      const updatedBOLO = await boloApi.updateBOLO(parseInt(id!), submitData);
+      navigate(`/bolo/${updatedBOLO.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create BOLO');
+      setError(err.response?.data?.error || 'Failed to update BOLO');
       setLoading(false);
     }
   };
 
+  // Copy the render functions from BOLOCreateForm but use the dark theme styles
   const renderBasicInfo = () => (
     <Box>
       <Grid container spacing={2}>
@@ -213,16 +247,16 @@ const BOLOCreateForm: React.FC = () => {
               onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
             >
               <MenuItem value="immediate">
-                <Chip label="Immediate" color="error" size="small" />
+                <Chip label="Immediate" sx={{ bgcolor: 'rgba(255, 71, 87, 0.2)', color: '#ff4757' }} size="small" />
               </MenuItem>
               <MenuItem value="high">
-                <Chip label="High" color="warning" size="small" />
+                <Chip label="High" sx={{ bgcolor: 'rgba(255, 165, 2, 0.2)', color: '#ffa502' }} size="small" />
               </MenuItem>
               <MenuItem value="medium">
-                <Chip label="Medium" color="info" size="small" />
+                <Chip label="Medium" sx={{ bgcolor: 'rgba(47, 169, 255, 0.2)', color: '#2fa9ff' }} size="small" />
               </MenuItem>
               <MenuItem value="low">
-                <Chip label="Low" size="small" />
+                <Chip label="Low" sx={{ bgcolor: 'rgba(169, 176, 182, 0.2)', color: '#a9b0b6' }} size="small" />
               </MenuItem>
             </Select>
           </FormControl>
@@ -275,7 +309,7 @@ const BOLOCreateForm: React.FC = () => {
       {formData.type === 'person' && (
         <Grid container spacing={2}>
           <Grid size={12}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={darkTypographySx}>
               Subject Information
             </Typography>
           </Grid>
@@ -286,6 +320,7 @@ const BOLOCreateForm: React.FC = () => {
               label="Subject Name"
               value={formData.subject_name}
               onChange={handleChange('subject_name')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -293,9 +328,10 @@ const BOLOCreateForm: React.FC = () => {
             <TextField
               fullWidth
               label="Aliases"
-              placeholder="Known aliases, nicknames"
+              placeholder="Comma-separated aliases"
               value={formData.subject_aliases}
               onChange={handleChange('subject_aliases')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -305,97 +341,142 @@ const BOLOCreateForm: React.FC = () => {
               multiline
               rows={2}
               label="Physical Description"
-              placeholder="Detailed physical description"
               value={formData.subject_description}
               onChange={handleChange('subject_description')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Date of Birth"
               type="date"
-              InputLabelProps={{ shrink: true }}
               value={formData.date_of_birth}
               onChange={handleChange('date_of_birth')}
+              InputLabelProps={{ shrink: true }}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Age Range"
               placeholder="e.g., 25-30"
               value={formData.age_range}
               onChange={handleChange('age_range')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Height"
-              placeholder={'e.g., 5\'10"'}
+              placeholder="e.g., 5'10&quot;"
               value={formData.height}
               onChange={handleChange('height')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Weight"
-              placeholder="e.g., 180 lbs"
+              placeholder="e.g., 170 lbs"
               value={formData.weight}
               onChange={handleChange('weight')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Hair Color"
               value={formData.hair_color}
               onChange={handleChange('hair_color')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Eye Color"
               value={formData.eye_color}
               onChange={handleChange('eye_color')}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              label="Distinguishing Features"
-              placeholder="Tattoos, scars, etc."
-              value={formData.distinguishing_features}
-              onChange={handleChange('distinguishing_features')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
           <Grid size={12}>
             <TextField
               fullWidth
-              label="Last Seen Wearing"
-              placeholder="Clothing description"
-              value={formData.last_seen_wearing}
-              onChange={handleChange('last_seen_wearing')}
+              multiline
+              rows={2}
+              label="Distinguishing Features"
+              placeholder="Tattoos, scars, piercings, etc."
+              value={formData.distinguishing_features}
+              onChange={handleChange('distinguishing_features')}
+              sx={darkFormFieldSx}
             />
           </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={2}
+              label="Last Seen Wearing"
+              value={formData.last_seen_wearing}
+              onChange={handleChange('last_seen_wearing')}
+              sx={darkFormFieldSx}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.armed_dangerous || false}
+                  onChange={handleChange('armed_dangerous')}
+                  sx={{ color: '#a9b0b6', '&.Mui-checked': { color: '#ff4757' } }}
+                />
+              }
+              label={
+                <Box display="flex" alignItems="center">
+                  <WarningIcon sx={{ color: '#ff4757', mr: 1 }} />
+                  <Typography sx={{ color: '#a9b0b6' }}>Armed & Dangerous</Typography>
+                </Box>
+              }
+            />
+          </Grid>
+
+          {formData.armed_dangerous && (
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                required
+                multiline
+                rows={3}
+                label="Armed & Dangerous Details"
+                placeholder="Describe weapons, threat level, and approach precautions"
+                value={formData.armed_dangerous_details}
+                onChange={handleChange('armed_dangerous_details')}
+                sx={darkFormFieldSx}
+              />
+            </Grid>
+          )}
         </Grid>
       )}
 
       {formData.type === 'vehicle' && (
         <Grid container spacing={2}>
           <Grid size={12}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={darkTypographySx}>
               Vehicle Information
             </Typography>
           </Grid>
@@ -406,6 +487,7 @@ const BOLOCreateForm: React.FC = () => {
               label="Make"
               value={formData.vehicle_make}
               onChange={handleChange('vehicle_make')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -415,6 +497,7 @@ const BOLOCreateForm: React.FC = () => {
               label="Model"
               value={formData.vehicle_model}
               onChange={handleChange('vehicle_model')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -424,33 +507,37 @@ const BOLOCreateForm: React.FC = () => {
               label="Year"
               value={formData.vehicle_year}
               onChange={handleChange('vehicle_year')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="Color"
               value={formData.vehicle_color}
               onChange={handleChange('vehicle_color')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="License Plate"
               value={formData.license_plate}
               onChange={handleChange('license_plate')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="VIN"
               value={formData.vehicle_vin}
               onChange={handleChange('vehicle_vin')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -460,9 +547,10 @@ const BOLOCreateForm: React.FC = () => {
               multiline
               rows={2}
               label="Vehicle Features"
-              placeholder="Damage, modifications, stickers, etc."
+              placeholder="Damage, modifications, distinctive features"
               value={formData.vehicle_features}
               onChange={handleChange('vehicle_features')}
+              sx={darkFormFieldSx}
             />
           </Grid>
 
@@ -473,27 +561,7 @@ const BOLOCreateForm: React.FC = () => {
               placeholder="Last known direction"
               value={formData.direction_of_travel}
               onChange={handleChange('direction_of_travel')}
-            />
-          </Grid>
-        </Grid>
-      )}
-
-      {formData.type === 'property' && (
-        <Grid container spacing={2}>
-          <Grid size={12}>
-            <Typography variant="h6" gutterBottom>
-              Property Details
-            </Typography>
-          </Grid>
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Property Description"
-              placeholder="Detailed description of the property"
-              value={formData.narrative}
-              onChange={handleChange('narrative')}
+              sx={darkFormFieldSx}
             />
           </Grid>
         </Grid>
@@ -504,14 +572,21 @@ const BOLOCreateForm: React.FC = () => {
   const renderIncidentInfo = () => (
     <Box>
       <Grid container spacing={2}>
+        <Grid size={12}>
+          <Typography variant="h6" gutterBottom sx={darkTypographySx}>
+            Incident Information
+          </Typography>
+        </Grid>
+
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Incident Date/Time"
+            label="Incident Date"
             type="datetime-local"
-            InputLabelProps={{ shrink: true }}
             value={formData.incident_date}
             onChange={handleChange('incident_date')}
+            InputLabelProps={{ shrink: true }}
+            sx={darkFormFieldSx}
           />
         </Grid>
 
@@ -521,6 +596,7 @@ const BOLOCreateForm: React.FC = () => {
             label="Jurisdiction"
             value={formData.jurisdiction}
             onChange={handleChange('jurisdiction')}
+            sx={darkFormFieldSx}
           />
         </Grid>
 
@@ -528,9 +604,9 @@ const BOLOCreateForm: React.FC = () => {
           <TextField
             fullWidth
             label="Incident Location"
-            placeholder="Address or area where incident occurred"
             value={formData.incident_location}
             onChange={handleChange('incident_location')}
+            sx={darkFormFieldSx}
           />
         </Grid>
 
@@ -538,43 +614,9 @@ const BOLOCreateForm: React.FC = () => {
           <TextField
             fullWidth
             label="Last Known Location"
-            placeholder="Most recent sighting or known location"
             value={formData.last_known_location}
             onChange={handleChange('last_known_location')}
-          />
-        </Grid>
-
-        <Grid size={12}>
-          <TextField
-            fullWidth
-            label="Contact Information"
-            placeholder="Phone, email, or radio for officers to report sightings"
-            value={formData.contact_info}
-            onChange={handleChange('contact_info')}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            fullWidth
-            label="Expires At"
-            type="datetime-local"
-            InputLabelProps={{ shrink: true }}
-            value={formData.expires_at}
-            onChange={handleChange('expires_at')}
-            helperText="When should this BOLO automatically expire?"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.is_public}
-                onChange={handleChange('is_public')}
-              />
-            }
-            label="Make publicly shareable"
+            sx={darkFormFieldSx}
           />
         </Grid>
       </Grid>
@@ -583,58 +625,23 @@ const BOLOCreateForm: React.FC = () => {
 
   const renderOfficerSafety = () => (
     <Box>
-      <Alert severity="warning" sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Officer Safety Information
-        </Typography>
-        Include any information that could affect officer safety when approaching or apprehending.
-      </Alert>
-
       <Grid container spacing={2}>
         <Grid size={12}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.armed_dangerous}
-                onChange={handleChange('armed_dangerous')}
-                color="error"
-              />
-            }
-            label={
-              <Box display="flex" alignItems="center">
-                <WarningIcon color="error" sx={{ mr: 1 }} />
-                <Typography color="error">Subject is Armed & Dangerous</Typography>
-              </Box>
-            }
-          />
+          <Typography variant="h6" gutterBottom sx={darkTypographySx}>
+            Officer Safety Information
+          </Typography>
         </Grid>
-
-        {formData.armed_dangerous && (
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              required
-              multiline
-              rows={2}
-              label="Armed & Dangerous Details"
-              placeholder="Weapon type, threats made, etc."
-              value={formData.armed_dangerous_details}
-              onChange={handleChange('armed_dangerous_details')}
-              error={!formData.armed_dangerous_details}
-              helperText={!formData.armed_dangerous_details ? 'Required when Armed & Dangerous is checked' : ''}
-            />
-          </Grid>
-        )}
 
         <Grid size={12}>
           <TextField
             fullWidth
             multiline
-            rows={3}
+            rows={4}
             label="Officer Safety Information"
-            placeholder="Any additional safety concerns or cautions"
+            placeholder="Known hazards, weapons, aggressive behavior, etc."
             value={formData.officer_safety_info}
             onChange={handleChange('officer_safety_info')}
+            sx={darkFormFieldSx}
           />
         </Grid>
 
@@ -647,6 +654,7 @@ const BOLOCreateForm: React.FC = () => {
             placeholder="Recommended approach tactics or special instructions"
             value={formData.approach_instructions}
             onChange={handleChange('approach_instructions')}
+            sx={darkFormFieldSx}
           />
         </Grid>
       </Grid>
@@ -655,94 +663,28 @@ const BOLOCreateForm: React.FC = () => {
 
   const renderMediaReview = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Media Upload
+      <Typography variant="h6" gutterBottom sx={darkTypographySx}>
+        Review Information
       </Typography>
-      
-      <Box
-        sx={{
-          border: '2px dashed',
-          borderColor: 'divider',
-          borderRadius: 1,
-          p: 2,
-          mb: 2,
-          textAlign: 'center'
-        }}
-      >
-        <input
-          accept="image/*,video/*,.pdf,.doc,.docx"
-          style={{ display: 'none' }}
-          id="file-upload"
-          multiple
-          type="file"
-          onChange={handleFileSelect}
-        />
-        <label htmlFor="file-upload">
-          <Button
-            variant="outlined"
-            component="span"
-            startIcon={<UploadIcon />}
-          >
-            Upload Files (Max 10)
-          </Button>
-        </label>
-        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-          Supported: Images, Videos, PDFs, Documents (Max 50MB each)
+      <Paper className="review-section" sx={{ p: 2, bgcolor: '#1f2226', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <Typography variant="subtitle2" gutterBottom sx={{ color: '#ffffff' }}>
+          <strong>Type:</strong> {formData.type}
         </Typography>
-      </Box>
-
-      {files.length > 0 && (
-        <Grid container spacing={1}>
-          {files.map((file, index) => (
-            <Grid size={{ xs: 6, md: 3 }} key={index}>
-              <Card>
-                {file.type.startsWith('image/') && previewUrls[index] ? (
-                  <CardMedia
-                    component="img"
-                    height="100"
-                    image={previewUrls[index]}
-                    alt={file.name}
-                  />
-                ) : (
-                  <Box sx={{ height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                    <Typography variant="caption">{file.name}</Typography>
-                  </Box>
-                )}
-                <CardActions>
-                  <IconButton size="small" onClick={() => removeFile(index)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-
-      <Box mt={3}>
-        <Typography variant="h6" gutterBottom>
-          Review Information
+        <Typography variant="subtitle2" gutterBottom sx={{ color: '#ffffff' }}>
+          <strong>Priority:</strong> {formData.priority}
         </Typography>
-        <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            <strong>Type:</strong> {formData.type}
-          </Typography>
-          <Typography variant="subtitle2" gutterBottom>
-            <strong>Priority:</strong> {formData.priority}
-          </Typography>
-          <Typography variant="subtitle2" gutterBottom>
-            <strong>Title:</strong> {formData.title}
-          </Typography>
-          <Typography variant="subtitle2" gutterBottom>
-            <strong>Summary:</strong> {formData.summary}
-          </Typography>
-          {formData.armed_dangerous && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              Armed & Dangerous
-            </Alert>
-          )}
-        </Paper>
-      </Box>
+        <Typography variant="subtitle2" gutterBottom sx={{ color: '#ffffff' }}>
+          <strong>Title:</strong> {formData.title}
+        </Typography>
+        <Typography variant="subtitle2" gutterBottom sx={{ color: '#ffffff' }}>
+          <strong>Summary:</strong> {formData.summary}
+        </Typography>
+        {formData.armed_dangerous && (
+          <Alert severity="error" sx={{ mt: 1, backgroundColor: 'rgba(255, 71, 87, 0.1)', color: '#ff4757' }}>
+            Armed & Dangerous
+          </Alert>
+        )}
+      </Paper>
     </Box>
   );
 
@@ -774,6 +716,20 @@ const BOLOCreateForm: React.FC = () => {
     }
   };
 
+  if (loadingBOLO) {
+    return (
+      <div className="bolo-create-form" style={{ 
+        backgroundColor: '#0b0d10', 
+        minHeight: '100vh', 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <CircularProgress sx={{ color: '#2fa9ff' }} />
+      </div>
+    );
+  }
+
   return (
     <div className="bolo-create-form" style={{ 
       backgroundColor: '#0b0d10', 
@@ -790,7 +746,7 @@ const BOLOCreateForm: React.FC = () => {
         }}>
           <Box display="flex" alignItems="center" mb={3}>
             <IconButton 
-              onClick={() => navigate('/bolo')} 
+              onClick={() => navigate(`/bolo/${id}`)} 
               sx={{ 
                 mr: 2,
                 color: '#a9b0b6',
@@ -808,7 +764,7 @@ const BOLOCreateForm: React.FC = () => {
                 fontWeight: 700
               }}
             >
-              Create BOLO
+              Edit BOLO {originalBOLO?.case_number}
             </Typography>
           </Box>
 
@@ -882,7 +838,7 @@ const BOLOCreateForm: React.FC = () => {
                       }}
                       startIcon={index === steps.length - 1 ? <SendIcon /> : null}
                     >
-                      {index === steps.length - 1 ? 'Create BOLO' : 'Continue'}
+                      {index === steps.length - 1 ? 'Update BOLO' : 'Continue'}
                     </Button>
                     <Button
                       disabled={index === 0}
@@ -914,4 +870,4 @@ const BOLOCreateForm: React.FC = () => {
   );
 };
 
-export default BOLOCreateForm;
+export default BOLOEditForm;

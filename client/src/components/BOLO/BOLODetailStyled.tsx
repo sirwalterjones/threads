@@ -163,8 +163,9 @@ const BOLODetailStyled: React.FC<BOLODetailStyledProps> = ({ isPublic = false })
   };
 
   const handleEdit = () => {
-    setEditData(bolo || {});
-    setEditDialogOpen(true);
+    if (bolo) {
+      navigate(`/bolo/edit/${bolo.id}`);
+    }
   };
 
   const handleUpdate = async () => {

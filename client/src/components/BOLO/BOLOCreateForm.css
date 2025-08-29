@@ -1,0 +1,87 @@
+/* BOLO Create Form Dark Theme */
+.bolo-create-form {
+  background-color: #0b0d10;
+  min-height: 100vh;
+}
+
+.bolo-create-form .MuiInputLabel-root {
+  color: #a9b0b6 !important;
+}
+
+.bolo-create-form .MuiInputLabel-root.Mui-focused {
+  color: #2fa9ff !important;
+}
+
+.bolo-create-form .MuiOutlinedInput-root {
+  color: #ffffff !important;
+  background-color: #1f2226 !important;
+}
+
+.bolo-create-form .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.bolo-create-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.bolo-create-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #2fa9ff !important;
+}
+
+.bolo-create-form .MuiSelect-icon {
+  color: #a9b0b6 !important;
+}
+
+.bolo-create-form .MuiTypography-h6 {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.bolo-create-form .MuiFormControlLabel-label {
+  color: #a9b0b6 !important;
+}
+
+.bolo-create-form .MuiCheckbox-root {
+  color: #a9b0b6 !important;
+}
+
+.bolo-create-form .MuiCheckbox-root.Mui-checked {
+  color: #2fa9ff !important;
+}
+
+.bolo-create-form .MuiMenuItem-root {
+  color: #ffffff !important;
+  background-color: #1f2226 !important;
+}
+
+.bolo-create-form .MuiMenuItem-root:hover {
+  background-color: #2a2d31 !important;
+}
+
+.bolo-create-form .MuiPaper-root.MuiMenu-paper {
+  background-color: #1f2226 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* File upload area */
+.bolo-create-form .file-upload-area {
+  border: 2px dashed rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  color: #a9b0b6 !important;
+}
+
+.bolo-create-form .file-upload-area:hover {
+  border-color: rgba(47, 169, 255, 0.5) !important;
+  background-color: rgba(47, 169, 255, 0.05) !important;
+}
+
+/* Review section */
+.bolo-create-form .review-section {
+  background-color: #1f2226 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.bolo-create-form .review-section .MuiTypography-subtitle2 {
+  color: #ffffff !important;
+}

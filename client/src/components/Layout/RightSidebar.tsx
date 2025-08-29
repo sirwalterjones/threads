@@ -29,13 +29,16 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../services/api';
+import boloApi from '../../services/boloApi';
 import { Post, Category } from '../../types';
+import { BOLO } from '../../types/bolo';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import TagCloud from '../TagCloud';
 
 const RightSidebar: React.FC = () => {
   const [recentThreads, setRecentThreads] = useState<Post[]>([]);
   const [topCategories, setTopCategories] = useState<Category[]>([]);
+  const [recentBOLOs, setRecentBOLOs] = useState<BOLO[]>([]);
   const [loading, setLoading] = useState(true);
   const [hotListMatches, setHotListMatches] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
@@ -55,6 +58,19 @@ const RightSidebar: React.FC = () => {
     try {
       setLoading(true);
       console.log('Loading sidebar data...');
+      
+      // Load recent BOLOs
+      try {
+        const bolosResponse = await boloApi.getBOLOFeed({
+          limit: 10,
+          sortBy: 'created_at',
+          sortOrder: 'DESC'
+        });
+        setRecentBOLOs(bolosResponse.bolos || []);
+      } catch (error) {
+        console.log('Error loading BOLOs for sidebar:', error);
+        setRecentBOLOs([]);
+      }
       
       // Load recent threads - get ALL posts to ensure we have today's posts
       const recentResponse = await apiService.getPosts({
@@ -445,6 +461,204 @@ const RightSidebar: React.FC = () => {
               onClick={() => navigate('/search')}
             >
               Show more threads
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+      )}
+
+      {/* Recent BOLOs */}
+      {!loading && recentBOLOs.length > 0 && (
+      <Card 
+        sx={{ 
+          bgcolor: 'rgba(22, 24, 28, 0.8)', 
+          border: '1px solid #2F3336',
+          mb: 2,
+          mx: 2,
+          backdropFilter: 'blur(12px)',
+          '&:hover': {
+            bgcolor: 'rgba(22, 24, 28, 0.9)',
+            border: '1px solid #3A3D40'
+          }
+        }}
+      >
+        <CardContent sx={{ 
+          py: 1.5, 
+          px: 2,
+          '&:last-child': { 
+            pb: 1.5 
+          },
+          display: 'flex',
+          flexDirection: 'column',
+          height: '300px'
+        }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography sx={{ 
+              color: '#E7E9EA', 
+              mb: 1, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <MegaphoneIcon sx={{ color: '#FF6B6B', fontSize: 16, mr: 1 }} />
+                Recent BOLOs
+              </Box>
+            </Typography>
+          </Box>
+          
+          <List dense sx={{ 
+            py: 0, 
+            flex: 1, 
+            overflowY: 'auto', 
+            '&::-webkit-scrollbar': {
+              width: '6px'
+            },
+            '&::-webkit-scrollbar-track': {
+              bgcolor: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '3px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '3px',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.3)'
+              }
+            }
+          }}>
+            {recentBOLOs.map((bolo) => {
+              const boloDate = new Date(bolo.created_at);
+              const isRecent = isToday(boloDate) || isYesterday(boloDate);
+              
+              return (
+                <ListItem 
+                  key={bolo.id} 
+                  disablePadding 
+                  sx={{ 
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    '&:last-child': { borderBottom: 'none' }
+                  }}
+                >
+                  <ListItemButton 
+                    onClick={() => navigate(`/bolo/${bolo.id}`)}
+                    sx={{ 
+                      py: 1, 
+                      px: 0,
+                      '&:hover': { 
+                        bgcolor: 'rgba(29, 161, 242, 0.08)',
+                        '& .thread-title': { color: '#1DA1F2' }
+                      }
+                    }}
+                  >
+                    <Box sx={{ width: '100%', minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Chip
+                          label={bolo.case_number}
+                          size="small"
+                          sx={{
+                            bgcolor: 'rgba(47, 169, 255, 0.2)',
+                            color: '#2fa9ff',
+                            fontSize: '10px',
+                            height: '18px',
+                            fontWeight: 600
+                          }}
+                        />
+                        <Chip
+                          label={bolo.status}
+                          size="small"
+                          sx={{
+                            bgcolor: bolo.status === 'active' 
+                              ? 'rgba(40, 199, 111, 0.2)' 
+                              : 'rgba(255, 165, 2, 0.2)',
+                            color: bolo.status === 'active' ? '#28c76f' : '#ffa502',
+                            fontSize: '9px',
+                            height: '16px',
+                            fontWeight: 500
+                          }}
+                        />
+                        <Chip
+                          label={bolo.priority}
+                          size="small"
+                          sx={{
+                            bgcolor: bolo.priority === 'immediate' 
+                              ? 'rgba(255, 71, 87, 0.2)'
+                              : bolo.priority === 'high'
+                              ? 'rgba(255, 165, 2, 0.2)'
+                              : 'rgba(47, 169, 255, 0.2)',
+                            color: bolo.priority === 'immediate' 
+                              ? '#ff4757'
+                              : bolo.priority === 'high'
+                              ? '#ffa502'
+                              : '#2fa9ff',
+                            fontSize: '9px',
+                            height: '16px',
+                            fontWeight: 500
+                          }}
+                        />
+                      </Box>
+                      <Typography 
+                        className="thread-title"
+                        sx={{ 
+                          color: '#E7E9EA', 
+                          fontSize: '13px', 
+                          fontWeight: 400,
+                          lineHeight: 1.3,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          mb: 0.5,
+                          transition: 'color 0.2s'
+                        }}
+                      >
+                        {bolo.title}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography sx={{ 
+                          color: '#8B98A5', 
+                          fontSize: '11px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}>
+                          <Person sx={{ fontSize: 10 }} />
+                          {bolo.creator_username}
+                        </Typography>
+                        <Typography sx={{ 
+                          color: isRecent ? '#1DA1F2' : '#8B98A5', 
+                          fontSize: '11px',
+                          fontWeight: isRecent ? 500 : 400
+                        }}>
+                          {isToday(boloDate) 
+                            ? format(boloDate, 'h:mm a')
+                            : isYesterday(boloDate)
+                            ? 'Yesterday'
+                            : formatDistanceToNow(boloDate, { addSuffix: true })
+                          }
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </ListItemButton>
+                </ListItem>
+              );
+            })}
+          </List>
+          
+          <Box sx={{ p: 1.25, pt: 1 }}>
+            <Button
+              fullWidth
+              sx={{
+                textTransform: 'none',
+                color: '#1DA1F2',
+                fontSize: '13px',
+                py: 1,
+                '&:hover': {
+                  bgcolor: 'rgba(29, 161, 242, 0.1)'
+                }
+              }}
+              onClick={() => navigate('/bolo')}
+            >
+              Show more BOLOs
             </Button>
           </Box>
         </CardContent>
