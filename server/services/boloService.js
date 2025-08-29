@@ -24,6 +24,20 @@ class BOLOService {
       );
       const user = userResult.rows[0];
       
+      // Process subject_aliases to ensure it's an array
+      let subjectAliases = null;
+      if (boloData.subject_aliases) {
+        if (Array.isArray(boloData.subject_aliases)) {
+          subjectAliases = boloData.subject_aliases;
+        } else if (typeof boloData.subject_aliases === 'string') {
+          // Split by comma, newline, or semicolon and trim each alias
+          subjectAliases = boloData.subject_aliases
+            .split(/[,\n;]/)
+            .map(alias => alias.trim())
+            .filter(alias => alias.length > 0);
+        }
+      }
+      
       // Insert BOLO
       const boloResult = await client.query(`
         INSERT INTO bolos (
@@ -50,7 +64,7 @@ class BOLOService {
         boloData.priority || 'medium',
         'active',
         boloData.subject_name,
-        boloData.subject_aliases,
+        subjectAliases,
         boloData.subject_description,
         boloData.date_of_birth,
         boloData.age_range,
