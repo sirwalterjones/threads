@@ -43,6 +43,7 @@ const securityDashboardRoutes = require('./routes/security-dashboard');
 const incidentResponseRoutes = require('./routes/incident-response');
 const complianceGovernanceRoutes = require('./routes/compliance-governance');
 const exportRoutes = require('./routes/export');
+const boloRoutes = require('./routes/bolo');
 
 // Force Vercel restart - WordPress sync fix
 const app = express();
@@ -312,6 +313,7 @@ app.use('/api/security-dashboard', securityDashboardRoutes);
 app.use('/api/incident-response', incidentResponseRoutes);
 app.use('/api/compliance-governance', complianceGovernanceRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/bolo', boloRoutes);
 
 // Error handling middleware
 app.use((error, req, res, next) => {
