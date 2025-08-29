@@ -687,7 +687,7 @@ const BOLOCreateForm: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Review Information
         </Typography>
-        <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+        <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
           <Typography variant="subtitle2" gutterBottom>
             <strong>Type:</strong> {formData.type}
           </Typography>

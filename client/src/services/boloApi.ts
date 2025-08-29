@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { BOLO, BOLOFilters, BOLOFeedResponse, BOLOFormData, BOLOComment } from '../types/bolo';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5050';
+const API_BASE_URL = '/api';
 
 class BOLOApiService {
   private getAuthHeaders() {
@@ -44,7 +44,7 @@ class BOLOApiService {
     });
     
     const response = await axios.post(
-      `${API_BASE_URL}/api/bolo/create`,
+      `${API_BASE_URL}/bolo/create`,
       data,
       {
         headers: this.getMultipartHeaders()
@@ -68,7 +68,7 @@ class BOLOApiService {
     });
     
     const response = await axios.get(
-      `${API_BASE_URL}/api/bolo/feed?${params.toString()}`,
+      `${API_BASE_URL}/bolo/feed?${params.toString()}`,
       {
         headers: this.getAuthHeaders()
       }
@@ -82,7 +82,7 @@ class BOLOApiService {
    */
   async getBOLOById(id: number): Promise<BOLO> {
     const response = await axios.get(
-      `${API_BASE_URL}/api/bolo/${id}`,
+      `${API_BASE_URL}/bolo/${id}`,
       {
         headers: this.getAuthHeaders()
       }
@@ -96,7 +96,7 @@ class BOLOApiService {
    */
   async getPublicBOLO(token: string): Promise<BOLO> {
     const response = await axios.get(
-      `${API_BASE_URL}/api/bolo/public/${token}`
+      `${API_BASE_URL}/bolo/public/${token}`
     );
     
     return response.data;
@@ -107,7 +107,7 @@ class BOLOApiService {
    */
   async updateBOLO(id: number, updates: Partial<BOLOFormData>): Promise<BOLO> {
     const response = await axios.put(
-      `${API_BASE_URL}/api/bolo/${id}`,
+      `${API_BASE_URL}/bolo/${id}`,
       updates,
       {
         headers: this.getAuthHeaders()
@@ -122,7 +122,7 @@ class BOLOApiService {
    */
   async updateBOLOStatus(id: number, status: BOLO['status']): Promise<BOLO> {
     const response = await axios.patch(
-      `${API_BASE_URL}/api/bolo/${id}/status`,
+      `${API_BASE_URL}/bolo/${id}/status`,
       { status },
       {
         headers: this.getAuthHeaders()
@@ -137,7 +137,7 @@ class BOLOApiService {
    */
   async repostBOLO(id: number, message?: string): Promise<{ success: boolean; message: string }> {
     const response = await axios.post(
-      `${API_BASE_URL}/api/bolo/${id}/repost`,
+      `${API_BASE_URL}/bolo/${id}/repost`,
       { message },
       {
         headers: this.getAuthHeaders()
@@ -152,7 +152,7 @@ class BOLOApiService {
    */
   async addComment(id: number, content: string, isInternal: boolean = false): Promise<BOLOComment> {
     const response = await axios.post(
-      `${API_BASE_URL}/api/bolo/${id}/comment`,
+      `${API_BASE_URL}/bolo/${id}/comment`,
       { content, isInternal },
       {
         headers: this.getAuthHeaders()
@@ -167,7 +167,7 @@ class BOLOApiService {
    */
   async toggleSaveBOLO(id: number): Promise<{ saved: boolean; message: string }> {
     const response = await axios.post(
-      `${API_BASE_URL}/api/bolo/${id}/save`,
+      `${API_BASE_URL}/bolo/${id}/save`,
       {},
       {
         headers: this.getAuthHeaders()
@@ -182,7 +182,7 @@ class BOLOApiService {
    */
   async getSavedBOLOs(limit: number = 20, offset: number = 0): Promise<{ bolos: BOLO[]; total: number }> {
     const response = await axios.get(
-      `${API_BASE_URL}/api/bolo/saved/list?limit=${limit}&offset=${offset}`,
+      `${API_BASE_URL}/bolo/saved/list?limit=${limit}&offset=${offset}`,
       {
         headers: this.getAuthHeaders()
       }
@@ -202,7 +202,7 @@ class BOLOApiService {
     });
     
     const response = await axios.post(
-      `${API_BASE_URL}/api/bolo/${boloId}/media`,
+      `${API_BASE_URL}/bolo/${boloId}/media`,
       data,
       {
         headers: this.getMultipartHeaders()
