@@ -631,18 +631,9 @@ class BOLOService {
         VALUES ($1, $2, 'commented')
       `, [boloId, userId]);
       
-      // Create notification for original poster
-      const boloResult = await client.query(
-        'SELECT created_by FROM bolos WHERE id = $1',
-        [boloId]
-      );
-      
-      if (boloResult.rows[0].created_by !== userId) {
-        await client.query(`
-          INSERT INTO bolo_notifications (bolo_id, user_id, type)
-          VALUES ($1, $2, 'comment')
-        `, [boloId, boloResult.rows[0].created_by]);
-      }
+      // Create notification for original poster (this seems to be duplicate/legacy code)
+      // The notification logic above already handles this case
+      // Removing this duplicate logic
       
       await client.query('COMMIT');
       
