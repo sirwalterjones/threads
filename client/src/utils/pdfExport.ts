@@ -166,58 +166,212 @@ export const generatePDF = async (posts: Post[], options: { includeComments?: bo
       }
     }
     
-    // Post content with inline images
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+    // Post content with HTML formatting and inline images
+    // First extract images and get formatted text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = post.content || '';
     
-    // Parse content for images and text
-    const contentParts = await parseContentWithImages(post.content || '');
+    // Extract and handle images separately
+    const images = tempDiv.querySelectorAll('img');
+    const imagePositions = new Map<string, { src: string; alt?: string }>();
     
-    for (const part of contentParts) {
-      if (part.type === 'text' && part.content) {
-        const contentLines = doc.splitTextToSize(part.content, 170);
-        contentLines.forEach((line: string) => {
-          if (yPosition > 270) {
+    images.forEach((img, index) => {
+      const placeholder = `__IMG_${index}__`;
+      const src = img.src || img.getAttribute('data-src') || '';
+      const alt = img.alt || img.getAttribute('alt') || '';
+      if (src) {
+        imagePositions.set(placeholder, { src, alt });
+        const placeholderSpan = document.createElement('span');
+        placeholderSpan.textContent = placeholder;
+        img.replaceWith(placeholderSpan);
+      }
+    });
+    
+    // Parse the HTML with formatting
+    const formattedContent = parseHtmlToFormattedText(tempDiv.innerHTML);
+    
+    // Render formatted content
+    let listCounter = 0;
+    for (const segment of formattedContent) {
+      // Check for image placeholders
+      const imgMatch = segment.text.match(/__IMG_(\d+)__/);
+      if (imgMatch) {
+        const placeholder = imgMatch[0];
+        const imgInfo = imagePositions.get(placeholder);
+        if (imgInfo) {
+          // Render text before image
+          const beforeText = segment.text.substring(0, imgMatch.index || 0).trim();
+          if (beforeText) {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+            const lines = doc.splitTextToSize(beforeText, 170);
+            lines.forEach((line: string) => {
+              if (yPosition > 270) {
+                doc.addPage();
+                addPageHeader(doc, black, white);
+                yPosition = 45;
+              }
+              doc.text(line, 20, yPosition);
+              yPosition += 5;
+            });
+          }
+          
+          // Render image
+          if (yPosition > 200) {
             doc.addPage();
             addPageHeader(doc, black, white);
             yPosition = 45;
           }
-          doc.text(line, 20, yPosition);
-          yPosition += 5;
-        });
-      } else if (part.type === 'image' && part.src) {
-        // Check if we need a new page for the image
-        if (yPosition > 200) {
+          
+          try {
+            const imageAdded = await addImageToPDF(doc, imgInfo.src, 20, yPosition, 170);
+            if (imageAdded.success) {
+              yPosition = imageAdded.newY + 5;
+              // Add image caption if alt text exists
+              if (imgInfo.alt) {
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+                doc.text(imgInfo.alt, 20, yPosition);
+                yPosition += 4;
+              }
+            } else {
+              doc.setFontSize(9);
+              doc.setFont('helvetica', 'italic');
+              doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+              doc.text(`[Image: ${imgInfo.alt || imgInfo.src}]`, 20, yPosition);
+              yPosition += 5;
+            }
+          } catch (error) {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+            doc.text(`[Image: ${imgInfo.alt || imgInfo.src}]`, 20, yPosition);
+            yPosition += 5;
+          }
+          
+          // Render text after image
+          const afterText = segment.text.substring((imgMatch.index || 0) + placeholder.length).trim();
+          if (afterText) {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+            const lines = doc.splitTextToSize(afterText, 170);
+            lines.forEach((line: string) => {
+              if (yPosition > 270) {
+                doc.addPage();
+                addPageHeader(doc, black, white);
+                yPosition = 45;
+              }
+              doc.text(line, 20, yPosition);
+              yPosition += 5;
+            });
+          }
+          continue;
+        }
+      }
+      
+      // Skip empty text segments
+      if (!segment.text.trim()) continue;
+      
+      // Set font styles based on formatting
+      if (segment.header) {
+        // Headers
+        const sizes = { 1: 16, 2: 14, 3: 12, 4: 11, 5: 10, 6: 10 };
+        doc.setFontSize(sizes[segment.header] || 10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+        
+        // Add spacing before headers
+        if (yPosition > 50) yPosition += 3;
+      } else if (segment.code) {
+        // Code blocks
+        doc.setFontSize(9);
+        doc.setFont('courier', 'normal');
+        doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+        
+        // Add background for code blocks
+        const codeLines = doc.splitTextToSize(segment.text, 165);
+        const codeHeight = codeLines.length * 4.5 + 2;
+        if (yPosition + codeHeight > 270) {
+          doc.addPage();
+          addPageHeader(doc, black, white);
+          yPosition = 45;
+        }
+        doc.setFillColor(247, 247, 247);
+        doc.rect(20, yPosition - 3, 170, codeHeight, 'F');
+      } else if (segment.blockquote) {
+        // Blockquotes
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+      } else {
+        // Regular text
+        doc.setFontSize(10);
+        const style = segment.bold && segment.italic ? 'bolditalic' :
+                     segment.bold ? 'bold' :
+                     segment.italic ? 'italic' : 'normal';
+        doc.setFont('helvetica', style);
+        doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+      }
+      
+      // Handle list items
+      let textToRender = segment.text;
+      let indent = 20;
+      if (segment.listItem) {
+        if (segment.list === 'bullet') {
+          textToRender = `• ${segment.text}`;
+        } else if (segment.list === 'number') {
+          listCounter++;
+          textToRender = `${listCounter}. ${segment.text}`;
+        }
+        indent = 25;
+      } else if (!segment.listItem && listCounter > 0) {
+        listCounter = 0; // Reset counter when list ends
+      }
+      
+      // Handle blockquotes with left border
+      if (segment.blockquote) {
+        indent = 30;
+        doc.setDrawColor(mediumGray[0], mediumGray[1], mediumGray[2]);
+        doc.setLineWidth(0.5);
+      }
+      
+      // Split and render text
+      const lines = doc.splitTextToSize(textToRender, 170 - (indent - 20));
+      lines.forEach((line: string, lineIndex: number) => {
+        if (yPosition > 270) {
           doc.addPage();
           addPageHeader(doc, black, white);
           yPosition = 45;
         }
         
-        try {
-          const imageAdded = await addImageToPDF(doc, part.src, 20, yPosition, 170);
-          if (imageAdded.success) {
-            yPosition = imageAdded.newY + 5;
-          } else {
-            // Show image URL as fallback
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
-            doc.text(`[Image: ${part.src}]`, 20, yPosition);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-            yPosition += 5;
-          }
-        } catch (error) {
-          // Fallback for failed images
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'italic');
-          doc.setTextColor(mediumGray[0], mediumGray[1], mediumGray[2]);
-          doc.text(`[Image: ${part.src}]`, 20, yPosition);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
-          yPosition += 5;
+        // Draw blockquote border
+        if (segment.blockquote && lineIndex === 0) {
+          doc.line(25, yPosition - 2, 25, yPosition + (lines.length * 5) - 3);
         }
+        
+        // Render text with potential link
+        if (segment.link && !segment.code) {
+          doc.setTextColor(accentBlue[0], accentBlue[1], accentBlue[2]);
+          doc.textWithLink(line, indent, yPosition, { url: segment.link });
+          doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+        } else {
+          doc.text(line, indent, yPosition);
+        }
+        
+        yPosition += segment.code ? 4.5 : 5;
+      });
+      
+      // Reset font after code blocks
+      if (segment.code) {
+        doc.setFont('helvetica', 'normal');
+      }
+      
+      // Add extra spacing after certain elements
+      if (segment.header || segment.blockquote) {
+        yPosition += 2;
       }
     }
     
@@ -557,7 +711,130 @@ function addPageHeader(doc: jsPDF, black: [number, number, number], white: [numb
   doc.text('Continued...', 190, 13, { align: 'right' });
 }
 
-// Helper function to clean HTML content
+// Helper function to parse HTML and extract formatted content
+interface FormattedText {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  header?: 1 | 2 | 3 | 4 | 5 | 6;
+  link?: string;
+  list?: 'bullet' | 'number';
+  listItem?: boolean;
+  code?: boolean;
+  blockquote?: boolean;
+}
+
+function parseHtmlToFormattedText(html: string): FormattedText[] {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  const formatted: FormattedText[] = [];
+  
+  function processNode(node: Node, parentStyles: Partial<FormattedText> = {}): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim();
+      if (text) {
+        formatted.push({ ...parentStyles, text });
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      const tagName = element.tagName.toLowerCase();
+      let styles = { ...parentStyles };
+      
+      // Handle different HTML elements
+      switch (tagName) {
+        case 'h1':
+          styles = { header: 1 };
+          break;
+        case 'h2':
+          styles = { header: 2 };
+          break;
+        case 'h3':
+          styles = { header: 3 };
+          break;
+        case 'h4':
+          styles = { header: 4 };
+          break;
+        case 'h5':
+          styles = { header: 5 };
+          break;
+        case 'h6':
+          styles = { header: 6 };
+          break;
+        case 'strong':
+        case 'b':
+          styles.bold = true;
+          break;
+        case 'em':
+        case 'i':
+          styles.italic = true;
+          break;
+        case 'a':
+          styles.link = (element as HTMLAnchorElement).href;
+          break;
+        case 'ul':
+          styles.list = 'bullet';
+          break;
+        case 'ol':
+          styles.list = 'number';
+          break;
+        case 'li':
+          styles.listItem = true;
+          break;
+        case 'code':
+        case 'pre':
+          styles.code = true;
+          break;
+        case 'blockquote':
+          styles.blockquote = true;
+          break;
+        case 'br':
+          formatted.push({ text: '\n' });
+          return;
+        case 'p':
+        case 'div':
+          // Process children then add line break
+          Array.from(node.childNodes).forEach(child => processNode(child, styles));
+          formatted.push({ text: '\n' });
+          return;
+      }
+      
+      // Process child nodes
+      Array.from(node.childNodes).forEach(child => processNode(child, styles));
+      
+      // Add line break after block elements
+      if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote'].includes(tagName)) {
+        formatted.push({ text: '\n' });
+      }
+    }
+  }
+  
+  Array.from(tempDiv.childNodes).forEach(node => processNode(node));
+  
+  // Merge consecutive text nodes with same formatting
+  const merged: FormattedText[] = [];
+  let current: FormattedText | null = null;
+  
+  for (const item of formatted) {
+    if (current && 
+        current.bold === item.bold && 
+        current.italic === item.italic && 
+        current.header === item.header &&
+        current.link === item.link &&
+        current.code === item.code &&
+        current.blockquote === item.blockquote &&
+        !item.listItem) {
+      current.text += item.text;
+    } else {
+      if (current) merged.push(current);
+      current = { ...item };
+    }
+  }
+  if (current) merged.push(current);
+  
+  return merged;
+}
+
+// Helper function to clean HTML content (fallback for simple text extraction)
 function cleanHtmlContent(html: string): string {
   // Remove HTML tags but preserve structure
   let text = html
