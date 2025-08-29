@@ -59,12 +59,13 @@ const RightSidebar: React.FC = () => {
       setLoading(true);
       console.log('Loading sidebar data...');
       
-      // Load recent BOLOs
+      // Load recent BOLOs (only active ones for sidebar)
       try {
         const bolosResponse = await boloApi.getBOLOFeed({
           limit: 10,
           sortBy: 'created_at',
-          sortOrder: 'DESC'
+          sortOrder: 'DESC',
+          status: 'active' // Only show active BOLOs in sidebar
         });
         setRecentBOLOs(bolosResponse.bolos || []);
       } catch (error) {

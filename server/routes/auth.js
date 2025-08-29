@@ -350,13 +350,23 @@ router.delete('/users/:id',
         
         // Get admin user ID to reassign content
         const adminUser = await client.query(
-          'SELECT id FROM users WHERE username = $1 LIMIT 1',
+          'SELECT id, username FROM users WHERE username = $1 LIMIT 1',
           ['admin']
         );
         const adminId = adminUser.rows[0]?.id || 1; // Fallback to ID 1 if admin user not found
+        const adminUsername = adminUser.rows[0]?.username || 'admin';
         
-        // Reassign posts to admin
-        await client.query('UPDATE posts SET user_id = $1 WHERE user_id = $2', [adminId, id]);
+        // Get the username of the user being deleted for posts table
+        const deletedUser = await client.query(
+          'SELECT username FROM users WHERE id = $1',
+          [id]
+        );
+        const deletedUsername = deletedUser.rows[0]?.username;
+        
+        // Reassign posts to admin (posts table uses author_name, not user_id)
+        if (deletedUsername) {
+          await client.query('UPDATE posts SET author_name = $1 WHERE author_name = $2', [adminUsername, deletedUsername]);
+        }
         
         // Reassign BOLOs to admin
         const bolosExists = await client.query(`
