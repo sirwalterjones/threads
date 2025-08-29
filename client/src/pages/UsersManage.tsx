@@ -135,7 +135,8 @@ const UsersManage: React.FC = () => {
       setSuccess('');
       const res = await apiService.updateUser(user.id, {
         role: user.role,
-        isActive: typeof user.isActive === 'boolean' ? user.isActive : user.is_active
+        isActive: typeof user.isActive === 'boolean' ? user.isActive : user.is_active,
+        modules: user.modules
       } as any);
       const updated = res.user as any;
       setUsers((prev) => {
@@ -147,7 +148,8 @@ const UsersManage: React.FC = () => {
       // Track user edit
       await auditService.trackUserEdit(user.id, {
         role: user.role,
-        isActive: typeof user.isActive === 'boolean' ? user.isActive : user.is_active
+        isActive: typeof user.isActive === 'boolean' ? user.isActive : user.is_active,
+        modules: user.modules
       });
       
       setSuccess('User updated');
@@ -219,6 +221,11 @@ const UsersManage: React.FC = () => {
       if (Object.keys(updateData).length === 0) {
         setError('No changes to save');
         return;
+      }
+      
+      // Include modules in the update data if they've been modified
+      if (editDialog.user.modules) {
+        updateData.modules = editDialog.user.modules;
       }
       
       const res = await apiService.updateUser(editDialog.user.id, updateData);

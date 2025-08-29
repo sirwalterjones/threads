@@ -131,6 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const systemAdminPages = [
     { text: 'Categories', icon: <CategoryIcon />, path: '/categories', roles: ['admin'] },
     { text: 'User Management', icon: <PeopleIcon />, path: '/users', roles: ['admin'] },
+    { text: 'BOLO Management', icon: <BOLOIcon />, path: '/bolo/manage', roles: ['admin'] },
     { text: 'Intel Approval', icon: <IntelIcon />, path: '/intel-reports/approval', roles: ['admin'], badge: () => pendingIntelCount },
     { text: 'Post Expiration', icon: <ExpirationIcon />, path: '/expiration', roles: ['admin'] },
     { text: 'Audit Log', icon: <AuditIcon />, path: '/audit', roles: ['admin'] },
@@ -342,93 +343,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         )}
       </Box>
 
-      {/* User Info at Bottom */}
-      {user && (
-        <>
-          <Box 
-            onClick={handleMenuOpen}
-            sx={{ 
-              p: 3, 
-              borderTop: '1px solid #2F3336',
-              backgroundColor: '#000000',
-              flexShrink: 0,
-              cursor: 'pointer',
-              borderRadius: '16px',
-              mx: 2,
-              mb: 2,
-              '&:hover': {
-                backgroundColor: '#16181C'
-              }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  backgroundColor: '#1D9BF0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontWeight: 700
-                }}
-              >
-                {user.username[0]?.toUpperCase()}
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" sx={{ 
-                  color: '#E7E9EA', 
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {user.username}
-                </Typography>
-                <Typography variant="caption" sx={{ 
-                  color: '#71767B', 
-                  fontSize: '12px'
-                }}>
-                  @{user.username.toLowerCase()}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* User Menu */}
-          <Menu
-            id="user-menu"
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{
-              sx: {
-                backgroundColor: '#000000',
-                border: '1px solid #2F3336',
-                color: '#E7E9EA',
-                minWidth: 200
-              }
-            }}
-            MenuListProps={{
-              'aria-labelledby': 'user-button',
-            }}
-            transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-            anchorOrigin={{ horizontal: 'left', vertical: 'top' }}
-          >
-            <MenuItem onClick={handleProfile} sx={{ color: '#E7E9EA' }}>
-              <SettingsIcon sx={{ mr: 2 }} />
-              Profile Settings
-            </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ color: '#E7E9EA' }}>
-              <LogoutIcon sx={{ mr: 2 }} />
-              Logout
-            </MenuItem>
-          </Menu>
-        </>
-      )}
+      {/* User Info at Bottom - Removed per request */}
     </Box>
   );
 };
