@@ -33,19 +33,21 @@ interface ImageInfo {
 // Cache for loaded images
 const imageCache: Map<string, ImageInfo> = new Map();
 
-// Professional color palette
+// Vector Intelligence color palette
 const colors = {
-  primary: [25, 35, 60],        // Deep navy blue for headers
-  secondary: [70, 80, 95],       // Charcoal for body text
+  primary: [255, 255, 255],      // White for headers on black
+  secondary: [255, 255, 255],     // White for body text on black
   accent: [41, 98, 255],         // Bright blue for links
-  muted: [120, 130, 145],        // Soft gray for metadata
-  light: [245, 247, 250],        // Very light gray for backgrounds
-  border: [220, 225, 230],       // Light border color
+  muted: [180, 180, 180],        // Light gray for metadata
+  light: [30, 30, 30],           // Dark gray for subtle backgrounds
+  border: [60, 60, 60],          // Dark border color
+  headerBg: [0, 0, 0],           // Black background for header
+  bodyBg: [10, 10, 10],          // Very dark background
   success: [34, 197, 94],        // Green for success
   warning: [251, 146, 60],       // Orange for warnings
   danger: [239, 68, 68],         // Red for critical
-  code: [45, 55, 72],            // Dark blue-gray for code
-  codeBg: [248, 250, 252],       // Light background for code blocks
+  code: [200, 200, 200],         // Light gray for code
+  codeBg: [20, 20, 20],          // Dark background for code blocks
 };
 
 // Typography settings
@@ -94,9 +96,19 @@ function parseHtmlToFormattedText(html: string): FormattedText[] {
   
   function processNode(node: Node, parentStyles: Partial<FormattedText> = {}): void {
     if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent?.trim();
+      const text = node.textContent;
       if (text) {
-        formatted.push({ ...parentStyles, text });
+        // Split text by line breaks to preserve formatting
+        const lines = text.split('\n');
+        lines.forEach((line, index) => {
+          if (line.trim()) {
+            formatted.push({ ...parentStyles, text: line });
+          }
+          // Add line break between lines (but not after the last one)
+          if (index < lines.length - 1) {
+            formatted.push({ text: '\n', ...parentStyles });
+          }
+        });
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
@@ -126,6 +138,7 @@ function parseHtmlToFormattedText(html: string): FormattedText[] {
         case 'strong':
         case 'b':
           styles.bold = true;
+          // Add line break after bold text if followed by a line break
           break;
         case 'em':
         case 'i':
@@ -165,9 +178,18 @@ function parseHtmlToFormattedText(html: string): FormattedText[] {
       // Process children
       element.childNodes.forEach(child => processNode(child, styles));
       
-      // Add line break after block elements
+      // Add line break after block elements and bold elements followed by line breaks
       if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre'].includes(tagName)) {
         if (formatted.length > 0 && !formatted[formatted.length - 1].text.endsWith('\n')) {
+          formatted.push({ text: '\n', ...parentStyles });
+        }
+      }
+      
+      // Special handling for bold text that appears to be a label (ends with colon or is short)
+      if ((tagName === 'strong' || tagName === 'b') && formatted.length > 0) {
+        const lastItem = formatted[formatted.length - 1];
+        if (lastItem.bold && (lastItem.text.endsWith(':') || lastItem.text.length < 50)) {
+          // This looks like a label, add extra spacing after it
           formatted.push({ text: '\n', ...parentStyles });
         }
       }
@@ -312,34 +334,34 @@ export async function downloadPDF(
   let currentPage = 1;
   let yPosition = 20;
 
-  // Professional header with branding
+  // Vector Intelligence header with branding
   const addProfessionalHeader = (pageNum: number) => {
-    // Header background
-    doc.setFillColor(colors.light[0], colors.light[1], colors.light[2]);
-    doc.rect(0, 0, 210, 15, 'F');
+    // Black header background
+    doc.setFillColor(colors.headerBg[0], colors.headerBg[1], colors.headerBg[2]);
+    doc.rect(0, 0, 210, 18, 'F');
     
-    // Logo/Title area
+    // Vector logo placeholder (V in a circle)
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(1);
+    doc.circle(10, 9, 4);
+    doc.setFont(fonts.heading, 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('V', 10, 10, { align: 'center' });
+    
+    // Title
     doc.setFont(fonts.heading, 'bold');
     doc.setFontSize(fontSizes.h4);
     doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-    doc.text('THREADS INTELLIGENCE', 10, 8);
+    doc.text('VECTOR INTELLIGENCE', 18, 10);
     
-    // Date and page number
+    // Page number
     doc.setFont(fonts.body, 'normal');
     doc.setFontSize(fontSizes.small);
     doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-    const dateStr = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    doc.text(dateStr, 105, 8, { align: 'center' });
-    doc.text(`Page ${pageNum}`, 195, 8, { align: 'right' });
+    doc.text(`Page ${pageNum}`, 195, 10, { align: 'right' });
     
-    // Header separator line
-    doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
-    doc.setLineWidth(0.5);
-    doc.line(10, 12, 200, 12);
+    // No separator line needed with black background
   };
 
   // Add footer with subtle branding
@@ -354,64 +376,24 @@ export async function downloadPDF(
     doc.text('Confidential - Internal Use Only', 105, 290, { align: 'center' });
   };
 
-  // Add first page header
-  addProfessionalHeader(currentPage);
-  addFooter();
-
-  // Title page with summary
-  doc.setFont(fonts.heading, 'bold');
-  doc.setFontSize(fontSizes.h1);
-  doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  doc.text('Intelligence Report', 105, 35, { align: 'center' });
-  
-  doc.setFont(fonts.body, 'normal');
-  doc.setFontSize(fontSizes.body);
-  doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 45, { align: 'center' });
-  doc.text(`Total Posts: ${posts.length}`, 105, 52, { align: 'center' });
-  
-  if (options.user) {
-    doc.text(`Exported by: ${options.user.username}`, 105, 59, { align: 'center' });
-  }
-
-  // Table of Contents
-  if (posts.length > 1) {
-    yPosition = 75;
-    doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(fontSizes.h3);
-    doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-    doc.text('Table of Contents', 10, yPosition);
-    yPosition += 8;
-    
-    doc.setFont(fonts.body, 'normal');
-    doc.setFontSize(fontSizes.small);
-    
-    posts.forEach((post, index) => {
-      if (yPosition > 270) {
-        doc.addPage();
-        currentPage++;
-        addProfessionalHeader(currentPage);
-        addFooter();
-        yPosition = 25;
-      }
-      
-      doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-      const tocEntry = `${index + 1}. ${post.title.substring(0, 80)}${post.title.length > 80 ? '...' : ''}`;
-      doc.text(tocEntry, 15, yPosition);
-      yPosition += 5;
-    });
-  }
+  // Start with first post immediately - no title page or table of contents
 
   // Process each post
   for (let postIndex = 0; postIndex < posts.length; postIndex++) {
     const post = posts[postIndex];
     
-    // Start new page for each post
-    doc.addPage();
-    currentPage++;
-    addProfessionalHeader(currentPage);
-    addFooter();
-    yPosition = 25;
+    // Start new page for each post (first post gets page 1)
+    if (postIndex === 0) {
+      addProfessionalHeader(currentPage);
+      addFooter();
+      yPosition = 25;
+    } else {
+      doc.addPage();
+      currentPage++;
+      addProfessionalHeader(currentPage);
+      addFooter();
+      yPosition = 25;
+    }
 
     // Post number indicator
     doc.setFont(fonts.body, 'normal');
@@ -453,18 +435,18 @@ export async function downloadPDF(
     doc.setFont(fonts.body, 'normal');
     doc.text(post.author_name, 28, yPosition + 2);
     
-    // Date
+    // Date Generated (instead of post date to avoid Invalid Date)
     doc.setFont(fonts.body, 'bold');
-    doc.text('Date:', 12, yPosition + 7);
+    doc.text('Date Generated:', 12, yPosition + 7);
     doc.setFont(fonts.body, 'normal');
-    const postDate = new Date(post.wp_published_date).toLocaleDateString('en-US', {
+    const generatedDate = new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.text(postDate, 24, yPosition + 7);
+    doc.text(generatedDate, 40, yPosition + 7);
     
     // Category
     if (post.category_name) {
@@ -621,6 +603,9 @@ export async function downloadPDF(
       } else if (segment.blockquote) {
         yPosition += 2;
       } else if (segment.code) {
+        yPosition += 2;
+      } else if (segment.bold && segment.text.trim().endsWith(':')) {
+        // Add extra space after bold labels (like "Date of Report:")
         yPosition += 2;
       }
     }
