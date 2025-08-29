@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const pdfGenerator = require('../services/pdfGenerator');
-const authenticateToken = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 // Export posts to PDF
 router.post('/pdf', authenticateToken, async (req, res) => {
