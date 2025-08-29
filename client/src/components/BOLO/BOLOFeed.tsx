@@ -420,7 +420,7 @@ const BOLOFeed: React.FC = () => {
   const displayBolos = tabValue === 0 ? bolos : savedBolos;
 
   return (
-    <Box className="bolo-feed-page" sx={{ backgroundColor: '#0b0d10', minHeight: '100vh' }}>
+    <Box className="bolo-feed-page" sx={{ backgroundColor: '#000000', minHeight: '100vh' }}>
       <Container maxWidth="lg">
         {/* Header Controls */}
         <Box className="feed-controls">
@@ -500,7 +500,7 @@ const BOLOFeed: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={() => navigate('/bolo/manage')}
+                onClick={() => navigate('/bolo/new')}
                 className="create-btn"
               >
                 Create BOLO

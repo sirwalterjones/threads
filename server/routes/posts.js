@@ -497,8 +497,8 @@ router.get('/following', authenticateToken, async (req, res) => {
         p.metadata, p.category_id, c.name as category_name, c.slug as category_slug,
         COALESCE(p.tags, '{}') as tags,
         COALESCE(
-          (SELECT json_agg(
-            json_build_object(
+          (SELECT jsonb_agg(
+            jsonb_build_object(
               'id', f.id,
               'filename', f.filename,
               'original_name', f.original_name,
@@ -509,7 +509,7 @@ router.get('/following', authenticateToken, async (req, res) => {
           ) FROM post_attachments pa 
            JOIN files f ON pa.file_id = f.id 
            WHERE pa.post_id = p.id), 
-          '[]'::json
+          '[]'::jsonb
         ) as attachments,
         COALESCE(
           (SELECT COUNT(*) FROM comments WHERE post_id = p.id),

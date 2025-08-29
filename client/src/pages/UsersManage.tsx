@@ -54,7 +54,18 @@ const UsersManage: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
   const [editDialog, setEditDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
-  const [editUser, setEditUser] = useState({ username: '', email: '', password: '', role: 'view' });
+  const [editUser, setEditUser] = useState({ 
+    username: '', 
+    email: '', 
+    password: '', 
+    role: 'view',
+    modules: {
+      search: true,
+      hotlist: true,
+      bolo: true,
+      intel: true
+    }
+  });
   const [editing, setEditing] = useState(false);
   const [force2FADialog, setForce2FADialog] = useState<{ open: boolean; user: any; setup?: any }>({ open: false, user: null });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; user: any }>({ open: false, user: null });
@@ -152,14 +163,31 @@ const UsersManage: React.FC = () => {
       username: user.username,
       email: user.email,
       password: '',
-      role: user.role
+      role: user.role,
+      modules: user.modules || {
+        search: true,
+        hotlist: true,
+        bolo: true,
+        intel: true
+      }
     });
     setEditDialog({ open: true, user });
   };
 
   const closeEditDialog = () => {
     setEditDialog({ open: false, user: null });
-    setEditUser({ username: '', email: '', password: '', role: 'view' });
+    setEditUser({ 
+      username: '', 
+      email: '', 
+      password: '', 
+      role: 'view',
+      modules: {
+        search: true,
+        hotlist: true,
+        bolo: true,
+        intel: true
+      }
+    });
   };
 
   const handleEdit = async () => {
@@ -182,6 +210,10 @@ const UsersManage: React.FC = () => {
       }
       if (editUser.role !== editDialog.user.role) {
         updateData.role = editUser.role;
+      }
+      // Check if modules have changed
+      if (JSON.stringify(editUser.modules) !== JSON.stringify(editDialog.user.modules || {})) {
+        updateData.modules = editUser.modules;
       }
       
       if (Object.keys(updateData).length === 0) {
@@ -746,6 +778,57 @@ const UsersManage: React.FC = () => {
             <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
             <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
           </TextField>
+          
+          {/* Module Permissions */}
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1 }}>Module Permissions</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={editUser.modules?.search || false}
+                    onChange={(e) => setEditUser(s => ({ ...s, modules: { ...s.modules, search: e.target.checked } }))}
+                    sx={{ color: '#8B98A5', '&.Mui-checked': { color: '#1D9BF0' } }}
+                  />
+                }
+                label="Search"
+                sx={{ color: '#E7E9EA' }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={editUser.modules?.hotlist || false}
+                    onChange={(e) => setEditUser(s => ({ ...s, modules: { ...s.modules, hotlist: e.target.checked } }))}
+                    sx={{ color: '#8B98A5', '&.Mui-checked': { color: '#1D9BF0' } }}
+                  />
+                }
+                label="Hot List"
+                sx={{ color: '#E7E9EA' }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={editUser.modules?.bolo || false}
+                    onChange={(e) => setEditUser(s => ({ ...s, modules: { ...s.modules, bolo: e.target.checked } }))}
+                    sx={{ color: '#8B98A5', '&.Mui-checked': { color: '#1D9BF0' } }}
+                  />
+                }
+                label="BOLO"
+                sx={{ color: '#E7E9EA' }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={editUser.modules?.intel || false}
+                    onChange={(e) => setEditUser(s => ({ ...s, modules: { ...s.modules, intel: e.target.checked } }))}
+                    sx={{ color: '#8B98A5', '&.Mui-checked': { color: '#1D9BF0' } }}
+                  />
+                }
+                label="Intel Reports"
+                sx={{ color: '#E7E9EA' }}
+              />
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
           <Button onClick={closeEditDialog} disabled={editing} sx={{ color: '#E7E9EA' }}>Cancel</Button>

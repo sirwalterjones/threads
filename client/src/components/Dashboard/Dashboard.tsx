@@ -337,7 +337,7 @@ const Dashboard: React.FC = () => {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search your threads..."
+            placeholder="Search your data..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleKeyPress}

@@ -33,23 +33,23 @@ interface ImageInfo {
 // Cache for loaded images
 const imageCache: Map<string, ImageInfo> = new Map();
 
-// Vector Intelligence dark theme color palette
+// Professional PDF color palette (for printing)
 const colors = {
-  primary: [255, 255, 255],      // White for main headers on dark bg
-  secondary: [200, 200, 200],    // Light gray for body text on dark bg
-  accent: [41, 98, 255],         // Bright blue for links
-  muted: [150, 150, 150],        // Medium gray for metadata
-  light: [30, 30, 30],           // Dark gray for subtle backgrounds
-  border: [60, 60, 60],          // Dark border color
-  headerBg: [0, 0, 0],           // Black background for header
-  headerText: [255, 255, 255],   // White text for header
-  bodyBg: [20, 20, 20],          // Dark background for body
-  fieldBg: [35, 35, 35],         // Slightly lighter dark for field backgrounds
-  success: [34, 197, 94],        // Green for success
-  warning: [251, 146, 60],       // Orange for warnings
-  danger: [239, 68, 68],         // Red for critical
-  code: [200, 200, 200],         // Light gray for code on dark bg
-  codeBg: [40, 40, 40],          // Dark background for code blocks
+  primary: [0, 0, 0],            // Black for main headers
+  secondary: [0, 0, 0],          // Black for body text
+  accent: [0, 51, 153],          // Dark blue for links
+  muted: [102, 102, 102],        // Gray for metadata
+  light: [245, 245, 245],        // Light gray for backgrounds
+  border: [204, 204, 204],       // Light gray border
+  headerBg: [245, 245, 245],     // Light gray background for header
+  headerText: [0, 0, 0],         // Black text for header
+  bodyBg: [255, 255, 255],       // White background for body
+  fieldBg: [250, 250, 250],      // Very light gray for field backgrounds
+  success: [0, 128, 0],          // Green for success
+  warning: [255, 140, 0],        // Orange for warnings
+  danger: [220, 20, 60],         // Red for critical
+  code: [0, 0, 0],               // Black for code
+  codeBg: [245, 245, 245],       // Light gray background for code blocks
 };
 
 // Typography settings
@@ -60,22 +60,22 @@ const fonts = {
 };
 
 const fontSizes = {
-  h1: 18,
-  h2: 16,
-  h3: 14,
-  h4: 13,
-  h5: 12,
-  h6: 11,
-  body: 11,
-  small: 9,
-  tiny: 8,
-  code: 10,
+  h1: 20,
+  h2: 18,
+  h3: 16,
+  h4: 14,
+  h5: 13,
+  h6: 12,
+  body: 12,
+  small: 10,
+  tiny: 9,
+  code: 11,
 };
 
 const lineHeights = {
-  heading: 1.4,
-  body: 1.6,
-  code: 1.4,
+  heading: 1.5,
+  body: 1.8,
+  code: 1.5,
 };
 
 // Helper function to parse HTML and extract formatted content
@@ -335,27 +335,17 @@ export async function downloadPDF(
   let currentPage = 1;
   let yPosition = 20;
 
-  // Vector Intelligence header with branding
+  // Professional header
   const addProfessionalHeader = (pageNum: number) => {
-    // Black header background
+    // Light gray header background
     doc.setFillColor(colors.headerBg[0], colors.headerBg[1], colors.headerBg[2]);
-    doc.rect(0, 0, 210, 18, 'F');
+    doc.rect(0, 0, 210, 15, 'F');
     
-    // VECTOR logo - V in blue, ECTOR in white
+    // Organization name
     doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(14);
-    
-    // V in blue
-    doc.setTextColor(41, 98, 255);
-    doc.text('V', 10, 11);
-    
-    // ECTOR in white (moved closer to V)
-    doc.setTextColor(255, 255, 255);
-    doc.text('ECTOR', 14.5, 11);
-    
-    // INTELLIGENCE in white (smaller)
-    doc.setFontSize(10);
-    doc.text('INTELLIGENCE', 48, 11);
+    doc.setFontSize(12);
+    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
+    doc.text('VECTOR INTELLIGENCE', 10, 10);
     
     // Page number
     doc.setFont(fonts.body, 'normal');
@@ -653,22 +643,25 @@ export async function downloadPDF(
         }
         
         // Professional line spacing (like Word document)
-        const lineSpacing = segment.header ? 7 :
-                          segment.code ? 4.5 :
-                          segment.blockquote ? 5 : 
-                          5;
+        const lineSpacing = segment.header ? 8 :
+                          segment.code ? 5 :
+                          segment.blockquote ? 6 : 
+                          6;
         yPosition += lineSpacing;
       });
       
       // Add professional spacing after elements (like Word)
       if (segment.header) {
-        yPosition += segment.header <= 2 ? 3 : 2;
+        yPosition += segment.header <= 2 ? 5 : 3;
       } else if (segment.blockquote) {
-        yPosition += 2;
+        yPosition += 3;
       } else if (segment.code) {
-        yPosition += 2;
+        yPosition += 3;
       } else if (segment.bold && segment.text.trim().endsWith(':')) {
         // Add space after bold labels (like "Date of Report:")
+        yPosition += 2;
+      } else if (!segment.header && !segment.code && !segment.blockquote) {
+        // Add small space after regular paragraphs
         yPosition += 1;
       }
     }

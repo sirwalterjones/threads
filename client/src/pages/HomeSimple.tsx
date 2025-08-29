@@ -661,7 +661,7 @@ const HomeSimple: React.FC = () => {
                 <TextField
                   fullWidth
                   variant="outlined"
-                  placeholder={location.pathname === '/my-threads' ? "Search your threads..." : "Search your threads..."}
+                  placeholder={location.pathname === '/my-threads' ? "Search your data..." : "Search your data..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -840,7 +840,7 @@ const HomeSimple: React.FC = () => {
               <TextField
                 fullWidth
                 variant="outlined"
-                placeholder="Search your threads..."
+                placeholder="Search your data..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}

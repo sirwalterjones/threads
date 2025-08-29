@@ -124,8 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   const contentPages = [
     { text: 'Add Thread', icon: <AddIcon />, path: '#new', roles: ['edit', 'admin'] },
-    { text: 'Add Intel Report', icon: <IntelIcon />, path: '#new-intel', roles: ['edit', 'admin'] },
-    { text: 'Add BOLO', icon: <BOLOIcon />, path: '#new-bolo', roles: ['edit', 'admin'] }
+    { text: 'Add Intel Report', icon: <IntelIcon />, path: '/intel-reports/new', roles: ['edit', 'admin'] },
+    { text: 'Add BOLO', icon: <BOLOIcon />, path: '/bolo/new', roles: ['edit', 'admin'] }
   ];
 
   const systemAdminPages = [

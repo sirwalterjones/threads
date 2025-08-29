@@ -308,8 +308,50 @@ router.delete('/users/:id',
         return res.status(403).json({ error: 'Cannot delete super admin accounts' });
       }
       
-      // Delete the user
-      await pool.query('DELETE FROM users WHERE id = $1', [id]);
+      // Start a transaction to handle cascading deletes
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        // Delete related records first to avoid foreign key constraints
+        // Delete audit logs
+        await client.query('DELETE FROM audit_log WHERE user_id = $1', [id]);
+        await client.query('DELETE FROM cjis_audit_log WHERE user_id = $1', [id]);
+        
+        // Delete user sessions
+        await client.query('DELETE FROM user_sessions WHERE user_id = $1', [id]);
+        
+        // Delete user follows
+        await client.query('DELETE FROM user_follows WHERE user_id = $1', [id]);
+        
+        // Delete password history
+        await client.query('DELETE FROM password_history WHERE user_id = $1', [id]);
+        
+        // Delete MFA data
+        await client.query('DELETE FROM user_mfa WHERE user_id = $1', [id]);
+        
+        // Delete comments
+        await client.query('DELETE FROM comments WHERE user_id = $1', [id]);
+        
+        // Delete notifications
+        await client.query('DELETE FROM notifications WHERE user_id = $1 OR from_user_id = $1', [id]);
+        
+        // Delete search history
+        await client.query('DELETE FROM search_history WHERE user_id = $1', [id]);
+        
+        // Delete hot list alerts
+        await client.query('DELETE FROM hot_list_alerts WHERE user_id = $1', [id]);
+        
+        // Now delete the user
+        await client.query('DELETE FROM users WHERE id = $1', [id]);
+        
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
       
       res.json({
         message: 'User deleted successfully',
@@ -329,7 +371,7 @@ router.put('/users/:id',
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { role, isActive, username, email, password } = req.body;
+      const { role, isActive, username, email, password, modules } = req.body;
       
       if (parseInt(id) === req.user.id) {
         return res.status(400).json({ error: 'Cannot modify your own account' });
@@ -412,6 +454,13 @@ router.put('/users/:id',
       if (typeof isActive === 'boolean') {
         updateFields.push(`is_active = $${paramIndex}`);
         queryParams.push(isActive);
+        paramIndex++;
+      }
+      
+      // Modules update
+      if (modules) {
+        updateFields.push(`modules = $${paramIndex}`);
+        queryParams.push(JSON.stringify(modules));
         paramIndex++;
       }
       
