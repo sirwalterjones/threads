@@ -77,12 +77,6 @@ export async function generateProfessionalPDF(
     const vWidth = doc.getTextWidth('V');
     doc.text('ECTOR', leftMargin + vWidth, yPosition);
     
-    // White "INTELLIGENCE"
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    const vectorWidth = doc.getTextWidth('VECTOR');
-    doc.text('INTELLIGENCE', leftMargin + vectorWidth + 0.2, yPosition);
-    
     // Page number on the right in white
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
@@ -150,12 +144,12 @@ export async function generateProfessionalPDF(
     });
     doc.text(generatedTime, pageWidth - rightMargin - 2.5 + timeLabelWidth + 0.1, yPosition);
     
-    yPosition += 0.3;
+    yPosition += 0.25;
     
     // Title section with underline
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
-    const reportTitle = post.title || 'Intelligence Report';
+    const reportTitle = post.intel_number || post.title || 'Intelligence Report';
     const titleWidth = doc.getTextWidth(reportTitle);
     doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPosition);
     
@@ -168,68 +162,72 @@ export async function generateProfessionalPDF(
       yPosition + 0.05
     );
     
-    yPosition += 0.4;
+    yPosition += 0.3;
     
     // Report content section
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     
-    // Author Information
-    if (post.author_name || post.agent_name) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Author:', leftMargin, yPosition);
-      doc.setFont('helvetica', 'normal');
-      doc.text(post.author_name || post.agent_name || 'Unknown', leftMargin + 1, yPosition);
-      yPosition += 0.25;
-    }
-    
-    // Classification
-    if (post.classification || post.category_name) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Classification:', leftMargin, yPosition);
-      doc.setFont('helvetica', 'normal');
-      doc.text(post.classification || post.category_name || 'Unclassified', leftMargin + 1.5, yPosition);
-      yPosition += 0.25;
-    }
-    
-    // Date of Incident
+    // Date of Report
     if (post.date || post.ingested_at) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Date of Incident:', leftMargin, yPosition);
+      doc.text('Date of Report', leftMargin, yPosition);
+      yPosition += 0.15;
       doc.setFont('helvetica', 'normal');
       const incidentDate = post.date ? 
         new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
         new Date(post.ingested_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      doc.text(incidentDate, leftMargin + 1.5, yPosition);
-      yPosition += 0.25;
+      doc.text(incidentDate, leftMargin, yPosition);
+      yPosition += 0.2;
     }
     
-    // Location
+    // Time of Report  
+    if (post.time || post.ingested_at) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Time of Report', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('helvetica', 'normal');
+      const reportTime = post.time || 
+        new Date(post.ingested_at).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      doc.text(reportTime, leftMargin, yPosition);
+      yPosition += 0.2;
+    }
+    
+    // Incident Location
     if (post.incident_location || post.location) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Location:', leftMargin, yPosition);
+      doc.text('Incident Location', leftMargin, yPosition);
+      yPosition += 0.15;
       doc.setFont('helvetica', 'normal');
       const location = post.incident_location || post.location || 'Not specified';
-      const locationLines = doc.splitTextToSize(location, contentWidth - 1.5);
-      doc.text(locationLines[0], leftMargin + 1, yPosition);
-      if (locationLines.length > 1) {
-        yPosition += 0.2;
-        doc.text(locationLines.slice(1).join(' '), leftMargin + 1, yPosition);
-      }
-      yPosition += 0.25;
+      const locationLines = doc.splitTextToSize(location, contentWidth);
+      locationLines.forEach((line: string, index: number) => {
+        doc.text(line, leftMargin, yPosition);
+        if (index < locationLines.length - 1) {
+          yPosition += 0.15;
+        }
+      });
+      yPosition += 0.2;
     }
     
-    // Horizontal line separator
-    yPosition += 0.1;
-    doc.setLineWidth(0.005);
-    doc.line(leftMargin, yPosition, pageWidth - rightMargin, yPosition);
-    yPosition += 0.2;
+    // Report Title
+    if (post.subject || post.title) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Report Title', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('helvetica', 'normal');
+      doc.text(post.subject || post.title || 'Untitled', leftMargin, yPosition);
+      yPosition += 0.2;
+    }
     
-    // Summary/Narrative section
-    doc.setFontSize(12);
+    // Narrative section (no bold heading, just the content)
     doc.setFont('helvetica', 'bold');
-    doc.text('NARRATIVE', leftMargin, yPosition);
-    yPosition += 0.25;
+    doc.text('Narrative', leftMargin, yPosition);
+    yPosition += 0.15;
     
     // Narrative content
     doc.setFont('helvetica', 'normal');
@@ -348,12 +346,6 @@ function addHeader(doc: jsPDF, pageNum: number, totalPages: number) {
   doc.setTextColor(255, 255, 255);
   const vWidth = doc.getTextWidth('V');
   doc.text('ECTOR', leftMargin + vWidth, yPosition);
-  
-  // White "INTELLIGENCE"
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  const vectorWidth = doc.getTextWidth('VECTOR');
-  doc.text('INTELLIGENCE', leftMargin + vectorWidth + 0.2, yPosition);
   
   // Page number
   doc.setTextColor(255, 255, 255);
