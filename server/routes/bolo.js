@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const boloService = require('../services/boloService');
+const auditLogger = require('../middleware/auditLogger');
 
 // Configure multer for file uploads
 // Use memory storage in production, disk storage in development
@@ -69,6 +70,22 @@ router.post('/create',
       
       // Create BOLO
       const bolo = await boloService.createBOLO(boloData, userId, files);
+      
+      // Log audit event
+      await auditLogger.logEvent({
+        eventType: auditLogger.eventTypes.CJI_CREATE,
+        action: 'CREATE_BOLO',
+        resourceType: 'bolo',
+        resourceId: bolo.id,
+        dataClassification: auditLogger.dataClassifications.CJI,
+        metadata: {
+          bolo_type: boloData.type,
+          title: boloData.title,
+          priority: boloData.priority,
+          media_count: files.length
+        },
+        req
+      });
       
       res.status(201).json({
         success: true,
@@ -189,6 +206,20 @@ router.put('/:id',
       const files = req.files || [];
       
       const updatedBolo = await boloService.updateBOLO(boloId, updates, userId, files);
+      
+      // Log audit event
+      await auditLogger.logEvent({
+        eventType: auditLogger.eventTypes.CJI_UPDATE,
+        action: 'UPDATE_BOLO',
+        resourceType: 'bolo',
+        resourceId: boloId,
+        dataClassification: auditLogger.dataClassifications.CJI,
+        metadata: {
+          updates: Object.keys(updates),
+          media_added: files.length
+        },
+        req
+      });
       
       res.json({
         success: true,

@@ -6,6 +6,7 @@ const { authenticateToken, authorizeRole, auditLog } = require('../middleware/au
 const passwordPolicy = require('../middleware/passwordPolicy');
 const loginSecurity = require('../middleware/loginSecurity');
 const sessionManager = require('../middleware/sessionManager');
+const auditLogger = require('../middleware/auditLogger');
 const validator = require('validator');
 const router = express.Router();
 

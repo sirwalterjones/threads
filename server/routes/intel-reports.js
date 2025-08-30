@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { authenticateToken, authorizeRole, auditLog } = require('../middleware/auth');
+const auditLogger = require('../middleware/auditLogger');
 const multer = require('multer');
 const path = require('path');
 
@@ -337,6 +338,25 @@ router.post('/', authenticateToken, auditLog('create_intel_report', 'intel_repor
     }
 
     await client.query('COMMIT');
+
+    // Log audit event for Intel Report creation
+    await auditLogger.logEvent({
+      eventType: auditLogger.eventTypes.CJI_CREATE,
+      action: 'CREATE_INTEL_REPORT',
+      resourceType: 'intel_report',
+      resourceId: reportId,
+      dataClassification: classification === 'Classified' ? 
+        auditLogger.dataClassifications.CJI : 
+        auditLogger.dataClassifications.SENSITIVE,
+      metadata: {
+        intel_number,
+        classification,
+        subject,
+        case_number,
+        files_attached: req.files ? req.files.length : 0
+      },
+      req
+    });
 
     res.status(201).json({
       message: 'Intel report created successfully',
@@ -694,7 +714,7 @@ router.get('/expiring', authenticateToken, async (req, res) => {
         SELECT 
           ir.id,
           ir.intel_number as title,
-          ir.report_narrative as content,
+          ir.summary as content,
           u.username as author_name,
           ir.created_at,
           ir.expires_at as retention_date,
