@@ -231,9 +231,9 @@ router.post('/', authenticateToken, auditLog('create_intel_report', 'intel_repor
     // Generate intel number if not provided
     const finalIntelNumber = intel_number || await generateIntelNumber();
 
-    // Set expiration date (default: 1 year from now)
+    // Set expiration date (default: 5 years from now)
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 5);
 
     // Insert main report
     const reportQuery = `
