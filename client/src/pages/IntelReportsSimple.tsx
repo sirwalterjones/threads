@@ -364,9 +364,9 @@ const IntelReportsSimple: React.FC = () => {
           flex: '1 1 200px', 
           textAlign: 'center', 
           cursor: 'pointer',
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
-          '&:hover': { backgroundColor: '#2F3336' }
+          '&:hover': { backgroundColor: '#0F1419' }
         }} 
               onClick={() => setStatusFilter('pending')}>
           <CardContent sx={{ py: 2 }}>
@@ -378,9 +378,9 @@ const IntelReportsSimple: React.FC = () => {
           flex: '1 1 200px', 
           textAlign: 'center', 
           cursor: 'pointer',
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
-          '&:hover': { backgroundColor: '#2F3336' }
+          '&:hover': { backgroundColor: '#0F1419' }
         }}>
           <CardContent sx={{ py: 2 }}>
             <Typography variant="h4" sx={{ color: '#f44336' }}>{expiredCount}</Typography>
@@ -391,9 +391,9 @@ const IntelReportsSimple: React.FC = () => {
           flex: '1 1 200px', 
           textAlign: 'center', 
           cursor: 'pointer',
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
-          '&:hover': { backgroundColor: '#2F3336' }
+          '&:hover': { backgroundColor: '#0F1419' }
         }}>
           <CardContent sx={{ py: 2 }}>
             <Typography variant="h4" sx={{ color: '#ff9800' }}>{expiringSoonCount}</Typography>
@@ -404,9 +404,9 @@ const IntelReportsSimple: React.FC = () => {
           flex: '1 1 200px', 
           textAlign: 'center', 
           cursor: 'pointer',
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
-          '&:hover': { backgroundColor: '#2F3336' }
+          '&:hover': { backgroundColor: '#0F1419' }
         }}
               onClick={() => setStatusFilter('approved')}>
           <CardContent sx={{ py: 2 }}>
@@ -422,7 +422,7 @@ const IntelReportsSimple: React.FC = () => {
       <Paper sx={{ 
         p: 2, 
         mb: 3, 
-        backgroundColor: '#1f1f1f',
+        backgroundColor: '#000000',
         border: '1px solid #2F3336',
         '& .MuiInputLabel-root': { 
           color: '#E7E9EA',
@@ -431,7 +431,7 @@ const IntelReportsSimple: React.FC = () => {
         }, 
         '& .MuiOutlinedInput-root': { 
           color: '#E7E9EA',
-          backgroundColor: '#2a2a2a',
+          backgroundColor: '#000000',
           '& .MuiInputBase-input': { 
             color: '#E7E9EA'
           },
@@ -448,8 +448,8 @@ const IntelReportsSimple: React.FC = () => {
         '& .MuiSvgIcon-root': { color: '#E7E9EA' },
         '& .MuiMenuItem-root': { 
           color: '#E7E9EA', 
-          backgroundColor: '#2a2a2a',
-          '&:hover': { backgroundColor: '#3a3a3a' }
+          backgroundColor: '#000000',
+          '&:hover': { backgroundColor: '#0F1419' }
         }
       }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
@@ -462,7 +462,7 @@ const IntelReportsSimple: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#2a2a2a',
+                  backgroundColor: '#000000',
                   '& .MuiInputBase-input': {
                     color: '#E7E9EA'
                   },
@@ -491,7 +491,7 @@ const IntelReportsSimple: React.FC = () => {
                 '&.Mui-focused': { color: '#1D9BF0' }
               },
               '& .MuiOutlinedInput-root': { 
-                backgroundColor: '#2a2a2a',
+                backgroundColor: '#000000',
                 '& .MuiSelect-select': { color: '#E7E9EA' },
                 '& .MuiOutlinedInput-notchedOutline': { 
                   borderColor: '#3a3a3a'
@@ -513,12 +513,12 @@ const IntelReportsSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#16181C',
+                      backgroundColor: '#000000',
                       border: '1px solid #2F3336',
                       '& .MuiMenuItem-root': {
                         color: '#E7E9EA',
                         backgroundColor: 'transparent',
-                        '&:hover': { backgroundColor: '#1D2126' },
+                        '&:hover': { backgroundColor: '#0F1419' },
                         '&.Mui-selected': { 
                           backgroundColor: '#1D9BF0',
                           color: '#ffffff',
@@ -554,7 +554,7 @@ const IntelReportsSimple: React.FC = () => {
         <Paper sx={{ 
           p: 4, 
           textAlign: 'center', 
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336'
         }}>
           <SecurityIcon sx={{ fontSize: 64, color: '#71767B', mb: 2 }} />
@@ -630,13 +630,13 @@ const IntelReportsSimple: React.FC = () => {
         </Box>
       ) : (
         <TableContainer component={Paper} sx={{ 
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
           '& .MuiTable-root': {
-            backgroundColor: '#1f1f1f'
+            backgroundColor: '#000000'
           },
           '& .MuiTableHead-root': {
-            backgroundColor: '#2a2a2a',
+            backgroundColor: '#000000',
             '& .MuiTableCell-root': {
               color: '#E7E9EA',
               borderBottom: '1px solid #2F3336',
@@ -644,11 +644,11 @@ const IntelReportsSimple: React.FC = () => {
             }
           },
           '& .MuiTableBody-root': {
-            backgroundColor: '#1f1f1f',
+            backgroundColor: '#000000',
             '& .MuiTableRow-root': {
-              backgroundColor: '#1f1f1f',
+              backgroundColor: '#000000',
               '&:hover': {
-                backgroundColor: '#2a2a2a'
+                backgroundColor: '#000000'
               },
               '& .MuiTableCell-root': {
                 color: '#E7E9EA',
@@ -735,7 +735,7 @@ const IntelReportsSimple: React.FC = () => {
         fullScreen={isMobile}
         PaperProps={{
           sx: {
-            backgroundColor: '#1f1f1f',
+            backgroundColor: '#000000',
             color: '#E7E9EA',
             border: '1px solid #2F3336'
           }
@@ -743,7 +743,7 @@ const IntelReportsSimple: React.FC = () => {
       >
         {selectedReport && (
           <>
-            <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+            <DialogTitle sx={{ backgroundColor: '#000000', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
                   Intel Report #{selectedReport.intelNumber}
@@ -755,7 +755,7 @@ const IntelReportsSimple: React.FC = () => {
                 </Box>
               </Box>
             </DialogTitle>
-            <DialogContent dividers sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
+            <DialogContent dividers sx={{ backgroundColor: '#000000', color: '#E7E9EA' }}>
               {selectedReport.isExpired && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   This report has expired on {new Date(selectedReport.expiresAt!).toLocaleDateString()}
@@ -808,7 +808,7 @@ const IntelReportsSimple: React.FC = () => {
                     Subjects ({selectedReport.subjectsData.length})
                   </Typography>
                   {selectedReport.subjectsData.map((subject: any, index: number) => (
-                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#000000', border: '1px solid #3a3a3a' }}>
                       <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
                         Subject {index + 1}
                       </Typography>
@@ -868,7 +868,7 @@ const IntelReportsSimple: React.FC = () => {
                     Organizations ({selectedReport.organizationsData.length})
                   </Typography>
                   {selectedReport.organizationsData.map((org: any, index: number) => (
-                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#000000', border: '1px solid #3a3a3a' }}>
                       <Typography variant="subtitle2" sx={{ color: '#1D9BF0', mb: 1 }}>
                         Organization {index + 1}
                       </Typography>
@@ -904,7 +904,7 @@ const IntelReportsSimple: React.FC = () => {
                     Source Information
                   </Typography>
                   {selectedReport.sourcesData.map((source: any, index: number) => (
-                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                    <Paper key={index} sx={{ p: 2, mb: 2, backgroundColor: '#000000', border: '1px solid #3a3a3a' }}>
                       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
                         <Box>
                           <Typography variant="body2" sx={{ color: '#71767B' }}>Source ID:</Typography>
@@ -971,7 +971,7 @@ const IntelReportsSimple: React.FC = () => {
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2, borderBottom: '1px solid #2F3336', pb: 1 }}>
                     Review Information
                   </Typography>
-                  <Paper sx={{ p: 2, backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a' }}>
+                  <Paper sx={{ p: 2, backgroundColor: '#000000', border: '1px solid #3a3a3a' }}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
                       <Box>
                         <Typography variant="body2" sx={{ color: '#71767B' }}>Reviewed By:</Typography>
@@ -1008,7 +1008,7 @@ const IntelReportsSimple: React.FC = () => {
                     Reviewer notes and actions are listed below. Address the latest rejection comments.
                   </Typography>
                   {selectedReport.reviews.map((note: any) => (
-                    <Box key={note.id} sx={{ p: 2, mb: 2, borderRadius: 2, backgroundColor: '#121416', border: '1px solid #2F3336' }}>
+                    <Box key={note.id} sx={{ p: 2, mb: 2, borderRadius: 2, backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle1" sx={{ color: note.action === 'rejected' ? '#f44336' : note.action === 'approved' ? '#4caf50' : '#1D9BF0', fontWeight: 700 }}>
                           {note.action?.charAt(0).toUpperCase() + note.action?.slice(1)}
@@ -1027,7 +1027,7 @@ const IntelReportsSimple: React.FC = () => {
                 </Box>
               )}
             </DialogContent>
-            <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+            <DialogActions sx={{ backgroundColor: '#000000', borderTop: '1px solid #2F3336' }}>
               {/* Edit button - only for authors and admins, and only if not approved */}
               {((user?.id === selectedReport.agent_id || user?.role === 'admin' || user?.super_admin) && 
                  selectedReport.status !== 'approved') && (

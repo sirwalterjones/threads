@@ -737,7 +737,7 @@ const PostExpiration: React.FC = () => {
                         Created
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#E7E9EA' }}>
-                        {format(parseISO(post.wp_published_date), 'MMM dd, yyyy')}
+                        {post.created_at ? format(parseISO(post.created_at), 'MMM dd, yyyy') : 'N/A'}
                       </Typography>
                     </Box>
                     <Box>

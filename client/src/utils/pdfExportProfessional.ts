@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Post } from '../types';
 
 interface PostWithComments extends Post {
@@ -11,859 +10,302 @@ interface PostWithComments extends Post {
   }>;
 }
 
-// Extend jsPDF types
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-    lastAutoTable: {
-      finalY: number;
-    };
-    previousAutoTable?: {
-      finalY: number;
-    };
-  }
-}
-
-interface ImageInfo {
-  width: number;
-  height: number;
-  data: string;
-}
-
-// Cache for loaded images
-const imageCache: Map<string, ImageInfo> = new Map();
-
-// Professional PDF color palette (for printing)
-const colors = {
-  primary: [0, 0, 0],            // Black for main headers
-  secondary: [0, 0, 0],          // Black for body text
-  accent: [0, 51, 153],          // Dark blue for links
-  muted: [102, 102, 102],        // Gray for metadata
-  light: [245, 245, 245],        // Light gray for backgrounds
-  border: [204, 204, 204],       // Light gray border
-  headerBg: [245, 245, 245],     // Light gray background for header
-  headerText: [0, 0, 0],         // Black text for header
-  bodyBg: [255, 255, 255],       // White background for body
-  fieldBg: [250, 250, 250],      // Very light gray for field backgrounds
-  success: [0, 128, 0],          // Green for success
-  warning: [255, 140, 0],        // Orange for warnings
-  danger: [220, 20, 60],         // Red for critical
-  code: [0, 0, 0],               // Black for code
-  codeBg: [245, 245, 245],       // Light gray background for code blocks
-};
-
-// Typography settings
-const fonts = {
-  heading: 'helvetica',
-  body: 'helvetica',
-  code: 'courier',
-};
-
-const fontSizes = {
-  h1: 20,
-  h2: 18,
-  h3: 16,
-  h4: 14,
-  h5: 13,
-  h6: 12,
-  body: 12,
-  small: 10,
-  tiny: 9,
-  code: 11,
-};
-
-const lineHeights = {
-  heading: 1.5,
-  body: 1.8,
-  code: 1.5,
-};
-
-// Helper function to parse HTML and extract formatted content
-interface FormattedText {
-  text: string;
-  bold?: boolean;
-  italic?: boolean;
-  header?: 1 | 2 | 3 | 4 | 5 | 6;
-  link?: string;
-  list?: 'bullet' | 'number';
-  listItem?: boolean;
-  code?: boolean;
-  blockquote?: boolean;
-  isIntelField?: boolean;
-  isIntelValue?: boolean;
-}
-
-// Helper to format Intel Report fields uniformly
-function formatIntelReportField(label: string, value: string): FormattedText[] {
-  return [
-    { text: label, bold: true, isIntelField: true },
-    { text: '\n', isIntelField: true },
-    { text: value || 'N/A', isIntelValue: true },
-    { text: '\n\n' }
-  ];
-}
-
-function parseHtmlToFormattedText(html: string): FormattedText[] {
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  const formatted: FormattedText[] = [];
-  
-  function processNode(node: Node, parentStyles: Partial<FormattedText> = {}): void {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent;
-      if (text) {
-        // Clean up the text - remove excessive whitespace but preserve intentional spacing
-        const cleanedText = text.replace(/\s+/g, ' ');
-        if (cleanedText.trim()) {
-          formatted.push({ ...parentStyles, text: cleanedText });
-        }
-      }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as HTMLElement;
-      const tagName = element.tagName.toLowerCase();
-      let styles = { ...parentStyles };
-      
-      // Add paragraph break before block elements
-      const isBlockElement = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'pre'].includes(tagName);
-      if (isBlockElement && formatted.length > 0 && formatted[formatted.length - 1].text !== '\n\n') {
-        formatted.push({ text: '\n\n', ...parentStyles });
-      }
-      
-      // Handle different HTML elements
-      switch (tagName) {
-        case 'h1':
-          styles = { header: 1 };
-          break;
-        case 'h2':
-          styles = { header: 2 };
-          break;
-        case 'h3':
-          styles = { header: 3 };
-          break;
-        case 'h4':
-          styles = { header: 4 };
-          break;
-        case 'h5':
-          styles = { header: 5 };
-          break;
-        case 'h6':
-          styles = { header: 6 };
-          break;
-        case 'strong':
-        case 'b':
-          styles.bold = true;
-          break;
-        case 'em':
-        case 'i':
-          styles.italic = true;
-          break;
-        case 'a':
-          styles.link = (element as HTMLAnchorElement).href;
-          break;
-        case 'ul':
-          styles.list = 'bullet';
-          break;
-        case 'ol':
-          styles.list = 'number';
-          break;
-        case 'li':
-          styles.listItem = true;
-          break;
-        case 'code':
-        case 'pre':
-          styles.code = true;
-          break;
-        case 'blockquote':
-          styles.blockquote = true;
-          break;
-        case 'br':
-          formatted.push({ text: '\n', ...parentStyles });
-          return;
-        case 'p':
-        case 'div':
-          // Add line break before block elements if there's existing content
-          if (formatted.length > 0 && !formatted[formatted.length - 1].text.endsWith('\n')) {
-            formatted.push({ text: '\n', ...parentStyles });
-          }
-          break;
-      }
-      
-      // Process children
-      element.childNodes.forEach(child => processNode(child, styles));
-      
-      // Add line break after block elements and bold elements followed by line breaks
-      if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre'].includes(tagName)) {
-        if (formatted.length > 0 && !formatted[formatted.length - 1].text.endsWith('\n')) {
-          formatted.push({ text: '\n', ...parentStyles });
-        }
-      }
-      
-      // Special handling for bold text that appears to be a label (ends with colon or is short)
-      if ((tagName === 'strong' || tagName === 'b') && formatted.length > 0) {
-        const lastItem = formatted[formatted.length - 1];
-        if (lastItem.bold && (lastItem.text.endsWith(':') || lastItem.text.length < 50)) {
-          // This looks like a label, add extra spacing after it
-          formatted.push({ text: '\n', ...parentStyles });
-        }
-      }
-    }
-  }
-  
-  tempDiv.childNodes.forEach(node => processNode(node));
-  return formatted;
-}
-
-// Helper to load and embed images
-async function loadImage(url: string): Promise<ImageInfo | null> {
-  // Check cache first
-  if (imageCache.has(url)) {
-    return imageCache.get(url) || null;
-  }
-
-  try {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      const timeout = setTimeout(() => {
-        console.log('Image load timeout:', url);
-        resolve(null);
-      }, 5000);
-
-      img.onload = () => {
-        clearTimeout(timeout);
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            const info = {
-              width: img.width,
-              height: img.height,
-              data: dataUrl
-            };
-            imageCache.set(url, info);
-            resolve(info);
-          } else {
-            resolve(null);
-          }
-        } catch (err) {
-          console.error('Canvas error:', err);
-          resolve(null);
-        }
-      };
-
-      img.onerror = () => {
-        clearTimeout(timeout);
-        console.log('Image load error:', url);
-        resolve(null);
-      };
-
-      // Try direct URL first, then with proxy
-      if (url.startsWith('http')) {
-        img.src = url;
-      } else if (url.startsWith('/')) {
-        img.src = `${window.location.origin}${url}`;
-      } else {
-        img.src = url;
-      }
-    });
-  } catch (error) {
-    console.error('Error loading image:', error);
-    return null;
-  }
-}
-
-// Add image to PDF with proper scaling
-async function addImageToPDF(
-  doc: jsPDF,
-  imageUrl: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  maxHeight: number = 80
-): Promise<{ success: boolean; newY: number }> {
-  try {
-    const imageInfo = await loadImage(imageUrl);
-    if (!imageInfo) {
-      return { success: false, newY: y };
-    }
-
-    // Calculate dimensions maintaining aspect ratio
-    let width = imageInfo.width;
-    let height = imageInfo.height;
-    const ratio = width / height;
-
-    if (width > maxWidth) {
-      width = maxWidth;
-      height = width / ratio;
-    }
-
-    if (height > maxHeight) {
-      height = maxHeight;
-      width = height * ratio;
-    }
-
-    // Check if image fits on current page
-    if (y + height > 280) {
-      return { success: false, newY: y };
-    }
-
-    doc.addImage(imageInfo.data, 'JPEG', x, y, width, height);
-    return { success: true, newY: y + height };
-  } catch (error) {
-    console.error('Error adding image to PDF:', error);
-    return { success: false, newY: y };
-  }
-}
-
-export async function downloadPDF(
+export async function generateProfessionalPDF(
   posts: PostWithComments[],
-  filename: string = 'threads-export.pdf',
-  options: {
-    includeComments?: boolean;
-    includeTags?: boolean;
-    user?: any;
-  } = {}
-) {
+  reportMetadata?: {
+    reportTitle?: string;
+    author?: string;
+    unit?: string;
+    classification?: string;
+    category?: string;
+  }
+): Promise<void> {
   const doc = new jsPDF({
     orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
+    unit: 'in',
+    format: 'letter'
   });
 
-  // Add custom fonts if available
-  doc.setProperties({
-    title: filename.replace('.pdf', ''),
-    subject: 'Threads Intelligence Export',
-    author: options.user?.username || 'Threads Intel',
-    keywords: 'threads, intelligence, export',
-    creator: 'Threads Intelligence Platform'
-  });
-
+  // Use Courier (monospace) font for the entire document
+  doc.setFont('courier', 'normal');
+  
+  const pageWidth = 8.5;
+  const pageHeight = 11;
+  const leftMargin = 0.75;
+  const rightMargin = 0.75;
+  const topMargin = 0.75;
+  const bottomMargin = 0.75;
+  const contentWidth = pageWidth - leftMargin - rightMargin;
+  
   let currentPage = 1;
-  let yPosition = 20;
-
-  // Professional header
-  const addProfessionalHeader = (pageNum: number) => {
-    // Light gray header background
-    doc.setFillColor(colors.headerBg[0], colors.headerBg[1], colors.headerBg[2]);
-    doc.rect(0, 0, 210, 15, 'F');
-    
-    // Organization name
-    doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
-    doc.text('VECTOR INTELLIGENCE', 10, 10);
-    
-    // Page number
-    doc.setFont(fonts.body, 'normal');
-    doc.setFontSize(fontSizes.small);
-    doc.setTextColor(colors.headerText[0], colors.headerText[1], colors.headerText[2]);
-    doc.text(`Page ${pageNum}`, 195, 10, { align: 'right' });
-  };
-
-  // Add footer with law enforcement notice
-  const addFooter = () => {
-    doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
-    doc.setLineWidth(0.3);
-    doc.line(10, 285, 200, 285);
-    
-    doc.setFont(fonts.body, 'normal');
-    doc.setFontSize(fontSizes.tiny);
-    doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-    
-    // Left/Center: Law Enforcement notice
-    doc.text('Law Enforcement Sensitive - Do Not Release Without Consent', 10, 290);
-    
-    // Right: Cherokee Sheriff's Office
-    doc.text('Cherokee Sheriff\'s Office - Criminal Intelligence Division', 200, 290, { align: 'right' });
-  };
-
-  // Start with first post immediately - no title page or table of contents
-
-  // Process each post
-  for (let postIndex = 0; postIndex < posts.length; postIndex++) {
-    const post = posts[postIndex];
-    
-    // Start new page for each post (first post gets page 1)
-    if (postIndex === 0) {
-      addProfessionalHeader(currentPage);
-      addFooter();
-      yPosition = 25;
-    } else {
+  const totalPages = posts.length;
+  
+  // Process each post as a separate page
+  posts.forEach((post, index) => {
+    if (index > 0) {
       doc.addPage();
       currentPage++;
-      addProfessionalHeader(currentPage);
-      addFooter();
-      yPosition = 25;
     }
-
-    // Post number indicator
-    doc.setFont(fonts.body, 'normal');
-    doc.setFontSize(fontSizes.tiny);
-    doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-    doc.text(`Post ${postIndex + 1} of ${posts.length}`, 195, yPosition, { align: 'right' });
-
-    // Post title with elegant styling
-    doc.setFont(fonts.heading, 'bold');
-    doc.setFontSize(fontSizes.h2);
-    doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
     
-    const titleLines = doc.splitTextToSize(post.title, 180);
-    titleLines.forEach((line: string) => {
-      if (yPosition > 270) {
-        doc.addPage();
-        currentPage++;
-        addProfessionalHeader(currentPage);
-        addFooter();
-        yPosition = 25;
-      }
-      doc.text(line, 10, yPosition);
-      yPosition += 7;
+    let yPosition = topMargin;
+    
+    // Header - VECTOR INTELLIGENCE with page number
+    doc.setFontSize(10);
+    doc.setFont('courier', 'bold');
+    
+    // Split VECTOR and INTELLIGENCE with spaces
+    const vectorText = 'V E C T O R';
+    const intelligenceText = 'I N T E L L I G E N C E';
+    
+    // Blue color for VECTOR
+    doc.setTextColor(0, 123, 255);
+    doc.text(vectorText, leftMargin, yPosition);
+    
+    // Measure VECTOR text width
+    const vectorWidth = doc.getTextWidth(vectorText);
+    
+    // Black color for INTELLIGENCE
+    doc.setTextColor(0, 0, 0);
+    doc.text(intelligenceText, leftMargin + vectorWidth + 0.5, yPosition);
+    
+    // Page number on the right
+    doc.setFont('courier', 'normal');
+    const pageText = `Page ${currentPage}`;
+    doc.text(pageText, pageWidth - rightMargin - doc.getTextWidth(pageText), yPosition);
+    
+    yPosition += 0.15;
+    
+    // Security banner
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    const securityText = 'Law Enforcement Sensitive - Do Not Release Without Consent';
+    const unitText = reportMetadata?.unit || 'Cherokee Sheriff\'s Office - Criminal Intelligence Division';
+    doc.text(securityText, leftMargin, yPosition);
+    yPosition += 0.1;
+    doc.text(unitText, pageWidth - rightMargin - doc.getTextWidth(unitText), yPosition);
+    
+    yPosition += 0.25;
+    
+    // Intel Report Number/Post ID and post count
+    doc.setFontSize(12);
+    doc.setFont('courier', 'bold');
+    const reportNumber = post.intel_number || `${post.id}`;
+    doc.text(reportNumber, leftMargin, yPosition);
+    
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(10);
+    const postCount = `Post ${index + 1} of ${totalPages}`;
+    doc.text(postCount, pageWidth - rightMargin - doc.getTextWidth(postCount), yPosition);
+    
+    yPosition += 0.25;
+    
+    // Author and Date Generated block with gray background
+    doc.setFillColor(240, 240, 240);
+    doc.rect(leftMargin, yPosition - 0.05, contentWidth, 0.35, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('courier', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    // Author line
+    doc.text('Author:', leftMargin + 0.1, yPosition + 0.05);
+    doc.text(post.author_name || post.agent_name || 'Unknown', leftMargin + 1.2, yPosition + 0.05);
+    
+    // Date Generated line
+    doc.text('Date Generated:', leftMargin + 0.1, yPosition + 0.2);
+    const generatedDate = new Date().toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
     });
-    
-    yPosition += 3;
-
-    // Metadata section with icons/labels
-    doc.setFillColor(colors.light[0], colors.light[1], colors.light[2]);
-    doc.roundedRect(10, yPosition - 3, 190, 20, 2, 2, 'F');
-    
-    doc.setFont(fonts.body, 'normal');
-    doc.setFontSize(fontSizes.small);
-    
-    // Author
-    doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-    doc.setFont(fonts.body, 'bold');
-    doc.text('Author:', 12, yPosition + 2);
-    doc.setFont(fonts.body, 'normal');
-    doc.text(post.author_name, 28, yPosition + 2);
-    
-    // Date Generated (instead of post date to avoid Invalid Date)
-    doc.setFont(fonts.body, 'bold');
-    doc.text('Date Generated:', 12, yPosition + 7);
-    doc.setFont(fonts.body, 'normal');
-    const generatedDate = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    const generatedTime = new Date().toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
     });
-    doc.text(generatedDate, 40, yPosition + 7);
+    doc.text(`${generatedDate}, ${generatedTime}`, leftMargin + 1.8, yPosition + 0.2);
     
-    // Generated By (user who exported)
-    if (options.user?.username) {
-      doc.setFont(fonts.body, 'bold');
-      doc.text('Generated By:', 100, yPosition + 7);
-      doc.setFont(fonts.body, 'normal');
-      doc.text(options.user.username, 125, yPosition + 7);
+    yPosition += 0.5;
+    
+    // Unit/Agency Name - centered
+    doc.setFontSize(14);
+    doc.setFont('courier', 'bold');
+    const agencyName = reportMetadata?.unit?.split('-')[0]?.trim() || 'Cherokee Multi-Agency Narcotics Squad';
+    const agencyWidth = doc.getTextWidth(agencyName);
+    doc.text(agencyName, (pageWidth - agencyWidth) / 2, yPosition);
+    
+    yPosition += 0.3;
+    
+    // Document Type
+    doc.setFontSize(12);
+    doc.setFont('courier', 'normal');
+    const docType = post.classification === 'Intelligence Report' ? 'Investigative Narrative' : post.category_name || 'Report';
+    doc.text(docType, leftMargin, yPosition);
+    
+    yPosition += 0.3;
+    
+    // Report Number (centered)
+    doc.setFontSize(14);
+    doc.setFont('courier', 'bold');
+    const reportNumWidth = doc.getTextWidth(reportNumber);
+    doc.text(reportNumber, (pageWidth - reportNumWidth) / 2, yPosition);
+    
+    yPosition += 0.3;
+    
+    // Report Title (centered)
+    doc.setFontSize(12);
+    doc.setFont('courier', 'normal');
+    const reportTitle = post.title || 'Untitled Report';
+    const titleWidth = doc.getTextWidth(reportTitle);
+    doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPosition);
+    
+    yPosition += 0.4;
+    
+    // Report Fields - Each label on its own line, value on next line
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(11);
+    
+    // Date of Report
+    if (post.date || post.created_at) {
+      doc.text('Date of Report', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('courier', 'normal');
+      const reportDate = post.date ? 
+        new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
+        new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      doc.text(reportDate, leftMargin, yPosition);
+      yPosition += 0.25;
     }
     
-    // Category
-    if (post.category_name) {
-      doc.setFont(fonts.body, 'bold');
-      doc.text('Category:', 12, yPosition + 12);
-      doc.setFont(fonts.body, 'normal');
-      doc.text(post.category_name, 32, yPosition + 12);
-    }
-    
-    // Tags
-    if (options.includeTags && post.tags && post.tags.length > 0) {
-      doc.setFont(fonts.body, 'bold');
-      doc.text('Tags:', 100, yPosition + 2);
-      doc.setFont(fonts.body, 'normal');
-      doc.setTextColor(colors.accent[0], colors.accent[1], colors.accent[2]);
-      const tagStr = post.tags.slice(0, 5).join(', ');
-      doc.text(tagStr, 112, yPosition + 2);
-      doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-    }
-    
-    yPosition += 22;
-
-    // Content section with professional formatting
-    const formattedContent = parseHtmlToFormattedText(post.content);
-    let listCounter = 0;
-    
-    for (let index = 0; index < formattedContent.length; index++) {
-      const segment = formattedContent[index];
-      
-      // Check for page break
-      if (yPosition > 270) {
-        doc.addPage();
-        currentPage++;
-        addProfessionalHeader(currentPage);
-        addFooter();
-        yPosition = 25;
-      }
-      
-      // Handle line breaks - proper paragraph spacing
-      if (segment.text === '\n\n') {
-        yPosition += 6; // Full paragraph break (like Word)
-        continue;
-      } else if (segment.text === '\n') {
-        yPosition += 3; // Single line break
-        continue;
-      }
-      
-      // Skip completely empty text segments (but not line breaks)
-      if (!segment.text.trim()) continue;
-      
-      // Special handling for Intel Report fields
-      if (segment.isIntelField || segment.isIntelValue) {
-        if (segment.isIntelField) {
-          doc.setFont(fonts.heading, 'bold');
-          doc.setFontSize(fontSizes.body);
-          doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-          doc.text(segment.text, 15, yPosition);
-          yPosition += 6;
-        } else if (segment.isIntelValue) {
-          doc.setFont(fonts.body, 'normal');
-          doc.setFontSize(fontSizes.body);
-          doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-          const valueLines = doc.splitTextToSize(segment.text, 170);
-          valueLines.forEach((line: string) => {
-            doc.text(line, 25, yPosition);
-            yPosition += 6;
-          });
-        }
-        continue;
-      }
-      
-      // Set font styles based on formatting
-      if (segment.header) {
-        // Headers with proper spacing and typography
-        const headerSizes = {
-          1: fontSizes.h1,
-          2: fontSizes.h2,
-          3: fontSizes.h3,
-          4: fontSizes.h4,
-          5: fontSizes.h5,
-          6: fontSizes.h6
-        };
-        
-        // Add minimal space before headers
-        if (yPosition > 30) yPosition += segment.header <= 2 ? 2 : 1;
-        
-        doc.setFontSize(headerSizes[segment.header] || fontSizes.h6);
-        doc.setFont(fonts.heading, 'bold');
-        doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-      } else if (segment.code) {
-        // Code blocks with background
-        doc.setFontSize(fontSizes.code);
-        doc.setFont(fonts.code, 'normal');
-        doc.setTextColor(colors.code[0], colors.code[1], colors.code[2]);
-        
-        // Calculate code block dimensions
-        const codeLines = doc.splitTextToSize(segment.text, 180);
-        const codeHeight = codeLines.length * 4 + 4;
-        
-        if (yPosition + codeHeight > 270) {
-          doc.addPage();
-          currentPage++;
-          addProfessionalHeader(currentPage);
-          addFooter();
-          yPosition = 25;
-        }
-        
-        // Code background
-        doc.setFillColor(colors.codeBg[0], colors.codeBg[1], colors.codeBg[2]);
-        doc.roundedRect(12, yPosition - 2, 186, codeHeight, 1, 1, 'F');
-      } else if (segment.blockquote) {
-        // Blockquotes with elegant styling
-        doc.setFontSize(fontSizes.body);
-        doc.setFont(fonts.body, 'italic');
-        doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-      } else {
-        // Regular text with proper typography
-        doc.setFontSize(fontSizes.body);
-        const style = segment.bold && segment.italic ? 'bolditalic' :
-                     segment.bold ? 'bold' :
-                     segment.italic ? 'italic' : 'normal';
-        doc.setFont(fonts.body, style);
-        doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-      }
-      
-      // Handle list items
-      let textToRender = segment.text;
-      let indent = 10;
-      
-      if (segment.listItem) {
-        if (segment.list === 'bullet') {
-          textToRender = `• ${segment.text}`;
-        } else if (segment.list === 'number') {
-          listCounter++;
-          textToRender = `${listCounter}. ${segment.text}`;
-        }
-        indent = 18;
-      } else if (!segment.listItem && listCounter > 0) {
-        listCounter = 0;
-      }
-      
-      // Handle blockquotes with left accent
-      if (segment.blockquote) {
-        indent = 20;
-        doc.setDrawColor(colors.accent[0], colors.accent[1], colors.accent[2]);
-        doc.setLineWidth(1.5);
-      }
-      
-      // Split and render text
-      const lines = doc.splitTextToSize(textToRender, 190 - (indent - 10));
-      
-      lines.forEach((line: string, lineIndex: number) => {
-        if (yPosition > 270) {
-          doc.addPage();
-          currentPage++;
-          addProfessionalHeader(currentPage);
-          addFooter();
-          yPosition = 25;
-        }
-        
-        // Draw blockquote accent line
-        if (segment.blockquote && lineIndex === 0) {
-          doc.line(15, yPosition - 2, 15, yPosition + (lines.length * 5) - 2);
-        }
-        
-        // Render text with potential link
-        if (segment.link && !segment.code) {
-          doc.setTextColor(colors.accent[0], colors.accent[1], colors.accent[2]);
-          doc.textWithLink(line, indent, yPosition, { url: segment.link });
-          doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-        } else if (segment.header && segment.header <= 3) {
-          // Define all Intel Report field labels that should be consistently formatted
-          const intelFieldLabels = [
-            'Date of Report', 'Time of Report', 'Incident Location', 'Report Title',
-            'Narrative', 'Submitting Agent', 'Approving Supervisor', 'Approving Commander'
-          ];
-          
-          const isIntelFieldLabel = intelFieldLabels.some(label => line === label || line.startsWith(label));
-          
-          // Center these specific titles
-          const centeredTitles = [
-            'Investigative Narrative', 'INVESTIGATIVE NARRATIVE',
-            'Cherokee Multi-Agency Narcotics Squad', 'Initial Report', 'Final Report'
-          ];
-          
-          const isCenteredTitle = centeredTitles.includes(line);
-          
-          if (isIntelFieldLabel) {
-            // Consistent left alignment for all field labels
-            doc.setFont(fonts.heading, 'bold');
-            doc.text(line, 15, yPosition);
-          } else if (isCenteredTitle) {
-            // Center specific titles
-            doc.text(line, 105, yPosition, { align: 'center' });
-          } else {
-            // Center other headers
-            doc.text(line, 105, yPosition, { align: 'center' });
-          }
-        } else if (!segment.code && !segment.listItem && line.length < 60 && 
-                   !line.includes('Date of Report') &&
-                   !line.includes('Time of Report') &&
-                   !line.includes('Incident Location') &&
-                   !line.includes('Report Title') &&
-                   !line.includes('Submitting Agent') &&
-                   !line.includes('Approving Supervisor') &&
-                   !line.includes('Approving Commander') &&
-                   !line.match(/^\d{1,2}:\d{2} [AP]M$/i) && // Don't center time values
-                   !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$/i) && // Don't center dates
-                   !line.trim().match(/^\d+\s+[A-Za-z]+/) && // Don't center addresses
-                   (line === line.toUpperCase() || // All caps
-                    line.match(/^\d{2}-\d{4}-\d{2}-\d{2}$/) || // Case number format
-                    line === 'Investigative Narrative' || 
-                    line === 'INVESTIGATIVE NARRATIVE' || 
-                    line === 'Cherokee Multi-Agency Narcotics Squad' ||
-                    line === 'Initial Report' ||
-                    line === 'Final Report')) {
-          // Center only specific headers and case numbers
-          doc.text(line, 105, yPosition, { align: 'center' });
-        } else if (segment.bold && (
-          line.startsWith('Date of Report') ||
-          line.startsWith('Time of Report') ||
-          line.startsWith('Incident Location') ||
-          line.startsWith('Report Title') ||
-          line.startsWith('Narrative') ||
-          line.startsWith('Submitting Agent') ||
-          line.startsWith('Approving')
-        )) {
-          // Intel Report fields - use consistent formatting
-          doc.setFont(fonts.heading, 'bold');
-          doc.text(line, 15, yPosition);
-        } else {
-          // Regular text - check if it's a field value that should be indented
-          const prevSegment = index > 0 ? formattedContent[index - 1] : null;
-          const isFieldValue = prevSegment && prevSegment.bold && (
-            prevSegment.text.includes('Date of Report') ||
-            prevSegment.text.includes('Time of Report') ||
-            prevSegment.text.includes('Incident Location') ||
-            prevSegment.text.includes('Report Title') ||
-            prevSegment.text.includes('Submitting Agent') ||
-            prevSegment.text.includes('Approving')
-          );
-          
-          // Use consistent indentation: 15 for labels, 25 for values
-          const textIndent = segment.code ? 15 : (isFieldValue ? 25 : 15);
-          doc.text(line, textIndent, yPosition);
-        }
-        
-        // Professional line spacing (like Word document)
-        const lineSpacing = segment.header ? 8 :
-                          segment.code ? 5 :
-                          segment.blockquote ? 6 : 
-                          6;
-        yPosition += lineSpacing;
-      });
-      
-      // Add professional spacing after elements (like Word)
-      if (segment.header) {
-        yPosition += segment.header <= 2 ? 5 : 3;
-      } else if (segment.blockquote) {
-        yPosition += 3;
-      } else if (segment.code) {
-        yPosition += 3;
-      } else if (segment.bold && segment.text.trim().endsWith(':')) {
-        // Add space after bold labels (like "Date of Report:")
-        yPosition += 2;
-      } else if (!segment.header && !segment.code && !segment.blockquote) {
-        // Add small space after regular paragraphs
-        yPosition += 1;
-      }
-    }
-    
-    // Images and attachments
-    if (post.attachments && post.attachments.length > 0) {
-      if (yPosition > 260) {
-        doc.addPage();
-        currentPage++;
-        addProfessionalHeader(currentPage);
-        addFooter();
-        yPosition = 25;
-      }
-      
-      yPosition += 5;
-      doc.setFont(fonts.heading, 'bold');
-      doc.setFontSize(fontSizes.h4);
-      doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-      doc.text('Attachments', 10, yPosition);
-      yPosition += 6;
-      
-      for (const attachment of post.attachments) {
-        if (yPosition > 260) {
-          doc.addPage();
-          currentPage++;
-          addProfessionalHeader(currentPage);
-          addFooter();
-          yPosition = 25;
-        }
-        
-        const attachmentWithUrl = attachment as any;
-        if (attachment.mime_type?.startsWith('image/') && attachmentWithUrl.url) {
-          try {
-            const imageResult = await addImageToPDF(doc, attachmentWithUrl.url, 15, yPosition, 120, 100);
-            if (imageResult.success) {
-              // Add image caption
-              doc.setFont(fonts.body, 'italic');
-              doc.setFontSize(fontSizes.small);
-              doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-              doc.text(attachmentWithUrl.title || attachment.filename || 'Image', 15, imageResult.newY + 3);
-              yPosition = imageResult.newY + 8;
-            } else {
-              // Fallback to text
-              doc.setFont(fonts.body, 'normal');
-              doc.setFontSize(fontSizes.small);
-              doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-              doc.text(`• ${attachmentWithUrl.title || attachment.filename || 'Attachment'}`, 15, yPosition);
-              yPosition += 5;
-            }
-          } catch (error) {
-            console.error('Error processing attachment:', error);
-          }
-        } else {
-          // Non-image attachment
-          doc.setFont(fonts.body, 'normal');
-          doc.setFontSize(fontSizes.small);
-          doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-          doc.text(`• ${(attachment as any).title || attachment.filename || 'File'}`, 15, yPosition);
-          yPosition += 5;
-        }
-      }
-    }
-    
-    // Comments section
-    if (options.includeComments && post.comments && post.comments.length > 0) {
-      if (yPosition > 250) {
-        doc.addPage();
-        currentPage++;
-        addProfessionalHeader(currentPage);
-        addFooter();
-        yPosition = 25;
-      }
-      
-      yPosition += 8;
-      doc.setFont(fonts.heading, 'bold');
-      doc.setFontSize(fontSizes.h4);
-      doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-      doc.text(`Comments (${post.comments.length})`, 10, yPosition);
-      yPosition += 6;
-      
-      post.comments.forEach((comment, idx) => {
-        if (yPosition > 260) {
-          doc.addPage();
-          currentPage++;
-          addProfessionalHeader(currentPage);
-          addFooter();
-          yPosition = 25;
-        }
-        
-        // Comment box with subtle background
-        const commentLines = doc.splitTextToSize(comment.content, 175);
-        const commentHeight = commentLines.length * 4 + 8;
-        
-        if (yPosition + commentHeight > 270) {
-          doc.addPage();
-          currentPage++;
-          addProfessionalHeader(currentPage);
-          addFooter();
-          yPosition = 25;
-        }
-        
-        // Comment background
-        doc.setFillColor(colors.light[0], colors.light[1], colors.light[2]);
-        doc.roundedRect(12, yPosition - 2, 186, commentHeight, 1, 1, 'F');
-        
-        // Comment author and date
-        doc.setFont(fonts.body, 'bold');
-        doc.setFontSize(fontSizes.small);
-        doc.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-        doc.text(comment.username || comment.author_name || 'Anonymous', 15, yPosition + 2);
-        
-        if (comment.created_at) {
-          doc.setFont(fonts.body, 'normal');
-          doc.setFontSize(fontSizes.tiny);
-          doc.setTextColor(colors.muted[0], colors.muted[1], colors.muted[2]);
-          const commentDate = new Date(comment.created_at).toLocaleDateString();
-          doc.text(commentDate, 195, yPosition + 2, { align: 'right' });
-        }
-        
-        // Comment content
-        doc.setFont(fonts.body, 'normal');
-        doc.setFontSize(fontSizes.small);
-        doc.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-        
-        yPosition += 6;
-        commentLines.forEach((line: string) => {
-          doc.text(line, 15, yPosition);
-          yPosition += 4;
+    // Time of Report
+    if (post.time || post.created_at) {
+      doc.setFont('courier', 'bold');
+      doc.text('Time of Report', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('courier', 'normal');
+      const reportTime = post.time || 
+        new Date(post.created_at).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
         });
-        
-        yPosition += 4;
-      });
+      // CRITICAL: No leading spaces - value must align with label above
+      doc.text(reportTime, leftMargin, yPosition);
+      yPosition += 0.25;
     }
-  }
-
+    
+    // Incident Location
+    if (post.incident_location || post.location) {
+      doc.setFont('courier', 'bold');
+      doc.text('Incident Location', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('courier', 'normal');
+      const location = post.incident_location || post.location || 'Not specified';
+      doc.text(location, leftMargin, yPosition);
+      yPosition += 0.25;
+    }
+    
+    // Report Title field (if different from header title)
+    if (post.subject) {
+      doc.setFont('courier', 'bold');
+      doc.text('Report Title', leftMargin, yPosition);
+      yPosition += 0.15;
+      doc.setFont('courier', 'normal');
+      doc.text(post.subject, leftMargin, yPosition);
+      yPosition += 0.25;
+    }
+    
+    // Narrative section
+    yPosition += 0.2;
+    doc.setFont('courier', 'bold');
+    doc.setFontSize(12);
+    const narrativeLabel = 'Narrative';
+    const narrativeWidth = doc.getTextWidth(narrativeLabel);
+    doc.text(narrativeLabel, (pageWidth - narrativeWidth) / 2, yPosition);
+    
+    yPosition += 0.25;
+    
+    // Narrative content
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(11);
+    
+    const narrative = post.summary || post.content || 'No narrative available.';
+    const lines = doc.splitTextToSize(narrative, contentWidth);
+    
+    lines.forEach((line: string) => {
+      if (yPosition > pageHeight - bottomMargin - 0.5) {
+        // Add footer before page break
+        addFooter(doc, currentPage);
+        
+        doc.addPage();
+        currentPage++;
+        yPosition = topMargin;
+        
+        // Repeat header on new page
+        addHeader(doc, currentPage, reportNumber, postCount);
+        yPosition = topMargin + 0.8;
+      }
+      
+      doc.text(line, leftMargin, yPosition);
+      yPosition += 0.15;
+    });
+    
+    // Add footer to current page
+    addFooter(doc, currentPage);
+  });
+  
   // Save the PDF
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = reportMetadata?.reportTitle ? 
+    `${reportMetadata.reportTitle.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.pdf` :
+    `intel_report_${timestamp}.pdf`;
+  
   doc.save(filename);
 }
+
+function addHeader(doc: jsPDF, pageNum: number, reportNumber: string, postCount: string) {
+  const pageWidth = 8.5;
+  const leftMargin = 0.75;
+  const rightMargin = 0.75;
+  const topMargin = 0.75;
+  
+  // Header - VECTOR INTELLIGENCE with page number
+  doc.setFontSize(10);
+  doc.setFont('courier', 'bold');
+  
+  const vectorText = 'V E C T O R';
+  const intelligenceText = 'I N T E L L I G E N C E';
+  
+  doc.setTextColor(0, 123, 255);
+  doc.text(vectorText, leftMargin, topMargin);
+  
+  const vectorWidth = doc.getTextWidth(vectorText);
+  
+  doc.setTextColor(0, 0, 0);
+  doc.text(intelligenceText, leftMargin + vectorWidth + 0.5, topMargin);
+  
+  doc.setFont('courier', 'normal');
+  const pageText = `Page ${pageNum}`;
+  doc.text(pageText, pageWidth - rightMargin - doc.getTextWidth(pageText), topMargin);
+}
+
+function addFooter(doc: jsPDF, pageNum: number) {
+  const pageWidth = 8.5;
+  const pageHeight = 11;
+  const leftMargin = 0.75;
+  const rightMargin = 0.75;
+  const bottomMargin = 0.75;
+  
+  doc.setFontSize(8);
+  doc.setFont('courier', 'normal');
+  doc.setTextColor(102, 102, 102);
+  
+  const footerText = 'Law Enforcement Sensitive - Do Not Release Without Consent';
+  const unitText = 'Cherokee Sheriff\'s Office - Criminal Intelligence Division';
+  
+  doc.text(footerText, leftMargin, pageHeight - bottomMargin + 0.2);
+  doc.text(unitText, pageWidth - rightMargin - doc.getTextWidth(unitText), pageHeight - bottomMargin + 0.2);
+}
+
+// Export default for backward compatibility
+export default { generateProfessionalPDF };
