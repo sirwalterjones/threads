@@ -37,8 +37,8 @@ export async function generateProfessionalPDF(
     format: 'letter'
   });
 
-  // Use Courier (monospace) font for the entire document
-  doc.setFont('courier', 'normal');
+  // Set default font
+  doc.setFont('helvetica', 'normal');
   
   const pageWidth = 8.5;
   const pageHeight = 11;
@@ -191,15 +191,16 @@ export async function generateProfessionalPDF(
     yPosition += 0.3;
     
     // Report content section
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
     
-    // Date of Report - LABEL ON ITS OWN LINE, NO COLON
+    // Date of Report - BOLD TITLE
     if (post.date || post.ingested_at) {
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
       doc.text('Date of Report', leftMargin, yPosition);
-      doc.setFont('helvetica', 'normal');
       yPosition += 0.15;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
       const incidentDate = post.date ? 
         new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
         new Date(post.ingested_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -207,12 +208,15 @@ export async function generateProfessionalPDF(
       yPosition += 0.25; // Double space between sections
     }
     
-    // Time of Report - LABEL ON ITS OWN LINE, NO COLON
+    // Time of Report - BOLD TITLE
     if (post.time || post.ingested_at) {
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
       doc.text('Time of Report', leftMargin, yPosition);
-      doc.setFont('helvetica', 'normal');
       yPosition += 0.15;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
       const reportTime = post.time || 
         new Date(post.ingested_at).toLocaleTimeString('en-US', { 
           hour: 'numeric', 
@@ -223,12 +227,15 @@ export async function generateProfessionalPDF(
       yPosition += 0.25; // Double space between sections
     }
     
-    // Incident Location - LABEL ON ITS OWN LINE, NO COLON
+    // Incident Location - BOLD TITLE
     if (post.incident_location || post.location) {
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
       doc.text('Incident Location', leftMargin, yPosition);
-      doc.setFont('helvetica', 'normal');
       yPosition += 0.15;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
       const location = post.incident_location || post.location || 'Not specified';
       const locationLines = doc.splitTextToSize(location, contentWidth);
       
@@ -240,18 +247,23 @@ export async function generateProfessionalPDF(
       yPosition += 0.1; // Extra space after location
     }
     
-    // Report Title - ON SAME LINE - REMOVE COLON AND BOLD
+    // Report Title - BOLD TITLE
     if (post.subject || post.title) {
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
       doc.text('Report Title', leftMargin, yPosition);
+      yPosition += 0.15;
       doc.setFont('helvetica', 'normal');
-      yPosition += 0.15; // Move to next line
+      doc.setFontSize(11);
       doc.text(post.subject || post.title || 'Untitled', leftMargin, yPosition);
       yPosition += 0.25; // Double space before next section
     }
     
-    // Narrative section - BOLD, NO COLON
+    // Narrative section - BOLD TITLE
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text('Narrative', leftMargin, yPosition);
     yPosition += 0.15;
     
