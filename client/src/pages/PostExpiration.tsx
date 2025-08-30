@@ -200,7 +200,7 @@ const PostExpiration: React.FC = () => {
         justifyContent: 'center', 
         alignItems: 'center', 
         height: '50vh',
-        bgcolor: '#0F1419',
+        bgcolor: '#000000',
         color: '#E7E9EA'
       }}>
         <Typography sx={{ color: '#E7E9EA' }}>Loading expiring posts...</Typography>
@@ -211,7 +211,7 @@ const PostExpiration: React.FC = () => {
   return (
     <Box sx={{ 
       p: { xs: 2, sm: 3 }, 
-      bgcolor: '#0F1419', 
+      bgcolor: '#000000', 
       color: '#E7E9EA', 
       minHeight: '100vh' 
     }}>
@@ -624,7 +624,7 @@ const PostExpiration: React.FC = () => {
                               px: 1,
                               color: '#E7E9EA',
                               borderColor: '#2F3336',
-                              '&:hover': { borderColor: '#E7E9EA', bgcolor: '#0F1419' }
+                              '&:hover': { borderColor: '#E7E9EA', bgcolor: '#000000' }
                             }}
                           >
                             +1Y
@@ -759,7 +759,7 @@ const PostExpiration: React.FC = () => {
                       sx={{ 
                         color: '#E7E9EA',
                         borderColor: '#2F3336',
-                        '&:hover': { borderColor: '#E7E9EA', bgcolor: '#0F1419' }
+                        '&:hover': { borderColor: '#E7E9EA', bgcolor: '#000000' }
                       }}
                     >
                       +1 Year

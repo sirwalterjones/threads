@@ -367,7 +367,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
       <Paper sx={{ 
         p: 2, 
         mb: 3, 
-        backgroundColor: '#1f1f1f',
+        backgroundColor: '#000000',
         border: '1px solid #2F3336',
         '& .MuiInputLabel-root': { 
           color: '#8B98A5',
@@ -375,7 +375,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
         }, 
         '& .MuiOutlinedInput-root': { 
           color: '#E7E9EA',
-          backgroundColor: '#1A1A1A',
+          backgroundColor: '#000000',
           '& .MuiOutlinedInput-notchedOutline': { 
             borderColor: '#2F3336',
             '&:hover': { borderColor: '#4A4A4A' }
@@ -397,7 +397,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#16181C',
+                      backgroundColor: '#000000',
                       border: '1px solid #2F3336',
                       '& .MuiMenuItem-root': {
                         color: '#E7E9EA',
@@ -436,7 +436,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
         <Paper sx={{ 
           p: 4, 
           textAlign: 'center', 
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336'
         }}>
           <Typography variant="h6" sx={{ color: '#71767B' }}>
@@ -448,7 +448,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
           {filteredReports.map((report) => (
             <Card key={report.id} sx={{ 
               mb: 2, 
-              backgroundColor: '#1f1f1f',
+              backgroundColor: '#000000',
               border: '1px solid #2F3336'
             }}>
               <CardContent>
@@ -476,7 +476,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 </Typography>
               </CardContent>
               
-              <CardActions sx={{ backgroundColor: '#1f1f1f' }}>
+              <CardActions sx={{ backgroundColor: '#000000' }}>
                 <Button 
                   size="small" 
                   onClick={() => handleViewReport(report)}
@@ -527,10 +527,10 @@ const IntelReportsApprovalSimple: React.FC = () => {
         </Box>
       ) : (
         <TableContainer component={Paper} sx={{ 
-          backgroundColor: '#1f1f1f',
+          backgroundColor: '#000000',
           border: '1px solid #2F3336',
           '& .MuiTable-root': {
-            backgroundColor: '#1f1f1f'
+            backgroundColor: '#000000'
           },
           '& .MuiTableHead-root': {
             backgroundColor: '#2a2a2a',
@@ -541,9 +541,9 @@ const IntelReportsApprovalSimple: React.FC = () => {
             }
           },
           '& .MuiTableBody-root': {
-            backgroundColor: '#1f1f1f',
+            backgroundColor: '#000000',
             '& .MuiTableRow-root': {
-              backgroundColor: '#1f1f1f',
+              backgroundColor: '#000000',
               '&:hover': {
                 backgroundColor: '#2a2a2a'
               },
@@ -681,7 +681,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
         fullScreen={isMobile}
         PaperProps={{
           sx: {
-            backgroundColor: '#1f1f1f',
+            backgroundColor: '#000000',
             color: '#E7E9EA',
             border: '1px solid #2F3336'
           }
@@ -689,7 +689,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
       >
         {selectedReport && (
           <>
-            <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+            <DialogTitle sx={{ backgroundColor: '#000000', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" sx={{ color: '#E7E9EA' }}>
                   Intel Report #{selectedReport.intelNumber}
@@ -700,7 +700,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
                 </Box>
               </Box>
             </DialogTitle>
-            <DialogContent dividers sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
+            <DialogContent dividers sx={{ backgroundColor: '#000000', color: '#E7E9EA' }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" sx={{ color: '#71767B' }}>Agent:</Typography>
                 <Typography variant="body1" sx={{ color: '#E7E9EA' }}>{selectedReport.agentName}</Typography>
@@ -932,7 +932,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
 
               {/* Removed Review Comments/Reviewed By section per request */}
             </DialogContent>
-            <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+            <DialogActions sx={{ backgroundColor: '#000000', borderTop: '1px solid #2F3336' }}>
               {/* Edit button - authors can edit until approved; admins can always edit */}
               {(((user?.id === selectedReport.agent_id) && selectedReport.status !== 'approved') || (user?.role === 'admin' || user?.super_admin)) && (
                 <Button 
@@ -996,16 +996,16 @@ const IntelReportsApprovalSimple: React.FC = () => {
         }}
         PaperProps={{
           sx: {
-            backgroundColor: '#1f1f1f',
+            backgroundColor: '#000000',
             color: '#E7E9EA',
             border: '1px solid #2F3336'
           }
         }}
       >
-        <DialogTitle sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
+        <DialogTitle sx={{ backgroundColor: '#000000', color: '#E7E9EA', borderBottom: '1px solid #2F3336' }}>
           {reviewAction === 'approve' ? 'Approve Report' : 'Reject Report'}
         </DialogTitle>
-        <DialogContent sx={{ backgroundColor: '#1f1f1f', color: '#E7E9EA' }}>
+        <DialogContent sx={{ backgroundColor: '#000000', color: '#E7E9EA' }}>
           <Alert 
             severity={reviewAction === 'approve' ? 'success' : 'error'} 
             sx={{ mb: 2 }}
@@ -1051,7 +1051,7 @@ const IntelReportsApprovalSimple: React.FC = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ backgroundColor: '#1f1f1f', borderTop: '1px solid #2F3336' }}>
+        <DialogActions sx={{ backgroundColor: '#000000', borderTop: '1px solid #2F3336' }}>
           <Button onClick={() => { setReviewDialogOpen(false); setSelectedReport(null); }} sx={{ color: '#1D9BF0' }}>Cancel</Button>
           <Button 
             color={reviewAction === 'approve' ? 'success' : 'error'}

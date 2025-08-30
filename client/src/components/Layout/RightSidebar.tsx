@@ -403,7 +403,7 @@ const RightSidebar: React.FC = () => {
                   bgcolor: 'rgba(29, 161, 242, 0.1)'
                 }
               }}
-              onClick={() => navigate('/bolo')}
+              onClick={() => navigate('/bolo/feed')}
             >
               Show more BOLOs
             </Button>

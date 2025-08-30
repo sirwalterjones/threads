@@ -238,7 +238,7 @@ const SecurityDashboard: React.FC = () => {
   const tabPanelIndex = activeTab;
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#1a1a1a', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#000000', minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -263,7 +263,7 @@ const SecurityDashboard: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Compliance Score */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
+          <Card sx={{ backgroundColor: '#000000', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -291,7 +291,7 @@ const SecurityDashboard: React.FC = () => {
                 value={complianceScore?.score?.overall || 0}
                 sx={{ 
                   mt: 2,
-                  backgroundColor: '#444',
+                  backgroundColor: '#1a1a1a',
                   '& .MuiLinearProgress-bar': {
                     backgroundColor: complianceScore?.score?.overall 
                       ? complianceScore.score.overall >= 90 ? '#4caf50' 
@@ -307,7 +307,7 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Active Incidents */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
+          <Card sx={{ backgroundColor: '#000000', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -331,7 +331,7 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Security Events Today */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
+          <Card sx={{ backgroundColor: '#000000', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -350,7 +350,7 @@ const SecurityDashboard: React.FC = () => {
 
         {/* Active Users */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', boxShadow: 1 }}>
+          <Card sx={{ backgroundColor: '#000000', border: '1px solid #444', boxShadow: 1 }}>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -369,7 +369,7 @@ const SecurityDashboard: React.FC = () => {
       </Grid>
 
       {/* Tabs */}
-      <Paper sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444', mb: 3 }}>
+      <Paper sx={{ backgroundColor: '#000000', border: '1px solid #444', mb: 3 }}>
         <Tabs 
           value={activeTab} 
           onChange={(_, newValue) => setActiveTab(newValue)}
@@ -408,7 +408,7 @@ const SecurityDashboard: React.FC = () => {
                       severity={getAlertSeverityColor(alert.severity)}
                       icon={<ReportProblem />}
                       sx={{ 
-                        backgroundColor: '#2d2d2d',
+                        backgroundColor: '#000000',
                         border: '1px solid',
                         borderColor: alert.severity === 'CRITICAL' ? '#f44336' : 
                                     alert.severity === 'HIGH' ? '#ff9800' : '#2196f3',
@@ -446,7 +446,7 @@ const SecurityDashboard: React.FC = () => {
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
+                  <Card sx={{ backgroundColor: '#000000', border: '1px solid #444' }}>
                     <CardContent>
                       <Typography variant="body2" sx={{ color: '#999' }}>
                         Total Incidents
@@ -458,7 +458,7 @@ const SecurityDashboard: React.FC = () => {
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
+                  <Card sx={{ backgroundColor: '#000000', border: '1px solid #444' }}>
                     <CardContent>
                       <Typography variant="body2" sx={{ color: '#999' }}>
                         Critical Incidents
@@ -470,7 +470,7 @@ const SecurityDashboard: React.FC = () => {
                   </Card>
                 </Grid>
                 <Grid item xs={12} sm={4}>
-                  <Card sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
+                  <Card sx={{ backgroundColor: '#000000', border: '1px solid #444' }}>
                     <CardContent>
                       <Typography variant="body2" sx={{ color: '#999' }}>
                         Avg Resolution Time
@@ -496,7 +496,7 @@ const SecurityDashboard: React.FC = () => {
                   Showing {auditLogs.length} recent audit entries
                 </Typography>
               </Box>
-              <TableContainer component={Paper} sx={{ backgroundColor: '#2d2d2d', border: '1px solid #444' }}>
+              <TableContainer component={Paper} sx={{ backgroundColor: '#000000', border: '1px solid #444' }}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -560,7 +560,7 @@ const SecurityDashboard: React.FC = () => {
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {complianceScore?.score?.policyAreas && Object.entries(complianceScore.score.policyAreas).map(([area, data]) => (
-                  <Box key={area} sx={{ p: 2, backgroundColor: '#2d2d2d', border: '1px solid #444', borderRadius: 1 }}>
+                  <Box key={area} sx={{ p: 2, backgroundColor: '#000000', border: '1px solid #444', borderRadius: 1 }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center">
                       <Typography variant="body1" sx={{ color: '#fff', textTransform: 'capitalize' }}>
                         {formatPolicyAreaName(area)}
@@ -573,7 +573,7 @@ const SecurityDashboard: React.FC = () => {
                             sx={{ 
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: '#444',
+                              backgroundColor: '#1a1a1a',
                               '& .MuiLinearProgress-bar': {
                                 borderRadius: 4,
                                 backgroundColor: data.score >= 90 ? '#4caf50' : 

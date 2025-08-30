@@ -273,7 +273,7 @@ const AuditLog: React.FC = () => {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       {/* Search and Filter Section */}
-      <Card sx={{ mb: 3, backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+      <Card sx={{ mb: 3, backgroundColor: '#000000', border: '1px solid #2F3336' }}>
         <CardContent sx={{ color: '#E7E9EA' }}>
           <Stack spacing={3}>
             {/* Search Field */}
@@ -301,7 +301,7 @@ const AuditLog: React.FC = () => {
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#0F1115',
+                  backgroundColor: '#000000',
                   color: '#E7E9EA',
                   '& fieldset': { borderColor: '#2F3336' },
                   '&:hover fieldset': { borderColor: '#1D9BF0' },
@@ -328,7 +328,7 @@ const AuditLog: React.FC = () => {
                   label="Action Filter"
                   sx={{ 
                     color: '#E7E9EA',
-                    backgroundColor: '#0F1115',
+                    backgroundColor: '#000000',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }
@@ -336,12 +336,12 @@ const AuditLog: React.FC = () => {
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        backgroundColor: '#16181C',
+                        backgroundColor: '#000000',
                         border: '1px solid #2F3336',
                         '& .MuiMenuItem-root': {
                           color: '#E7E9EA',
                           '&:hover': {
-                            backgroundColor: '#2F3336',
+                            backgroundColor: '#1a1a1a',
                           },
                           '&.Mui-selected': {
                             backgroundColor: 'rgba(29, 155, 240, 0.1)',
@@ -374,7 +374,7 @@ const AuditLog: React.FC = () => {
                   label="User Filter"
                   sx={{ 
                     color: '#E7E9EA',
-                    backgroundColor: '#0F1115',
+                    backgroundColor: '#000000',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2F3336' },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1D9BF0' }
@@ -382,12 +382,12 @@ const AuditLog: React.FC = () => {
                   MenuProps={{
                     PaperProps: {
                       sx: {
-                        backgroundColor: '#16181C',
+                        backgroundColor: '#000000',
                         border: '1px solid #2F3336',
                         '& .MuiMenuItem-root': {
                           color: '#E7E9EA',
                           '&:hover': {
-                            backgroundColor: '#2F3336',
+                            backgroundColor: '#1a1a1a',
                           },
                           '&.Mui-selected': {
                             backgroundColor: 'rgba(29, 155, 240, 0.1)',
@@ -440,9 +440,9 @@ const AuditLog: React.FC = () => {
 
       {/* Desktop Table View */}
       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-        <TableContainer component={Paper} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+        <TableContainer component={Paper} sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
           <Table sx={{ minWidth: 650 }} aria-label="audit log table">
-            <TableHead sx={{ backgroundColor: '#0F1115', borderBottom: '1px solid #2F3336' }}>
+            <TableHead sx={{ backgroundColor: '#000000', borderBottom: '1px solid #2F3336' }}>
               <TableRow>
                 <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>Timestamp</TableCell>
                 <TableCell sx={{ color: '#9CA3AF', fontWeight: 600 }}>User</TableCell>
@@ -469,7 +469,7 @@ const AuditLog: React.FC = () => {
                       sx={{ 
                         '&:last-child td, &:last-child th': { border: 0 },
                         '&:hover': {
-                          backgroundColor: '#1C1F23',
+                          backgroundColor: '#000000',
                           borderColor: '#1D9BF0',
                           transform: 'translateY(-1px)',
                           boxShadow: '0 4px 12px rgba(29, 155, 240, 0.15)'
@@ -490,7 +490,7 @@ const AuditLog: React.FC = () => {
                               sx={{
                                 borderColor: '#2F3336',
                                 color: '#E7E9EA',
-                                backgroundColor: '#0F1115'
+                                backgroundColor: '#000000'
                               }}
                             />
                           )}
@@ -575,14 +575,14 @@ const AuditLog: React.FC = () => {
                     {isExpanded && (
                       <TableRow>
                         <TableCell colSpan={7} sx={{ p: 0, border: 0 }}>
-                          <Box sx={{ p: 2, backgroundColor: '#0F1115', borderTop: '1px solid #2F3336' }}>
+                          <Box sx={{ p: 2, backgroundColor: '#000000', borderTop: '1px solid #2F3336' }}>
                             {/* Edit Changes */}
                             {details?.meta?.changes && (
                               <Box sx={{ mb: 2 }}>
                                 <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
                                   Changes Made:
                                 </Typography>
-                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                                   <CardContent sx={{ p: 2 }}>
                                     <pre style={{ 
                                       color: '#E7E9EA', 
@@ -604,7 +604,7 @@ const AuditLog: React.FC = () => {
                                 <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
                                   Request Payload:
                                 </Typography>
-                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                                   <CardContent sx={{ p: 2 }}>
                                     <Stack spacing={1}>
                                       {Object.entries(details.body).map(([key, value]) => (
@@ -644,7 +644,7 @@ const AuditLog: React.FC = () => {
                                 <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600 }}>
                                   Created Data:
                                 </Typography>
-                                <Card sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+                                <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                                   <CardContent sx={{ p: 2 }}>
                                     <pre style={{ 
                                       color: '#E7E9EA', 
@@ -684,7 +684,7 @@ const AuditLog: React.FC = () => {
             const actionColor = getActionColor(entry.action);
             
             return (
-              <Card key={entry.id} sx={{ backgroundColor: '#16181C', border: '1px solid #2F3336' }}>
+              <Card key={entry.id} sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                 <CardContent sx={{ pb: '16px !important' }}>
                   {/* Header Row */}
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -777,7 +777,7 @@ const AuditLog: React.FC = () => {
                           <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600, fontSize: '0.8rem' }}>
                             Changes Made:
                           </Typography>
-                          <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+                          <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                             <CardContent sx={{ p: 1 }}>
                               <pre style={{ 
                                 color: '#E7E9EA', 
@@ -800,7 +800,7 @@ const AuditLog: React.FC = () => {
                           <Typography variant="subtitle2" sx={{ color: '#E7E9EA', mb: 1, fontWeight: 600, fontSize: '0.8rem' }}>
                             Request Payload:
                           </Typography>
-                          <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+                          <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                             <CardContent sx={{ p: 1 }}>
                               <Stack spacing={1}>
                                 {Object.entries(details.body).slice(0, 3).map(([key, value]) => (
@@ -847,7 +847,7 @@ const AuditLog: React.FC = () => {
       {/* Empty State */}
       {paginatedEntries.length === 0 && (
         <Card sx={{ 
-          backgroundColor: '#16181C', 
+          backgroundColor: '#000000', 
           border: '1px solid #2F3336',
           textAlign: 'center',
           py: 6
@@ -882,7 +882,7 @@ const AuditLog: React.FC = () => {
                 color: '#E7E9EA',
                 borderColor: '#2F3336',
                 '&:hover': {
-                  backgroundColor: '#2F3336'
+                  backgroundColor: '#1a1a1a'
                 }
               },
               '& .Mui-selected': {
@@ -902,7 +902,7 @@ const AuditLog: React.FC = () => {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: '#16181C',
+            backgroundColor: '#000000',
             border: '1px solid #2F3336'
           }
         }}
@@ -923,7 +923,7 @@ const AuditLog: React.FC = () => {
           {detailDialog.entry && (
             <Stack spacing={3}>
               {/* Basic Information */}
-              <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+              <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2 }}>
                     Basic Information
@@ -965,7 +965,7 @@ const AuditLog: React.FC = () => {
 
               {/* Raw Data */}
               {detailDialog.entry.new_values && (
-                <Card sx={{ backgroundColor: '#0F1115', border: '1px solid #2F3336' }}>
+                <Card sx={{ backgroundColor: '#000000', border: '1px solid #2F3336' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ color: '#E7E9EA', mb: 2 }}>
                       Raw Audit Data
