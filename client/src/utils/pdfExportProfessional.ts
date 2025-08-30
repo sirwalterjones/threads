@@ -8,6 +8,16 @@ interface PostWithComments extends Post {
     username?: string;
     created_at?: string;
   }>;
+  // Intel Report specific fields
+  intel_number?: string;
+  date?: string;
+  time?: string;
+  incident_location?: string;
+  location?: string;
+  subject?: string;
+  agent_name?: string;
+  classification?: string;
+  summary?: string;
 }
 
 export async function generateProfessionalPDF(
@@ -166,25 +176,25 @@ export async function generateProfessionalPDF(
     doc.setFontSize(11);
     
     // Date of Report
-    if (post.date || post.created_at) {
+    if (post.date || post.ingested_at) {
       doc.text('Date of Report', leftMargin, yPosition);
       yPosition += 0.15;
       doc.setFont('courier', 'normal');
       const reportDate = post.date ? 
         new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
-        new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        new Date(post.ingested_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
       doc.text(reportDate, leftMargin, yPosition);
       yPosition += 0.25;
     }
     
     // Time of Report
-    if (post.time || post.created_at) {
+    if (post.time || post.ingested_at) {
       doc.setFont('courier', 'bold');
       doc.text('Time of Report', leftMargin, yPosition);
       yPosition += 0.15;
       doc.setFont('courier', 'normal');
       const reportTime = post.time || 
-        new Date(post.created_at).toLocaleTimeString('en-US', { 
+        new Date(post.ingested_at).toLocaleTimeString('en-US', { 
           hour: 'numeric', 
           minute: '2-digit',
           hour12: true 
@@ -307,5 +317,26 @@ function addFooter(doc: jsPDF, pageNum: number) {
   doc.text(unitText, pageWidth - rightMargin - doc.getTextWidth(unitText), pageHeight - bottomMargin + 0.2);
 }
 
+// Wrapper function for backward compatibility
+export const downloadPDF = async (
+  posts: PostWithComments[], 
+  filename?: string, 
+  options?: { 
+    includeComments?: boolean; 
+    includeTags?: boolean; 
+    user?: { username?: string; email?: string } 
+  }
+) => {
+  const reportMetadata = {
+    reportTitle: filename?.replace('.pdf', '') || 'Intel Report',
+    author: options?.user?.username || 'Unknown',
+    unit: 'Cherokee Sheriff\'s Office - Criminal Intelligence Division',
+    classification: 'Law Enforcement Sensitive',
+    category: 'Intelligence Report'
+  };
+  
+  return generateProfessionalPDF(posts, reportMetadata);
+};
+
 // Export default for backward compatibility
-export default { generateProfessionalPDF };
+export default { generateProfessionalPDF, downloadPDF };
