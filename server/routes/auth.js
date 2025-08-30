@@ -136,6 +136,36 @@ router.post('/register',
 // CJIS v6.0 Compliant Login
 router.post('/login', auditLog('login_attempt'), loginSecurity.loginHandler());
 
+// Logout endpoint with audit logging
+router.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const username = req.user.username;
+    
+    // Log the logout event
+    await auditLogger.logAuthentication(
+      auditLogger.eventTypes.LOGOUT,
+      userId,
+      username,
+      true,
+      {},
+      req
+    );
+    
+    // Invalidate any session if session management is in place
+    // Note: With JWT tokens, we can't truly invalidate them server-side
+    // The client should discard the token
+    
+    res.json({ 
+      success: true, 
+      message: 'Logged out successfully' 
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
 // Get users for @ mention suggestions
 router.get('/users/mentions', authenticateToken, async (req, res) => {
   try {

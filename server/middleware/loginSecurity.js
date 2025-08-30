@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
+const auditLogger = require('./auditLogger');
 
 /**
  * CJIS v6.0 Compliant Login Security Middleware
@@ -80,25 +81,18 @@ class LoginSecurity {
         const user = result.rows[0];
         
         // Log the failed attempt
-        await pool.query(`
-          INSERT INTO cjis_audit_log (
-            user_id, action, access_result, ip_address, user_agent,
-            data_classification, metadata
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
+        await auditLogger.logAuthentication(
+          auditLogger.eventTypes.LOGIN_FAILED,
           userId,
-          'LOGIN_ATTEMPT',
-          'failed',
-          ipAddress,
-          userAgent,
-          'sensitive',
-          JSON.stringify({
+          null,
+          false,
+          {
             reason: 'invalid_credentials',
             failed_attempts: user.failed_login_attempts,
-            account_locked: user.account_locked_until !== null,
-            timestamp: new Date().toISOString()
-          })
-        ]);
+            account_locked: user.account_locked_until !== null
+          },
+          { headers: { 'x-forwarded-for': ipAddress, 'user-agent': userAgent } }
+        );
 
         // If account is now locked, create security incident
         if (user.failed_login_attempts >= this.maxFailedAttempts) {
@@ -259,23 +253,14 @@ class LoginSecurity {
 
         if (userResult.rows.length === 0) {
           // Log failed attempt for non-existent user
-          await pool.query(`
-            INSERT INTO cjis_audit_log (
-              action, access_result, ip_address, user_agent,
-              data_classification, metadata
-            ) VALUES ($1, $2, $3, $4, $5, $6)
-          `, [
-            'LOGIN_ATTEMPT',
-            'failed',
-            ipAddress,
-            userAgent,
-            'sensitive',
-            JSON.stringify({
-              username,
-              reason: 'user_not_found',
-              timestamp: new Date().toISOString()
-            })
-          ]);
+          await auditLogger.logAuthentication(
+            auditLogger.eventTypes.LOGIN_FAILED,
+            null,
+            username,
+            false,
+            { reason: 'user_not_found' },
+            req
+          );
 
           return res.status(401).json({ 
             error: 'Invalid credentials',
@@ -287,24 +272,14 @@ class LoginSecurity {
 
         // Check if account is active
         if (!user.is_active) {
-          await pool.query(`
-            INSERT INTO cjis_audit_log (
-              user_id, action, access_result, ip_address, user_agent,
-              data_classification, metadata
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `, [
+          await auditLogger.logAuthentication(
+            auditLogger.eventTypes.LOGIN_FAILED,
             user.id,
-            'LOGIN_ATTEMPT',
-            'denied',
-            ipAddress,
-            userAgent,
-            'sensitive',
-            JSON.stringify({
-              username,
-              reason: 'account_inactive',
-              timestamp: new Date().toISOString()
-            })
-          ]);
+            username,
+            false,
+            { reason: 'account_inactive' },
+            req
+          );
 
           return res.status(401).json({ 
             error: 'Account is deactivated',
@@ -351,24 +326,14 @@ class LoginSecurity {
         // Check password expiry
         const passwordExpired = await this.isPasswordExpired(user.id);
         if (passwordExpired) {
-          await pool.query(`
-            INSERT INTO cjis_audit_log (
-              user_id, action, access_result, ip_address, user_agent,
-              data_classification, metadata
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `, [
+          await auditLogger.logAuthentication(
+            auditLogger.eventTypes.LOGIN_FAILED,
             user.id,
-            'LOGIN_ATTEMPT',
-            'denied',
-            ipAddress,
-            userAgent,
-            'sensitive',
-            JSON.stringify({
-              username,
-              reason: 'password_expired',
-              timestamp: new Date().toISOString()
-            })
-          ]);
+            username,
+            false,
+            { reason: 'password_expired' },
+            req
+          );
 
           return res.status(401).json({
             error: 'Password has expired and must be changed',
@@ -400,26 +365,18 @@ class LoginSecurity {
         const session = await this.createSession(user.id, token, ipAddress, userAgent);
 
         // Log successful login
-        await pool.query(`
-          INSERT INTO cjis_audit_log (
-            user_id, session_id, action, access_result, ip_address, user_agent,
-            data_classification, metadata
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        `, [
+        await auditLogger.logAuthentication(
+          auditLogger.eventTypes.LOGIN_SUCCESS,
           user.id,
-          session?.sessionId,
-          'LOGIN_ATTEMPT',
-          'granted',
-          ipAddress,
-          userAgent,
-          'sensitive',
-          JSON.stringify({
-            username,
+          username,
+          true,
+          {
+            sessionId: session?.sessionId,
             session_expires: session?.expiresAt,
-            requires_2fa: user.totp_enabled || user.force_2fa_setup,
-            timestamp: new Date().toISOString()
-          })
-        ]);
+            requires_2fa: user.totp_enabled || user.force_2fa_setup
+          },
+          req
+        );
 
         // Check if 2FA is required
         const requires2FA = user.force_2fa_setup || user.totp_enabled;

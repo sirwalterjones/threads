@@ -75,17 +75,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    const currentUser = user?.username;
+    try {
+      // Call the logout endpoint to log the event server-side
+      await apiService.logout();
+    } catch (error) {
+      console.warn('Failed to log logout on server:', error);
+      // Continue with local logout even if server call fails
+    }
     
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
     apiService.clearToken();
-    
-    // Track logout
-    if (currentUser) {
-      await auditService.trackLogout(currentUser);
-    }
   };
 
   const complete2FA = async (): Promise<void> => {

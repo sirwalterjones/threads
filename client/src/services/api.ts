@@ -71,6 +71,10 @@ class ApiService {
     return response.data;
   }
 
+  async logout(): Promise<void> {
+    await axios.post(`${API_BASE_URL}/auth/logout`);
+  }
+
   async register(userData: UserFormData): Promise<{ user: User }> {
     const response: AxiosResponse<{ user: User }> = await axios.post(
       `${API_BASE_URL}/auth/register`,
