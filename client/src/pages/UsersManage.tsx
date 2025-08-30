@@ -317,11 +317,11 @@ const UsersManage: React.FC = () => {
   return (
     <Box sx={{ 
       p: 2, 
-      bgcolor: '#0F1419', 
+      bgcolor: '#000000', 
       color: '#E7E9EA', 
       minHeight: '100vh',
       '& .MuiPaper-root': {
-        bgcolor: '#16202A !important',
+        bgcolor: '#000000 !important',
         color: '#E7E9EA !important'
       }
     }}>
@@ -346,7 +346,7 @@ const UsersManage: React.FC = () => {
           const isActive = typeof u.isActive === 'boolean' ? u.isActive : !!u.is_active;
           return (
             <Card key={u.id} sx={{ 
-              bgcolor: '#16202A', 
+              bgcolor: '#000000', 
               border: '1px solid #2F3336', 
               color: '#E7E9EA'
             }}>
@@ -386,9 +386,9 @@ const UsersManage: React.FC = () => {
                         setUsers((prev:any)=> prev.map((x:any)=> x.id===u.id? { ...x, role: val }: x));
                       }}
                     >
-                      <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
-                      <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
-                      <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
+                      <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Admin</MenuItem>
+                      <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Edit</MenuItem>
+                      <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>View</MenuItem>
                     </Select>
                   </FormControl>
                   <FormControlLabel
@@ -475,8 +475,8 @@ const UsersManage: React.FC = () => {
           }
         }}
       >
-        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>New User</DialogTitle>
-        <DialogContent sx={{ bgcolor: '#16202A' }}>
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>New User</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#000000' }}>
           <TextField
             label="Username"
             fullWidth
@@ -564,9 +564,9 @@ const UsersManage: React.FC = () => {
             value={newUser.role}
             onChange={(e)=> setNewUser((s)=> ({ ...s, role: e.target.value }))}
           >
-            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
-            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
-            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
+            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Admin</MenuItem>
+            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Edit</MenuItem>
+            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>View</MenuItem>
           </TextField>
           
           {/* Module Access */}
@@ -651,7 +651,7 @@ const UsersManage: React.FC = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+        <DialogActions sx={{ bgcolor: '#000000', borderTop: '1px solid #2F3336' }}>
           <Button onClick={()=> setOpenNew(false)} disabled={creating} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button variant="contained" onClick={handleCreate} disabled={creating || !newUser.username || !newUser.email || !newUser.password}> 
             {creating ? 'Creating...' : 'Create'}
@@ -671,8 +671,8 @@ const UsersManage: React.FC = () => {
           }
         }}
       >
-        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit User</DialogTitle>
-        <DialogContent sx={{ bgcolor: '#16202A' }}>
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Edit User</DialogTitle>
+        <DialogContent sx={{ bgcolor: '#000000' }}>
           <TextField
             label="Username"
             fullWidth
@@ -781,9 +781,9 @@ const UsersManage: React.FC = () => {
             value={editUser.role}
             onChange={(e) => setEditUser((s) => ({ ...s, role: e.target.value }))}
           >
-            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Admin</MenuItem>
-            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>Edit</MenuItem>
-            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>View</MenuItem>
+            <MenuItem value="admin" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Admin</MenuItem>
+            <MenuItem value="edit" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>Edit</MenuItem>
+            <MenuItem value="view" sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>View</MenuItem>
           </TextField>
           
           {/* Module Permissions */}
@@ -837,7 +837,7 @@ const UsersManage: React.FC = () => {
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+        <DialogActions sx={{ bgcolor: '#000000', borderTop: '1px solid #2F3336' }}>
           <Button onClick={closeEditDialog} disabled={editing} sx={{ color: '#E7E9EA' }}>Cancel</Button>
           <Button variant="contained" onClick={handleEdit} disabled={editing || !editUser.username || !editUser.email}>
             {editing ? 'Saving...' : 'Save Changes'}
@@ -858,10 +858,10 @@ const UsersManage: React.FC = () => {
           }
         }}
       >
-        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>
           2FA Force Enabled for {force2FADialog.user?.username}
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: '#16202A' }}>
+        <DialogContent sx={{ bgcolor: '#000000' }}>
           {force2FADialog.setup && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="body1" sx={{ mb: 2, color: '#E7E9EA' }}>
@@ -934,7 +934,7 @@ const UsersManage: React.FC = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+        <DialogActions sx={{ bgcolor: '#000000', borderTop: '1px solid #2F3336' }}>
           <Button 
             onClick={() => setForce2FADialog({ open: false, user: null })} 
             sx={{ color: '#E7E9EA' }}
@@ -950,10 +950,10 @@ const UsersManage: React.FC = () => {
         onClose={() => setDeleteDialog({ open: false, user: null })}
         PaperProps={{ sx: { bgcolor: '#16202A', color: '#E7E9EA' } }}
       >
-        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#16202A' }}>
+        <DialogTitle sx={{ color: '#E7E9EA', bgcolor: '#000000' }}>
           Confirm Delete User
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: '#16202A' }}>
+        <DialogContent sx={{ bgcolor: '#000000' }}>
           <Alert severity="warning" sx={{ mb: 2, bgcolor: '#ff9800', color: '#000' }}>
             Are you sure you want to delete user <strong>{deleteDialog.user?.username}</strong>? This action cannot be undone.
           </Alert>
@@ -963,7 +963,7 @@ const UsersManage: React.FC = () => {
             </Alert>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: '#16202A', borderTop: '1px solid #2F3336' }}>
+        <DialogActions sx={{ bgcolor: '#000000', borderTop: '1px solid #2F3336' }}>
           <Button 
             onClick={() => setDeleteDialog({ open: false, user: null })} 
             sx={{ color: '#E7E9EA' }}

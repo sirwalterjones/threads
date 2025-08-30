@@ -888,12 +888,13 @@ router.get('/expiring', authenticateToken, async (req, res) => {
           ir.id,
           ir.intel_number as title,
           ir.report_narrative as content,
-          ir.agent_name as author_name,
+          u.username as author_name,
           ir.created_at,
           ir.expires_at as retention_date,
           'intel_report' as type,
           ir.classification as category_name
         FROM intel_reports ir
+        LEFT JOIN users u ON ir.agent_id = u.id
         WHERE ir.expires_at IS NOT NULL
           AND ir.expires_at <= NOW() + INTERVAL '${parseInt(daysUntilExpiry)} days'
           AND ir.expires_at > NOW()

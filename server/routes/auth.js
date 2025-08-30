@@ -471,7 +471,7 @@ router.delete('/users/:id',
           await client.query('DELETE FROM search_history WHERE user_id = $1', [id]);
         }
         
-        // Check if hot_list_alerts table exists (different from hot_lists)
+        // Delete hot_list_alerts that belong to user's hot_lists
         const hotListAlertsExists = await client.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -479,7 +479,11 @@ router.delete('/users/:id',
           );
         `);
         if (hotListAlertsExists.rows[0].exists) {
-          await client.query('DELETE FROM hot_list_alerts WHERE user_id = $1', [id]);
+          // Delete alerts for hot lists owned by this user
+          await client.query(`
+            DELETE FROM hot_list_alerts 
+            WHERE hot_list_id IN (SELECT id FROM hot_lists WHERE user_id = $1)
+          `, [id]);
         }
         
         // Now delete the user
