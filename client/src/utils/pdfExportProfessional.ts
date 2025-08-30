@@ -50,7 +50,43 @@ export async function generateProfessionalPDF(
   const headerHeight = 0.8;
   
   let currentPage = 1;
-  const totalPages = posts.length;
+  let totalPages = 1; // Will be updated after calculating actual pages
+  
+  // First pass: calculate total pages needed
+  posts.forEach((post) => {
+    let tempY = headerHeight + 1.5; // Account for header and metadata
+    
+    // Account for narrative content
+    const narrative = post.summary || post.content || 'No narrative available.';
+    const cleanNarrative = narrative
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim();
+    
+    const lines = doc.splitTextToSize(cleanNarrative, contentWidth);
+    tempY += lines.length * 0.18;
+    
+    // Account for comments
+    if (post.comments && post.comments.length > 0) {
+      tempY += 0.4; // Headers
+      post.comments.forEach(comment => {
+        tempY += 0.15; // Comment header
+        const commentLines = doc.splitTextToSize(comment.content || '', contentWidth);
+        tempY += commentLines.length * 0.15 + 0.1;
+      });
+    }
+    
+    // Calculate pages needed for this post
+    const pagesForPost = Math.ceil((tempY - topMargin) / (pageHeight - topMargin - bottomMargin));
+    totalPages += pagesForPost - 1; // -1 because we started with 1
+  });
+  
+  currentPage = 1;
   
   // Process each post as a separate page
   posts.forEach((post, index) => {
@@ -168,65 +204,72 @@ export async function generateProfessionalPDF(
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     
-    // Date of Report
+    // Date of Report - ON SAME LINE
     if (post.date || post.ingested_at) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Date of Report', leftMargin, yPosition);
-      yPosition += 0.15;
+      doc.text('Date of Report:', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
+      const labelWidth = doc.getTextWidth('Date of Report: ');
       const incidentDate = post.date ? 
         new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
         new Date(post.ingested_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      doc.text(incidentDate, leftMargin, yPosition);
-      yPosition += 0.2;
+      doc.text(incidentDate, leftMargin + labelWidth, yPosition);
+      yPosition += 0.15; // Single space between fields
     }
     
-    // Time of Report  
+    // Time of Report - ON SAME LINE
     if (post.time || post.ingested_at) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Time of Report', leftMargin, yPosition);
-      yPosition += 0.15;
+      doc.text('Time of Report:', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
+      const labelWidth = doc.getTextWidth('Time of Report: ');
       const reportTime = post.time || 
         new Date(post.ingested_at).toLocaleTimeString('en-US', { 
           hour: 'numeric', 
           minute: '2-digit',
           hour12: true 
         });
-      doc.text(reportTime, leftMargin, yPosition);
-      yPosition += 0.2;
+      doc.text(reportTime, leftMargin + labelWidth, yPosition);
+      yPosition += 0.15; // Single space between fields
     }
     
-    // Incident Location
+    // Incident Location - ON SAME LINE (or wrapped if too long)
     if (post.incident_location || post.location) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Incident Location', leftMargin, yPosition);
-      yPosition += 0.15;
+      doc.text('Incident Location:', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
+      const labelWidth = doc.getTextWidth('Incident Location: ');
       const location = post.incident_location || post.location || 'Not specified';
-      const locationLines = doc.splitTextToSize(location, contentWidth);
-      locationLines.forEach((line: string, index: number) => {
-        doc.text(line, leftMargin, yPosition);
-        if (index < locationLines.length - 1) {
+      const availableWidth = contentWidth - labelWidth;
+      const locationLines = doc.splitTextToSize(location, availableWidth);
+      
+      // First line on same line as label
+      doc.text(locationLines[0], leftMargin + labelWidth, yPosition);
+      
+      // Additional lines if location wraps
+      if (locationLines.length > 1) {
+        for (let i = 1; i < locationLines.length; i++) {
           yPosition += 0.15;
+          doc.text(locationLines[i], leftMargin + labelWidth, yPosition);
         }
-      });
-      yPosition += 0.2;
+      }
+      yPosition += 0.15; // Single space between fields
     }
     
-    // Report Title
+    // Report Title - ON SAME LINE
     if (post.subject || post.title) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Report Title', leftMargin, yPosition);
-      yPosition += 0.15;
+      doc.text('Report Title:', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
-      doc.text(post.subject || post.title || 'Untitled', leftMargin, yPosition);
-      yPosition += 0.2;
+      const labelWidth = doc.getTextWidth('Report Title: ');
+      doc.text(post.subject || post.title || 'Untitled', leftMargin + labelWidth, yPosition);
+      yPosition += 0.15; // Single space between fields
     }
     
-    // Narrative section (no bold heading, just the content)
+    // Narrative section - ON SAME LINE
+    yPosition += 0.1; // Small gap before narrative
     doc.setFont('helvetica', 'bold');
-    doc.text('Narrative', leftMargin, yPosition);
+    doc.text('Narrative:', leftMargin, yPosition);
     yPosition += 0.15;
     
     // Narrative content

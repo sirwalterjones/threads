@@ -95,6 +95,50 @@ const SecurityDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
+  const fetchDashboardData = async () => {
+    try {
+      setRefreshing(true);
+      const token = localStorage.getItem('token');
+      
+      // Fetch all dashboard data in parallel
+      const [metricsRes, complianceRes, incidentsRes, auditRes, alertsRes] = await Promise.all([
+        fetch(`${process.env.REACT_APP_API_URL}/api/security/metrics`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL}/api/security/compliance-score`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL}/api/security/incident-statistics`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL}/api/audit/recent?limit=50`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL}/api/security/alerts`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (metricsRes.ok) setMetrics(await metricsRes.json());
+      if (complianceRes.ok) setComplianceScore(await complianceRes.json());
+      if (incidentsRes.ok) setIncidents(await incidentsRes.json());
+      if (auditRes.ok) setAuditLogs(await auditRes.json());
+      if (alertsRes.ok) setAlerts(await alertsRes.json());
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   // Restrict access to wrjones only
   if (user?.username !== 'wrjones') {
     return (
@@ -106,101 +150,6 @@ const SecurityDashboard: React.FC = () => {
       </Box>
     );
   }
-
-  useEffect(() => {
-    fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setRefreshing(true);
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        console.error('No authentication token found');
-        setLoading(false);
-        setRefreshing(false);
-        return;
-      }
-
-      // Setup axios config with token
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      };
-
-      // Fetch all dashboard data in parallel
-      const [metricsRes, complianceRes, incidentsRes, auditRes, alertsRes] = await Promise.allSettled([
-        axios.get(`${API_BASE_URL}/security-dashboard/metrics`, config),
-        axios.get(`${API_BASE_URL}/compliance-governance/compliance/score`, config),
-        axios.get(`${API_BASE_URL}/incident-response/statistics`, config),
-        axios.get(`${API_BASE_URL}/security-dashboard/audit-logs?limit=10`, config),
-        axios.get(`${API_BASE_URL}/security-dashboard/alerts`, config)
-      ]);
-
-      // Handle metrics response
-      if (metricsRes.status === 'fulfilled') {
-        setMetrics(metricsRes.value.data);
-      } else if (metricsRes.status === 'rejected') {
-        console.error('Failed to fetch metrics:', metricsRes.reason);
-        // Set default metrics if API fails
-        setMetrics({
-          events_today: 0,
-          active_users: 0,
-          failed_logins: 0,
-          active_sessions: 0
-        });
-      }
-
-      // Handle compliance response
-      if (complianceRes.status === 'fulfilled') {
-        setComplianceScore(complianceRes.value.data);
-      } else if (complianceRes.status === 'rejected') {
-        console.error('Failed to fetch compliance score:', complianceRes.reason);
-      }
-
-      // Handle incidents response
-      if (incidentsRes.status === 'fulfilled') {
-        setIncidents(incidentsRes.value.data);
-      } else if (incidentsRes.status === 'rejected') {
-        console.error('Failed to fetch incidents:', incidentsRes.reason);
-      }
-
-      // Handle audit logs response
-      if (auditRes.status === 'fulfilled') {
-        console.log('Audit logs response:', auditRes.value.data);
-        if (auditRes.value.data?.logs) {
-          setAuditLogs(auditRes.value.data.logs);
-          console.log('Set audit logs:', auditRes.value.data.logs.length, 'entries');
-        }
-      } else if (auditRes.status === 'rejected') {
-        console.error('Failed to fetch audit logs:', auditRes.reason);
-        // Check if it's an auth error
-        if (auditRes.reason?.response?.status === 403) {
-          console.error('Admin privileges required for audit logs');
-        }
-      }
-
-      // Handle alerts response
-      if (alertsRes.status === 'fulfilled') {
-        if (alertsRes.value.data?.alerts) {
-          setAlerts(alertsRes.value.data.alerts);
-        }
-      } else if (alertsRes.status === 'rejected') {
-        console.error('Failed to fetch alerts:', alertsRes.reason);
-      }
-
-      setLoading(false);
-      setRefreshing(false);
-    } catch (error) {
-      console.error('Dashboard fetch error:', error);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
 
   const getComplianceColor = (score: number): "success" | "warning" | "error" => {
     if (score >= 90) return 'success';
