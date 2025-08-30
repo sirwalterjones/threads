@@ -160,9 +160,9 @@ const BOLOManagement: React.FC = () => {
   };
 
   const renderBOLOTable = (boloList: BOLO[]) => (
-    <TableContainer component={Paper} className="table-container" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+    <TableContainer component={Paper} className="table-container" sx={{ backgroundColor: '#000000', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
       <Table className="bolo-table">
-        <TableHead sx={{ backgroundColor: '#1f2226' }}>
+        <TableHead sx={{ backgroundColor: '#000000' }}>
           <TableRow>
             <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Case #</TableCell>
             <TableCell sx={{ color: '#a9b0b6', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Title</TableCell>
@@ -280,7 +280,7 @@ const BOLOManagement: React.FC = () => {
   return (
     <div className="bolo-management-page">
       <Container maxWidth="lg" className="management-container">
-        <Paper className="management-header" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+        <Paper className="management-header" sx={{ backgroundColor: '#000000', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <div>
               <Typography variant="h4" component="h1" className="header-title" sx={{ color: '#ffffff' }}>
@@ -311,8 +311,8 @@ const BOLOManagement: React.FC = () => {
                 onClick={() => setShowCreateForm(true)}
                 className="create-button"
                 sx={{ 
-                  backgroundColor: '#2fa9ff',
-                  '&:hover': { backgroundColor: '#2090e0' }
+                  backgroundColor: '#1D9BF0',
+                  '&:hover': { backgroundColor: '#1a8cd8' }
                 }}
               >
                 Create New BOLO
@@ -327,14 +327,14 @@ const BOLOManagement: React.FC = () => {
           </Box>
         ) : (
           <>
-            <Paper className="management-tabs" sx={{ backgroundColor: '#16181b', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', mt: 3 }}>
+            <Paper className="management-tabs" sx={{ backgroundColor: '#000000', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', mt: 3 }}>
               <Tabs 
                 value={tabValue} 
                 onChange={(e, v) => setTabValue(v)}
                 sx={{
                   '& .MuiTab-root': { color: '#a9b0b6' },
                   '& .Mui-selected': { color: '#2fa9ff' },
-                  '& .MuiTabs-indicator': { backgroundColor: '#2fa9ff' }
+                  '& .MuiTabs-indicator': { backgroundColor: '#1D9BF0' }
                 }}
               >
                 <Tab label={`Active (${getBolosByStatus('active').length})`} />
@@ -427,7 +427,7 @@ const BOLOManagement: React.FC = () => {
         onClose={() => setStatusDialogOpen(false)}
         PaperProps={{
           sx: {
-            backgroundColor: '#16181b',
+            backgroundColor: '#000000',
             color: '#ffffff',
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
           }
