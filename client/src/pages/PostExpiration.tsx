@@ -599,7 +599,7 @@ const PostExpiration: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell sx={{ color: '#8B98A5' }}>
-                      {format(parseISO(post.wp_published_date), 'MMM dd, yyyy')}
+                      {post.created_at ? format(parseISO(post.created_at), 'MMM dd, yyyy') : 'N/A'}
                     </TableCell>
                     <TableCell sx={{ color: '#8B98A5' }}>
                       {post.retention_date ? format(parseISO(post.retention_date), 'MMM dd, yyyy') : 'N/A'}
