@@ -182,21 +182,11 @@ export async function generateProfessionalPDF(
     
     yPosition += 0.25;
     
-    // Title section with underline
-    doc.setFontSize(13);
+    // Main Title section
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    const reportTitle = post.intel_number || post.title || 'Intelligence Report';
-    const titleWidth = doc.getTextWidth(reportTitle);
-    doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPosition);
-    
-    // Underline the title
-    doc.setLineWidth(0.01);
-    doc.line(
-      (pageWidth - titleWidth) / 2, 
-      yPosition + 0.05, 
-      (pageWidth + titleWidth) / 2, 
-      yPosition + 0.05
-    );
+    const mainTitle = post.intel_number || post.title || 'Intelligence Report';
+    doc.text(mainTitle, leftMargin, yPosition);
     
     yPosition += 0.3;
     
@@ -204,72 +194,65 @@ export async function generateProfessionalPDF(
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     
-    // Date of Report - ON SAME LINE
+    // Date of Report - LABEL ON ITS OWN LINE, NO COLON
     if (post.date || post.ingested_at) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Date of Report:', leftMargin, yPosition);
+      doc.text('Date of Report', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
-      const labelWidth = doc.getTextWidth('Date of Report: ');
+      yPosition += 0.15;
       const incidentDate = post.date ? 
         new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) :
         new Date(post.ingested_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      doc.text(incidentDate, leftMargin + labelWidth, yPosition);
-      yPosition += 0.15; // Single space between fields
+      doc.text(incidentDate, leftMargin, yPosition);
+      yPosition += 0.25; // Double space between sections
     }
     
-    // Time of Report - ON SAME LINE
+    // Time of Report - LABEL ON ITS OWN LINE, NO COLON
     if (post.time || post.ingested_at) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Time of Report:', leftMargin, yPosition);
+      doc.text('Time of Report', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
-      const labelWidth = doc.getTextWidth('Time of Report: ');
+      yPosition += 0.15;
       const reportTime = post.time || 
         new Date(post.ingested_at).toLocaleTimeString('en-US', { 
           hour: 'numeric', 
           minute: '2-digit',
           hour12: true 
         });
-      doc.text(reportTime, leftMargin + labelWidth, yPosition);
-      yPosition += 0.15; // Single space between fields
+      doc.text(reportTime, leftMargin, yPosition);
+      yPosition += 0.25; // Double space between sections
     }
     
-    // Incident Location - ON SAME LINE (or wrapped if too long)
+    // Incident Location - LABEL ON ITS OWN LINE, NO COLON
     if (post.incident_location || post.location) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Incident Location:', leftMargin, yPosition);
+      doc.text('Incident Location', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
-      const labelWidth = doc.getTextWidth('Incident Location: ');
+      yPosition += 0.15;
       const location = post.incident_location || post.location || 'Not specified';
-      const availableWidth = contentWidth - labelWidth;
-      const locationLines = doc.splitTextToSize(location, availableWidth);
+      const locationLines = doc.splitTextToSize(location, contentWidth);
       
-      // First line on same line as label
-      doc.text(locationLines[0], leftMargin + labelWidth, yPosition);
-      
-      // Additional lines if location wraps
-      if (locationLines.length > 1) {
-        for (let i = 1; i < locationLines.length; i++) {
-          yPosition += 0.15;
-          doc.text(locationLines[i], leftMargin + labelWidth, yPosition);
-        }
-      }
-      yPosition += 0.15; // Single space between fields
+      // Print location lines
+      locationLines.forEach((line: string) => {
+        doc.text(line, leftMargin, yPosition);
+        yPosition += 0.15;
+      });
+      yPosition += 0.1; // Extra space after location
     }
     
-    // Report Title - ON SAME LINE
+    // Report Title - ON SAME LINE - REMOVE COLON AND BOLD
     if (post.subject || post.title) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Report Title:', leftMargin, yPosition);
+      doc.text('Report Title', leftMargin, yPosition);
       doc.setFont('helvetica', 'normal');
-      const labelWidth = doc.getTextWidth('Report Title: ');
-      doc.text(post.subject || post.title || 'Untitled', leftMargin + labelWidth, yPosition);
-      yPosition += 0.15; // Single space between fields
+      yPosition += 0.15; // Move to next line
+      doc.text(post.subject || post.title || 'Untitled', leftMargin, yPosition);
+      yPosition += 0.25; // Double space before next section
     }
     
-    // Narrative section - ON SAME LINE
-    yPosition += 0.1; // Small gap before narrative
+    // Narrative section - BOLD, NO COLON
     doc.setFont('helvetica', 'bold');
-    doc.text('Narrative:', leftMargin, yPosition);
+    doc.text('Narrative', leftMargin, yPosition);
     yPosition += 0.15;
     
     // Narrative content
